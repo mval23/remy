@@ -1,0 +1,43 @@
+# Remy
+
+Remy is a personal-chef web app. Through a short, friendly conversation it learns what you actually enjoy eating: favorite foods, textures, sauces, sweets, and how much time you have to cook. From that it builds a week of meals, one grocery list, and a timed plan for a single prep day.
+
+It's designed for picky eaters and people who want to eat in a more balanced way without banning the foods they love. Sweets are planned and portioned, never forbidden.
+
+> Remy offers general meal-planning and balance guidance. It isn't medical advice and doesn't replace a doctor or registered dietitian.
+
+## Status
+
+| Part | State |
+| --- | --- |
+| `prototype/` | Clickable prototype of every screen, plus the full product plan (open `prototype/index.html` through a local server) |
+| `app/` Phase 1 | Done: conversational interview, progress and resume, taste profile, saved on the device |
+| `app/` Phase 2 | Next: meal planner, grocery list, prep-day timeline, nutrition balance |
+
+## Run the app
+
+You need [Node.js](https://nodejs.org/) 20 or newer.
+
+```bash
+cd app
+npm install
+npm run dev
+```
+
+Then open http://localhost:5173. Other commands, run from `app/`:
+
+```bash
+npm test
+```
+
+```bash
+npm run build
+```
+
+## Built with
+
+React, Vite, TypeScript, Dexie (on-device storage with IndexedDB), and Vitest.
+
+## License
+
+[Apache License 2.0](LICENSE)
