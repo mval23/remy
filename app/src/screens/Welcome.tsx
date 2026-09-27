@@ -74,6 +74,15 @@ export function Welcome() {
               See my progress
             </button>
           </>
+        ) : s.confirmed ? (
+          <>
+            <button type="button" className="btn wide" onClick={() => actions.go('home')}>
+              <Icon name="cal" /> Go to my week
+            </button>
+            <button type="button" className="btn ghost wide" onClick={() => actions.go('summary')}>
+              Review my profile
+            </button>
+          </>
         ) : s.done ? (
           <>
             <button type="button" className="btn wide" onClick={() => actions.go('summary')}>

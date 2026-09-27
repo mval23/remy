@@ -1,3 +1,4 @@
+import { BottomNav } from '../components/Chrome';
 import { Avatar, Icon } from '../components/Icon';
 import { activeAnswers, applies, formatAnswer, sequence } from '../interview/engine';
 import { allRatings, arr, asPreparations, listText, real, str } from '../interview/helpers';
@@ -44,7 +45,7 @@ export function Summary() {
   return (
     <>
       <header className="head">
-        <button type="button" className="iconbtn" aria-label="Back to welcome" onClick={() => actions.go('welcome')}>
+        <button type="button" className="iconbtn" aria-label={s.confirmed ? 'Back to home' : 'Back to welcome'} onClick={() => actions.go(s.confirmed ? 'home' : 'welcome')}>
           <Icon name="left" size={22} />
         </button>
         <div className="ttl">
@@ -57,8 +58,8 @@ export function Summary() {
           <Avatar />
           <div className="bubble">
             {s.confirmed
-              ? 'This is what I know about you. Change anything, anytime. Meal planning arrives in the next version of the app.'
-              : 'Here’s what I learned. Fix anything that’s off, then confirm.'}
+              ? 'This is what I know about you. Change anything, anytime, and I’ll update the meals you haven’t approved yet.'
+              : 'Here’s what I learned. Fix anything that’s off, then I’ll plan your week.'}
           </div>
         </div>
 
@@ -282,15 +283,16 @@ export function Summary() {
         </button>
         <span className="grow" />
         {s.confirmed ? (
-          <span className="pill p-ok">
-            <Icon name="check" size={13} /> Confirmed
-          </span>
+          <button type="button" className="btn" onClick={() => actions.go('planner')}>
+            See my week <Icon name="right" size={18} />
+          </button>
         ) : (
           <button type="button" className="btn" onClick={actions.confirm}>
-            <Icon name="check" size={18} /> Looks right
+            <Icon name="check" size={18} /> Looks right, plan my week
           </button>
         )}
       </footer>
+      {s.confirmed && <BottomNav />}
     </>
   );
 }

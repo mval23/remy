@@ -1,5 +1,8 @@
 import Dexie, { type Table } from 'dexie';
 import { emptyInterview, type InterviewState } from '../interview/types';
+import { emptyGroceryEdits, type GroceryEdits } from '../planning/grocery';
+import { defaultNutrition, type NutritionSettings } from '../planning/nutrition';
+import type { Variety, WeekPlan } from '../planning/types';
 
 /**
  * On-device storage (IndexedDB, through Dexie).
@@ -20,30 +23,60 @@ class RemyDB extends Dexie {
 
 export const db = new RemyDB();
 
-const INTERVIEW = 'interview';
+/** Everything about the current week, apart from the interview. */
+export interface PlanState {
+  plan: WeekPlan | null;
+  variety: Variety | null;
+  /** Day selected in the planner (0–6). */
+  day: number;
+  groceries: GroceryEdits;
+  nutrition: NutritionSettings;
+  /** Score adjustments from rejected meals, by recipe id. */
+  adj: Record<string, number>;
+  /** Raises protein targets; set later by weekly check-ins. */
+  hungry: boolean;
+}
 
-export async function loadInterview(): Promise<InterviewState> {
+export const emptyPlanState = (): PlanState => ({
+  plan: null,
+  variety: null,
+  day: 0,
+  groceries: emptyGroceryEdits(),
+  nutrition: defaultNutrition(),
+  adj: {},
+  hungry: false,
+});
+
+const INTERVIEW = 'interview';
+const PLAN = 'plan';
+
+async function load<T>(id: string, empty: () => T): Promise<T> {
   try {
-    const row = await db.kv.get(INTERVIEW);
-    return row ? { ...emptyInterview(), ...(row.value as InterviewState) } : emptyInterview();
+    const row = await db.kv.get(id);
+    return row ? { ...empty(), ...(row.value as T) } : empty();
   } catch {
     // Storage can be blocked (private windows, strict settings). The app still works for this visit.
-    return emptyInterview();
+    return empty();
   }
 }
 
-export async function saveInterview(state: InterviewState): Promise<void> {
+async function save(id: string, value: unknown): Promise<void> {
   try {
-    await db.kv.put({ id: INTERVIEW, value: state });
+    await db.kv.put({ id, value });
   } catch {
-    /* see loadInterview */
+    /* see load */
   }
 }
+
+export const loadInterview = () => load<InterviewState>(INTERVIEW, emptyInterview);
+export const saveInterview = (s: InterviewState) => save(INTERVIEW, s);
+export const loadPlanState = () => load<PlanState>(PLAN, emptyPlanState);
+export const savePlanState = (s: PlanState) => save(PLAN, s);
 
 export async function deleteEverything(): Promise<void> {
   try {
     await db.kv.clear();
   } catch {
-    /* see loadInterview */
+    /* see load */
   }
 }

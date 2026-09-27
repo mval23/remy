@@ -12,7 +12,8 @@ It's designed for picky eaters and people who want to eat in a more balanced way
 | --- | --- |
 | `prototype/` | Clickable prototype of every screen, plus the full product plan (open `prototype/index.html` through a local server) |
 | `app/` Phase 1 | Done: conversational interview, progress and resume, taste profile, saved on the device |
-| `app/` Phase 2 | Next: meal planner, grocery list, prep-day timeline, nutrition balance |
+| `app/` Phase 2 | Done: week planner, recipes, grocery list, prep-day timeline, nutrition balance |
+| `app/` Phase 3 | Next: installable app, hosting, sign-in and sync between phone and computer |
 
 ## Run the app
 

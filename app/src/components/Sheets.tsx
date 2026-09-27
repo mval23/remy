@@ -1,19 +1,7 @@
-import type { ReactNode } from 'react';
 import { firstOpen, formatAnswer, isAnswered, sectionStats, sequence } from '../interview/engine';
 import { useRemy } from '../store';
 import { Icon } from './Icon';
-
-function SheetFrame({ children, label }: { children: ReactNode; label: string }) {
-  const { actions } = useRemy();
-  return (
-    <div className="scrim" onClick={(e) => e.target === e.currentTarget && actions.closeSheet()}>
-      <div className="sheet" role="dialog" aria-modal="true" aria-label={label}>
-        <div className="grab" />
-        {children}
-      </div>
-    </div>
-  );
-}
+import { PlanSheets, SheetFrame } from './PlanSheets';
 
 function InterviewMap() {
   const { interview: s, actions } = useRemy();
@@ -99,7 +87,7 @@ function ConfirmRestart() {
   return (
     <SheetFrame label="Start over">
       <h3>Start the interview over?</h3>
-      <p className="sheet-text">This permanently deletes your answers from this device. It can’t be undone.</p>
+      <p className="sheet-text">This permanently deletes your answers, your meal plan and your grocery list from this device. It can’t be undone.</p>
       <div className="row">
         <button type="button" className="btn ghost grow" onClick={actions.closeSheet}>
           Cancel
@@ -117,7 +105,7 @@ export function Sheets() {
   if (ui.sheet === 'map') return <InterviewMap />;
   if (ui.sheet === 'options') return <Options />;
   if (ui.sheet === 'confirmRestart') return <ConfirmRestart />;
-  return null;
+  return <PlanSheets />;
 }
 
 export function Toast() {

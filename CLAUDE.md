@@ -5,7 +5,7 @@ Remy is a personal-chef web app and the name of its AI chef. It learns what one 
 The project has two parts:
 
 - **`prototype/`**: a single-file clickable prototype of every screen, plus the written product plan. It is the design reference.
-- **`app/`**: the real app, built in phases with React + Vite + TypeScript. **Phase 1 (done): the interview, progress/resume and taste profile, saved on the device.** Meal planning, groceries, prep day and nutrition are still prototype-only; port them from `prototype/index.html` in later phases.
+- **`app/`**: the real app, built in phases with React + Vite + TypeScript. **Phases 1 and 2 are done**: the interview and taste profile, plus the week planner, recipes, grocery list, prep-day timeline and nutrition balance, all saved on the device. Weekly check-ins, learned preferences, sync and AI are still to come.
 
 ## Who this is for
 
@@ -43,13 +43,20 @@ Layout of `app/src`:
 - `interview/engine.ts`: pure functions with no React: `sequence` (branching), `activeAnswers`, `currentQuestion`, `answerQuestion` / `skipQuestion` (including edit mode and the allergy “change my answer” path), `fillWithSamples`, `formatAnswer`, `isValid`.
 - `interview/helpers.ts`: small typed helpers (`arr`, `has`, `real`, `allRatings`, `toggleOption`, …).
 - `profile/profile.ts`: `safetyRules` (kept separate from preferences) and `inferences` with confidence levels.
-- `storage/db.ts`: Dexie database `remy`, table `kv`; `loadInterview`, `saveInterview`, `deleteEverything`. Failures are swallowed so the app still works when storage is blocked.
-- `store.tsx`: `RemyProvider` loads saved progress, holds interview state and UI state (screen, edit mode, drafts, sheet, toast), and saves after every change. Screens use `useRemy()`.
-- `screens/`: `Welcome`, `Interview`, `Resume`, `Summary`. `components/`: `Icon`, `AnswerControls`, `Sheets` (interview map, options, start-over confirmation, toast).
-- `styles.css`: the prototype’s design tokens and component styles (light and dark via `prefers-color-scheme`).
-- Tests: `interview/engine.test.ts` (branching, edit flow, sample profile) and `storage/db.test.ts` (uses `fake-indexeddb`).
+- `planning/`: pure, tested planning logic.
+  - `types.ts` (`Recipe`, `Meal`, `WeekPlan`, slots, days), `data/ingredients.ts` (`ING`, store sections, rough USD prices), `data/recipes.ts` (`R`, meals and balancing sides with kcal, protein and produce estimates), `data/weeks.ts` (three week templates, reject reasons).
+  - `rules.ts`: `check` (safety blocks vs. preference hides; never-list matching), `score`, `matches`, `storage` (fridge/freezer/unsafe by day), `weekDays`, `activeSlots`, `sweetDays`, `defaultVariety`, `windowMinutes`. Rules take a `PlanContext` (`A`, `adj`, `hungry`).
+  - `planner.ts`: `buildPlan` (keeps approved meals), `replaceMeal`, `replacementOptions`, `autoReplacement`, `moveBlocker`/`swapMeals`, `setSide`, `portions`. All return new plans.
+  - `nutrition.ts`: `dayNutrition`, `proteinTarget`, `sideOptions`, `balanceDay`, `estimatesOn`, `LIGHT_DAY_KCAL`.
+  - `grocery.ts`: `groceryList` (merges ingredients, applies `GroceryEdits`), `costEstimate` (USD only), `quantityText`.
+  - `schedule.ts`: `schedule` (hands 1, stove 2, oven 2 pans at one temperature, shared `key` tasks run once), `packingCounts`, `packPlan`, `clockTime`, `duration`.
+- `storage/db.ts`: Dexie database `remy`, table `kv` with two rows: `interview` and `plan` (`PlanState`: plan, variety, selected day, grocery edits, nutrition settings, rejection score adjustments). `deleteEverything` clears both. Failures are swallowed so the app still works when storage is blocked.
+- `store.tsx`: `RemyProvider` loads both rows, builds a first week for a profile confirmed before planning existed, holds interview, plan and UI state, and saves after every change. Changing a profile answer rebuilds unapproved meals. Screens use `useRemy()` (`interview`, `planState`, `ui`, `ctx`, `actions`).
+- `screens/`: `Welcome`, `Interview`, `Resume`, `Summary`, `Home`, `Planner`, `Nutrition`, `Recipe`, `Grocery`, `Prep`. `components/`: `Icon`, `AnswerControls`, `Chrome` (header, bottom nav, storage pill), `Sheets` (interview map, options, start over, toast), `PlanSheets` (replace/reject, move, add a side).
+- `styles.css`: design tokens and shared component styles (light and dark via `prefers-color-scheme`). `planning.css`: styles for the planning screens.
+- Tests: `interview/engine.test.ts` (branching, edit flow, sample profile), `planning/planning.test.ts` (allergy blocking for every allergy and diet, storage safety, planner edits, nutrition, groceries, scheduling) and `storage/db.test.ts` (uses `fake-indexeddb`).
 
-Keep interview logic in `engine.ts` as pure functions with tests; keep React components thin.
+Keep logic in pure, tested functions (`interview/engine.ts`, `planning/*`); keep React components thin.
 
 ## Published artifact
 
@@ -115,7 +122,7 @@ The Product Plan tab in the prototype holds the full plan: recommended stack (Re
 Progress against the plan’s phases:
 
 - Phase 1, interview and profile saved on the device: **done** (`app/`).
-- Phase 2, planning (recipe library, rule-based planner, grocery list, prep scheduler, plus the nutrition layer): next. Port the logic from the prototype’s engine into pure, tested modules first, then the screens.
-- Phase 3, go live (hosting, installable PWA, Supabase sign-in and sync).
+- Phase 2, planning (recipe library, rule-based planner, grocery list, prep scheduler, nutrition layer): **done** (`app/src/planning`).
+- Phase 3, go live (hosting, installable PWA, Supabase sign-in and sync): next.
 - Phase 4, learning (weekly check-in, learned preferences, export and delete).
 - Phase 5, AI features behind a spending cap.

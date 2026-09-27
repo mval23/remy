@@ -1,13 +1,22 @@
 import { Icon } from './components/Icon';
 import { Sheets, Toast } from './components/Sheets';
+import { Grocery } from './screens/Grocery';
+import { Home } from './screens/Home';
 import { Interview } from './screens/Interview';
+import { Nutrition } from './screens/Nutrition';
+import { Planner } from './screens/Planner';
+import { Prep } from './screens/Prep';
+import { Recipe } from './screens/Recipe';
 import { Resume } from './screens/Resume';
 import { Summary } from './screens/Summary';
 import { Welcome } from './screens/Welcome';
 import { RemyProvider, useRemy } from './store';
 
 function CurrentScreen() {
-  const { ui } = useRemy();
+  const { ui, planState } = useRemy();
+  // Planning screens need a plan; without one, start from the welcome screen.
+  const needsPlan = ['home', 'planner', 'nutrition', 'recipe', 'grocery', 'prep'].includes(ui.screen);
+  if (needsPlan && !planState.plan) return <Welcome />;
   switch (ui.screen) {
     case 'interview':
       return <Interview />;
@@ -15,6 +24,18 @@ function CurrentScreen() {
       return <Resume />;
     case 'summary':
       return <Summary />;
+    case 'home':
+      return <Home />;
+    case 'planner':
+      return <Planner />;
+    case 'nutrition':
+      return <Nutrition />;
+    case 'recipe':
+      return <Recipe />;
+    case 'grocery':
+      return <Grocery />;
+    case 'prep':
+      return <Prep />;
     default:
       return <Welcome />;
   }
