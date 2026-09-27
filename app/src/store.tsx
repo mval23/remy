@@ -27,8 +27,9 @@ import {
   savePlanState,
   type PlanState,
 } from './storage/db';
+import { useSync } from './sync/useSync';
 
-export type Screen = 'welcome' | 'interview' | 'resume' | 'summary' | 'home' | 'planner' | 'nutrition' | 'recipe' | 'grocery' | 'prep';
+export type Screen = 'welcome' | 'interview' | 'resume' | 'summary' | 'home' | 'planner' | 'nutrition' | 'recipe' | 'grocery' | 'prep' | 'account';
 export type SheetName = 'map' | 'options' | 'confirmRestart' | 'replace' | 'move' | 'side';
 export interface SheetArg {
   d: number;
@@ -69,22 +70,36 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
   const [planState, setPlanState] = useState<PlanState>(initial.plan);
   const [ui, setUi] = useState<UiState>(() => initialUi(initial.plan.plan ? 'home' : 'welcome'));
   const toastTimer = useRef<number | undefined>(undefined);
-  const loaded = useRef({ interview: true, plan: true });
+  /** Change time to save with the next update. Set when applying the cloud copy, so it isn't re-uploaded as “new”. */
+  const stampNext = useRef<{ interview?: number; plan?: number }>({});
 
-  // Save after every change (skip the values that were just loaded).
+  const sync = useSync({
+    interview,
+    planState,
+    applyInterview: (value, at) => {
+      stampNext.current.interview = at;
+      setInterview(value);
+    },
+    applyPlan: (value, at) => {
+      stampNext.current.plan = at;
+      setPlanState(value);
+      // A second device that just signed in: jump from the welcome screen to the synced week.
+      if (value.plan) setUi((u) => (u.screen === 'welcome' ? { ...u, screen: 'home' } : u));
+    },
+  });
+
+  // Save after every change (not the values just loaded), then schedule an upload for local changes.
   useEffect(() => {
-    if (loaded.current.interview) {
-      loaded.current.interview = false;
-      return;
-    }
-    void saveInterview(interview);
+    if (interview === initial.interview) return;
+    const at = stampNext.current.interview;
+    stampNext.current.interview = undefined;
+    void saveInterview(interview, at ?? Date.now()).then(() => at === undefined && sync.schedule());
   }, [interview]);
   useEffect(() => {
-    if (loaded.current.plan) {
-      loaded.current.plan = false;
-      return;
-    }
-    void savePlanState(planState);
+    if (planState === initial.plan) return;
+    const at = stampNext.current.plan;
+    stampNext.current.plan = undefined;
+    void savePlanState(planState, at ?? Date.now()).then(() => at === undefined && sync.schedule());
   }, [planState]);
 
   const patchUi = (p: Partial<UiState>) => setUi((u) => ({ ...u, ...p }));
@@ -198,8 +213,17 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
       patchUi({ screen: 'planner' });
       toast('Your week is ready. Review each meal.');
     },
+    /** Delete everything on this device and, when signed in, the cloud copy too. */
     restart: async () => {
+      try {
+        await sync.deleteCloudCopy();
+      } catch {
+        toast('Couldn’t reach the cloud copy. Try again when you’re online.');
+        return;
+      }
       await deleteEverything();
+      // Change time 0 means “nothing here”, so the empty state isn't uploaded as new data.
+      stampNext.current = { interview: 0, plan: 0 };
       setInterview(emptyInterview());
       setPlanState(emptyPlanState());
       setUi({ ...initialUi(), toast: 'Everything deleted' });
@@ -283,7 +307,7 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
   };
 
   const ctx = planContext(interview, planState);
-  return { interview, planState, ui, ctx, actions };
+  return { interview, planState, ui, ctx, actions, sync };
 }
 
 type Remy = ReturnType<typeof useRemyState>;

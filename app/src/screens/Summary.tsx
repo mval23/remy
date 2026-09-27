@@ -52,6 +52,9 @@ export function Summary() {
           <h1>Your taste profile</h1>
           <p>{s.confirmed ? 'Confirmed · edit anytime' : 'Please check before I plan'}</p>
         </div>
+        <button type="button" className="iconbtn" aria-label="Sync and install" onClick={() => actions.go('account')}>
+          <Icon name="cloud" size={22} />
+        </button>
       </header>
       <main className="body">
         <div className="msg top-gap">

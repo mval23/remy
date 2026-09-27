@@ -4,6 +4,8 @@ Remy is a personal-chef web app. Through a short, friendly conversation it learn
 
 It's designed for picky eaters and people who want to eat in a more balanced way without banning the foods they love. Sweets are planned and portioned, never forbidden.
 
+**Try it:** https://mval23.github.io/remy/ (on a phone, add it to your home screen to install it)
+
 > Remy offers general meal-planning and balance guidance. It isn't medical advice and doesn't replace a doctor or registered dietitian.
 
 ## Status
@@ -13,7 +15,8 @@ It's designed for picky eaters and people who want to eat in a more balanced way
 | `prototype/` | Clickable prototype of every screen, plus the full product plan (open `prototype/index.html` through a local server) |
 | `app/` Phase 1 | Done: conversational interview, progress and resume, taste profile, saved on the device |
 | `app/` Phase 2 | Done: week planner, recipes, grocery list, prep-day timeline, nutrition balance |
-| `app/` Phase 3 | Next: installable app, hosting, sign-in and sync between phone and computer |
+| `app/` Phase 3 | Done: installable app that works offline, hosted on GitHub Pages; optional sign-in and sync (see [SETUP.md](SETUP.md)) |
+| `app/` Phase 4 | Next: weekly check-ins and learning from your ratings |
 
 ## Run the app
 
@@ -37,7 +40,7 @@ npm run build
 
 ## Built with
 
-React, Vite, TypeScript, Dexie (on-device storage with IndexedDB), and Vitest.
+React, Vite, TypeScript, Dexie (on-device storage with IndexedDB), vite-plugin-pwa, Supabase (optional sync), and Vitest.
 
 ## License
 

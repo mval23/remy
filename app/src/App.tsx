@@ -1,5 +1,6 @@
 import { Icon } from './components/Icon';
 import { Sheets, Toast } from './components/Sheets';
+import { Account } from './screens/Account';
 import { Grocery } from './screens/Grocery';
 import { Home } from './screens/Home';
 import { Interview } from './screens/Interview';
@@ -36,6 +37,8 @@ function CurrentScreen() {
       return <Grocery />;
     case 'prep':
       return <Prep />;
+    case 'account':
+      return <Account />;
     default:
       return <Welcome />;
   }

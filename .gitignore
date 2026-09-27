@@ -5,6 +5,7 @@ dist/
 # Local environment files (may hold keys later)
 .env
 .env.*
+!.env.example
 *.local
 
 # Editor and OS files

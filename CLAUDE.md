@@ -5,7 +5,7 @@ Remy is a personal-chef web app and the name of its AI chef. It learns what one 
 The project has two parts:
 
 - **`prototype/`**: a single-file clickable prototype of every screen, plus the written product plan. It is the design reference.
-- **`app/`**: the real app, built in phases with React + Vite + TypeScript. **Phases 1 and 2 are done**: the interview and taste profile, plus the week planner, recipes, grocery list, prep-day timeline and nutrition balance, all saved on the device. Weekly check-ins, learned preferences, sync and AI are still to come.
+- **`app/`**: the real app, built in phases with React + Vite + TypeScript. **Phases 1–3 are done**: the interview and taste profile; the week planner, recipes, grocery list, prep-day timeline and nutrition balance; and an installable, offline-capable app hosted on GitHub Pages with optional Supabase sign-in and sync. Weekly check-ins, learned preferences and AI are still to come.
 
 ## Who this is for
 
@@ -17,10 +17,12 @@ The project has two parts:
 - `prototype/index.html`: the whole prototype and the product plan in one self-contained HTML file (CSS, markup, and JS inline). **This file is the source of truth**; edit it directly.
 - `.claude/launch.json`: `remy-prototype` serves `prototype/` at http://localhost:5178; `remy-app` runs the app’s dev server at http://localhost:5173.
 - `app/`: the React app (see “The app” below).
+- `.github/workflows/deploy.yml`: on every push to `main`, runs the tests, builds with `BASE_PATH=/remy/` and the optional repository variables `SUPABASE_URL` / `SUPABASE_ANON_KEY`, and publishes to GitHub Pages (https://mval23.github.io/remy/).
+- `supabase/schema.sql`: the single `user_data` table (one row per account, `interview` and `plan` as JSON with change times) and its row-level security. `SETUP.md`: plain-language steps the owner follows to create the Supabase project; Claude can’t create accounts.
 
 ## The app (`app/`)
 
-Stack: React 19, Vite 8, TypeScript 7, Dexie 4 (IndexedDB), Vitest 5. Run commands from `app/`:
+Stack: React 19, Vite 8, TypeScript 7, Dexie 4 (IndexedDB), vite-plugin-pwa, Supabase JS (loaded only when sync is configured), Vitest 5. Run commands from `app/`:
 
 ```bash
 npm run dev
@@ -36,6 +38,8 @@ npm run build
 
 `npm run build` type-checks (`tsc`) and then builds to `app/dist`. `npm run typecheck` runs only the type check.
 
+To build exactly like GitHub Pages in Git Bash, stop it from rewriting the path: `MSYS_NO_PATHCONV=1 BASE_PATH=/remy/ npm run build`, then start the `remy-app-build` preview (http://localhost:4173/remy/). The service worker only exists in builds, not in `npm run dev`. To try sync locally, copy `app/.env.example` to `app/.env.local` (ignored by Git).
+
 Layout of `app/src`:
 
 - `interview/types.ts`: answer and question types, `InterviewState`.
@@ -50,11 +54,13 @@ Layout of `app/src`:
   - `nutrition.ts`: `dayNutrition`, `proteinTarget`, `sideOptions`, `balanceDay`, `estimatesOn`, `LIGHT_DAY_KCAL`.
   - `grocery.ts`: `groceryList` (merges ingredients, applies `GroceryEdits`), `costEstimate` (USD only), `quantityText`.
   - `schedule.ts`: `schedule` (hands 1, stove 2, oven 2 pans at one temperature, shared `key` tasks run once), `packingCounts`, `packPlan`, `clockTime`, `duration`.
-- `storage/db.ts`: Dexie database `remy`, table `kv` with two rows: `interview` and `plan` (`PlanState`: plan, variety, selected day, grocery edits, nutrition settings, rejection score adjustments). `deleteEverything` clears both. Failures are swallowed so the app still works when storage is blocked.
+- `storage/db.ts`: Dexie database `remy`, table `kv` with rows `interview`, `plan` (`PlanState`: plan, variety, selected day, grocery edits, nutrition settings, rejection score adjustments) and `meta` (`Stamps`: when each document last changed, used by sync). Saves write the document and its stamp in one transaction. `deleteEverything` clears all rows. Failures are swallowed so the app still works when storage is blocked.
+- `sync/`: `merge.ts` (pure, tested: newest change wins per document; grocery check-offs from either device are kept), `supabase.ts` (lazy client, email code sign-in, fetch/push/delete the row; off unless `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set), `useSync.ts` (syncs on sign-in, 1.5 s after local changes, on focus, on reconnect, and every 30 s). Applying the cloud copy saves it with the cloud’s change time so it isn’t re-uploaded.
+- `pwa.ts`: install prompt capture, installed/iOS detection, persistent-storage request. Icons in `app/public` are generated from `public/icon.svg` with `npx pwa-assets-generator` (config in `pwa-assets.config.ts`).
 - `store.tsx`: `RemyProvider` loads both rows, builds a first week for a profile confirmed before planning existed, holds interview, plan and UI state, and saves after every change. Changing a profile answer rebuilds unapproved meals. Screens use `useRemy()` (`interview`, `planState`, `ui`, `ctx`, `actions`).
-- `screens/`: `Welcome`, `Interview`, `Resume`, `Summary`, `Home`, `Planner`, `Nutrition`, `Recipe`, `Grocery`, `Prep`. `components/`: `Icon`, `AnswerControls`, `Chrome` (header, bottom nav, storage pill), `Sheets` (interview map, options, start over, toast), `PlanSheets` (replace/reject, move, add a side).
+- `screens/`: `Welcome`, `Interview`, `Resume`, `Summary`, `Home`, `Planner`, `Nutrition`, `Recipe`, `Grocery`, `Prep`, `Account` (sync sign-in, install steps, offline note). `components/`: `Icon`, `AnswerControls`, `Chrome` (header, bottom nav, storage pill), `Sheets` (interview map, options, start over, toast), `PlanSheets` (replace/reject, move, add a side).
 - `styles.css`: design tokens and shared component styles (light and dark via `prefers-color-scheme`). `planning.css`: styles for the planning screens.
-- Tests: `interview/engine.test.ts` (branching, edit flow, sample profile), `planning/planning.test.ts` (allergy blocking for every allergy and diet, storage safety, planner edits, nutrition, groceries, scheduling) and `storage/db.test.ts` (uses `fake-indexeddb`).
+- Tests: `interview/engine.test.ts` (branching, edit flow, sample profile), `planning/planning.test.ts` (allergy blocking for every allergy and diet, storage safety, planner edits, nutrition, groceries, scheduling), `sync/merge.test.ts` (sync decisions) and `storage/db.test.ts` (uses `fake-indexeddb`).
 
 Keep logic in pure, tested functions (`interview/engine.ts`, `planning/*`); keep React components thin.
 
@@ -123,6 +129,6 @@ Progress against the plan’s phases:
 
 - Phase 1, interview and profile saved on the device: **done** (`app/`).
 - Phase 2, planning (recipe library, rule-based planner, grocery list, prep scheduler, nutrition layer): **done** (`app/src/planning`).
-- Phase 3, go live (hosting, installable PWA, Supabase sign-in and sync): next.
-- Phase 4, learning (weekly check-in, learned preferences, export and delete).
+- Phase 3, go live: **done** in code. Hosting is GitHub Pages (chosen over Cloudflare Pages/Netlify because the repo is public and it needs no extra account). Sync turns on once the owner completes SETUP.md and sets the two repository variables.
+- Phase 4, learning (weekly check-in, learned preferences, export and delete): next.
 - Phase 5, AI features behind a spending cap.

@@ -28,6 +28,10 @@ const PATHS: Record<string, string> = {
   fridge: '<rect x="5.5" y="2.5" width="13" height="19" rx="2"/><path d="M5.5 10h13M9 5.5v2M9 13v3"/>',
   therm: '<path d="M14 14.8V4.5a2 2 0 0 0-4 0v10.3a4 4 0 1 0 4 0z"/>',
   box: '<path d="M3.5 8 12 3.5 20.5 8v8L12 20.5 3.5 16z"/><path d="M3.5 8 12 12.5 20.5 8M12 12.5v8"/>',
+  cloud: '<path d="M7 18.5a4.5 4.5 0 0 1-.6-9A6 6 0 0 1 18 8.6a4.2 4.2 0 0 1-.5 9.9z"/>',
+  cloudOff: '<path d="M7 18.5a4.5 4.5 0 0 1-.6-9M9 5.3A6 6 0 0 1 18 8.6a4.2 4.2 0 0 1 2 7.4M3 3l18 18"/>',
+  download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+  phone: '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/>',
 };
 
 export type IconName = keyof typeof PATHS;

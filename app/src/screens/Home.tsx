@@ -11,7 +11,7 @@ import { DAY_FULL, DAYS, SLOT_SHORT, SLOTS, type Day } from '../planning/types';
 import { useRemy } from '../store';
 
 export function Home() {
-  const { planState, ctx, actions } = useRemy();
+  const { planState, ctx, actions, sync } = useRemy();
   const plan = planState.plan;
   if (!plan) return null;
   const A = ctx.A;
@@ -52,9 +52,14 @@ export function Home() {
         title={greeting}
         sub="Here’s your day"
         right={
-          <button type="button" className="iconbtn" aria-label="Your profile" onClick={() => actions.go('summary')}>
-            <Icon name="user" size={22} />
-          </button>
+          <>
+            <button type="button" className="iconbtn" aria-label="Sync and install" onClick={() => actions.go('account')}>
+              <Icon name={sync.signedIn && sync.status !== 'offline' ? 'cloud' : 'cloudOff'} size={22} />
+            </button>
+            <button type="button" className="iconbtn" aria-label="Your profile" onClick={() => actions.go('summary')}>
+              <Icon name="user" size={22} />
+            </button>
+          </>
         }
       />
       <main className="body">
