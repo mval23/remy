@@ -3,7 +3,7 @@ import { progress } from '../interview/engine';
 import { useRemy } from '../store';
 
 export function Welcome() {
-  const { interview: s, actions } = useRemy();
+  const { interview: s, actions, sync } = useRemy();
   const pc = progress(s);
   const inProgress = s.started && !s.done;
 
@@ -60,6 +60,11 @@ export function Welcome() {
                 </p>
               </div>
             </div>
+          )}
+          {!s.started && sync.configured && (
+            <button type="button" className="linkbtn self-start" onClick={() => actions.go('account')}>
+              <Icon name="cloud" size={18} /> Already use Remy on another device? Sign in to sync
+            </button>
           )}
           <p className="hint">Remy gives general meal-planning and balance guidance. It isn’t medical advice or a replacement for a dietitian.</p>
         </div>
