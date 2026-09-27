@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "remy-prototype",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "http-server", "prototype", "-p", "5178", "-c-1", "--silent"],
+      "port": 5178
+    },
+    {
+      "name": "remy-app",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "app", "run", "dev"],
+      "port": 5173
+    }
+  ]
+}
