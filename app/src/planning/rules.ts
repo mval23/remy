@@ -128,6 +128,20 @@ export function matches(r: Recipe, A: Answers): string[] {
   return out;
 }
 
+/** The same reasons as name and why, for a "Oats ........ you like them" list. */
+export function matchReasons(r: Recipe, A: Answers): { name: string; why: string }[] {
+  const rat = allRatings(A);
+  const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
+  const out: { name: string; why: string }[] = [];
+  for (const f of Object.keys(r.foods)) {
+    if (rat[f] === 'love' || rat[f] === 'like') out.push({ name: FOODS[f].n, why: `you ${rat[f]} it` });
+    else if (rat[f] === 'ways') out.push({ name: FOODS[f].n, why: `${String(r.foods[f]).toLowerCase()}, your way` });
+  }
+  for (const x of r.sauces ?? []) if (has(A.sauces, x)) out.push({ name: `${cap(x)} sauce`, why: 'a sauce you like' });
+  for (const x of r.sweet ?? []) if (has(A.sweets, x)) out.push({ name: cap(x), why: 'a sweet you picked' });
+  return out;
+}
+
 /* ---------- storage safety ---------- */
 
 /**

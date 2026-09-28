@@ -45,7 +45,7 @@ export function schedule(plan: WeekPlan, A: Answers): Schedule {
   // Low oven temperatures first (you raise the oven, not lower it), then the longest background work.
   recipes.sort((a, b) => minTemp(a) - minTemp(b) || passive(b) - passive(a));
 
-  const placed: ScheduledTask[] = [{ id: 'start', t: 'Clear counters, set out pans, baking paper and containers; preheat the oven', l: 'hands', s: 0, e: 10, for: [], refs: [] }];
+  const placed: ScheduledTask[] = [{ id: 'start', t: 'Set up the kitchen', l: 'hands', s: 0, e: 10, for: [], refs: [] }];
   const shared: Record<string, ScheduledTask> = {};
 
   const fits = (l: Lane, s: number, m: number, temp?: number, pans = 1) => {

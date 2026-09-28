@@ -18,7 +18,7 @@ export function Welcome() {
           </div>
           <div>
             <h1>Hi, I’m Remy.</h1>
-            <p className="lead">
+            <p className="intro">
               I’m your personal chef. I’ll learn what you actually enjoy eating, then plan one prep day that feeds your whole week.
             </p>
           </div>

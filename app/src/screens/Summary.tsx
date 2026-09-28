@@ -8,6 +8,12 @@ import { useRemy } from '../store';
 
 const DAY_FULL: Record<string, string> = { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' };
 
+/** How sure Remy is, shown only when it's worth a second look. */
+function ConfTag({ c }: { c: Confidence }) {
+  if (c === 'high') return null;
+  return <span className={`conf ${c}`}>{c === 'medium' ? 'Remy guessed' : 'Not sure'}</span>;
+}
+
 export function Summary() {
   const { interview: s, planState, actions } = useRemy();
   const A = activeAnswers(s);
@@ -30,7 +36,7 @@ export function Summary() {
           <div className="v">{shown}</div>
           {(src || skipped) && <div className="hint">{skipped ? 'Skipped. Using a neutral default.' : src}</div>}
         </div>
-        <span className={`conf ${c}`}>{c}</span>
+        <ConfTag c={c} />
         <button type="button" className="iconbtn" aria-label={`Edit ${label}`} onClick={() => actions.edit(id)}>
           <Icon name="edit" size={17} />
         </button>
@@ -155,7 +161,6 @@ export function Summary() {
                       <span className={`lvl l-${l.id}`}>{l.name}</span>
                       <div className="v gap-top">{items.join(' · ')}</div>
                     </div>
-                    <span className="conf high">high</span>
                   </div>
                 );
               })}
@@ -252,7 +257,7 @@ export function Summary() {
                       <div className="t">{x.text}</div>
                       <div className="s">{x.src}</div>
                     </div>
-                    <span className={`conf ${x.conf}`}>{x.conf}</span>
+                    <ConfTag c={x.conf} />
                   </div>
                 ))}
               </div>

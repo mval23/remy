@@ -117,8 +117,8 @@ export function recipesToPrep(plan: WeekPlan, sc: Schedule): Source[] {
   return order.map((id) => ({ r: R[id], batches: b[id], scale: size[id] }));
 }
 
-/** Timeline order: every scheduled task, with its instructions. */
-export function timelineSteps(sc: Schedule): CookStep[] {
+/** Timeline order: every scheduled task, with its instructions. `setup` fills in the first step (setting up), which has no recipe of its own. */
+export function timelineSteps(sc: Schedule, setup: Part[][] = []): CookStep[] {
   return sc.tasks.map((t: ScheduledTask) => ({
     id: t.id,
     title: t.t,
@@ -127,7 +127,7 @@ export function timelineSteps(sc: Schedule): CookStep[] {
     temp: t.temp,
     for: t.for,
     sources: t.refs.filter((x, i) => t.refs.findIndex((y) => y.r.id === x.r.id) === i).map(({ r, batches, scale }) => ({ r, batches, scale })),
-    lines: t.refs.length ? taskLines(t.refs[0].task, t.refs) : [],
+    lines: t.refs.length ? taskLines(t.refs[0].task, t.refs) : t.id === 'start' ? setup : [],
     start: t.s,
   }));
 }
@@ -175,4 +175,40 @@ export function gearList(plan: WeekPlan, sc: Schedule): string[] {
   return Object.keys(most)
     .sort((a, b) => uses[b] - uses[a] || a.localeCompare(b))
     .map((name) => (most[name] > 1 ? `${name} ×${most[name]}` : name));
+}
+
+/** The equipment list sorted the way a kitchen is: pans and pots, bowls, then tools. Empty groups are left out. */
+export function gearGroups(gear: string[]): { name: string; items: string[] }[] {
+  const pans = gear.filter((g) => /\b(pans?|pots?|dish)\b/.test(g));
+  const bowls = gear.filter((g) => !pans.includes(g) && /\bbowls?\b/.test(g));
+  const tools = gear.filter((g) => !pans.includes(g) && !bowls.includes(g));
+  return [
+    { name: 'Pans and pots', items: pans },
+    { name: 'Bowls', items: bowls },
+    { name: 'Tools', items: tools },
+  ].filter((g) => g.items.length > 0);
+}
+
+const joinList = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`);
+
+/** Instructions for the first step of prep day (setting up), which has no recipe of its own. */
+export function setupLines(sc: Schedule, gear: string[], packs: { containers: number; bags: number; foil: number }): Part[][] {
+  const lines: Part[][] = [[{ t: 'Clear the counters and empty the sink and dishwasher' }]];
+  const oven = sc.tasks.find((t) => t.l === 'oven' && t.temp);
+  if (oven) lines.push([{ t: 'Turn the oven on to ' }, { t: `${oven.temp}°C`, amount: true }]);
+  for (const g of gearGroups(gear)) lines.push([{ t: `Set out the ${g.name.toLowerCase()}: ` }, { t: joinList(g.items) }]);
+  const pack = [
+    packs.containers && `${packs.containers} container${packs.containers === 1 ? '' : 's'}`,
+    packs.bags && `${packs.bags} freezer bag${packs.bags === 1 ? '' : 's'}`,
+    packs.foil && `${packs.foil} piece${packs.foil === 1 ? '' : 's'} of foil`,
+  ].filter((x): x is string => !!x);
+  if (pack.length) {
+    const parts: Part[] = [{ t: 'Have ready ' }];
+    pack.forEach((x, i) => {
+      if (i) parts.push({ t: i === pack.length - 1 ? ' and ' : ', ' });
+      parts.push({ t: x, amount: true });
+    });
+    lines.push(parts);
+  }
+  return lines;
 }

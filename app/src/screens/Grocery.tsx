@@ -35,7 +35,7 @@ export function Grocery() {
 
   return (
     <>
-      <Header title="Grocery list" sub={view === 'month' ? `Staples for the next ${MONTH_WEEKS} weeks` : `For ${prepDay} prep · ${toBuy} to buy`} />
+      <Header title="Grocery list" />
       <main className="body wide">
         {monthly && (
           <div className="seg top-gap" role="group" aria-label="Which list">

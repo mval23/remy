@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { FOODS } from '../interview/questions';
 import { R, SIDE_IDS } from '../planning/data/recipes';
-import { REJECT_REASONS } from '../planning/data/weeks';
+import { REJECT_REASONS, WEEKS } from '../planning/data/weeks';
 import { estimatesOn, sideOptions } from '../planning/nutrition';
-import { autoReplacement, moveBlocker, replacementOptions } from '../planning/planner';
-import { check, matches, storage } from '../planning/rules';
-import { DAY_FULL, SLOT_SHORT } from '../planning/types';
+import { approvalCounts, autoReplacement, menuCountText, moveBlocker, replacementOptions } from '../planning/planner';
+import { check, matches, storage, windowMinutes } from '../planning/rules';
+import { duration, schedule } from '../planning/schedule';
+import { goalsOf, hasGoals, weekAverage } from '../planning/goals';
+import { str } from '../interview/helpers';
+import { DAY_FULL, SLOT_SHORT, type Variety } from '../planning/types';
 import { useRemy, type SheetArg } from '../store';
 import { AiIdea } from './AiIdea';
 import { StoragePill } from './Chrome';
-import { Icon } from './Icon';
+import { Icon, type IconName } from './Icon';
 import { describe, DishLine, MacroLine, Mast, SecHead } from './Dish';
 
 const FOCUSABLE = 'button:not(:disabled), [href], input:not([type="hidden"]), select, textarea, summary, [tabindex]:not([tabindex="-1"])';
@@ -281,10 +284,98 @@ function SideSheet({ arg }: { arg: SheetArg }) {
   );
 }
 
+/** "⋯" on a meal: everything besides approving it. Each choice opens its own sheet. */
+function MealSheet({ arg }: { arg: SheetArg }) {
+  const { planState, actions } = useRemy();
+  const plan = planState.plan!;
+  const { d, slot } = arg;
+  const m = plan[d].meals[slot]!;
+  const r = R[m.r!];
+  const meal = SLOT_SHORT[slot].toLowerCase();
+  const Opt = ({ icon, label, sub, danger, onClick }: { icon: IconName; label: string; sub?: string; danger?: boolean; onClick: () => void }) => (
+    <button type="button" className={`opt${danger ? ' opt-danger' : ''}`} onClick={onClick}>
+      <Icon name={icon} size={20} />
+      <span className="grow">
+        {label}
+        {sub && <small>{sub}</small>}
+      </span>
+    </button>
+  );
+  return (
+    <SheetFrame label={`${r.short}: more`}>
+      <Mast kicker={`${DAY_FULL[plan[d].d]} ${meal}`} icon="toque" title={r.short} />
+      <div className="opts gap-top-lg">
+        <Opt icon="bookmark" label="Open the recipe" onClick={() => actions.openRecipe(r.id)} />
+        <Opt icon="plus" label={m.side ? 'Change the side' : 'Add a side'} sub={m.side ? `Now: ${R[m.side].short}` : 'More protein, fruit or vegetables'} onClick={() => actions.openSheet('side', arg)} />
+        <Opt icon="swap" label="Replace" sub={`Another ${meal} that fits your rules`} onClick={() => actions.openSheet('replace', arg)} />
+        <Opt icon="move" label="Move to another day" sub="Swap it with the same meal on another day" onClick={() => actions.openSheet('move', arg)} />
+        <Opt icon="x" label="Not this" sub="Tell Remy why, so it learns" danger onClick={() => actions.openSheet('replace', { ...arg, reject: true })} />
+      </div>
+    </SheetFrame>
+  );
+}
+
+const VARIETIES: Variety[] = ['favorites', 'balanced', 'variety'];
+
+/** The week's settings, moved off the day view: how much variety, a new menu, and goals. */
+function MenuSettingsSheet() {
+  const { planState, ctx, actions } = useRemy();
+  const plan = planState.plan!;
+  const sc = schedule(plan, ctx.A);
+  const [, windowMax] = windowMinutes(ctx.A);
+  const approvals = approvalCounts(plan);
+  const goals = goalsOf(planState.nutrition);
+  const avg = weekAverage(plan, ctx.hungry);
+  const size = plan.flatMap((x) => Object.values(x.meals)).find((m) => m?.x)?.x ?? 1;
+  const window = str(ctx.A.preptime) || 'your window';
+  return (
+    <SheetFrame label="Menu settings">
+      <Mast kicker="This week" icon="sliders" title="Menu settings" sub={`${menuCountText(plan)} · ${duration(sc.total)} of prep · ${approvals.ok} of ${approvals.total} meals approved`} />
+      <section className="msec">
+        <SecHead title="Variety" />
+        <div className="seg" role="group" aria-label="Variety">
+          {VARIETIES.map((v) => (
+            <button key={v} type="button" aria-pressed={planState.variety === v} onClick={() => actions.setVariety(v)}>
+              {WEEKS[v].label}
+            </button>
+          ))}
+        </div>
+        <p className="hint gap-top">
+          More variety means more dishes and a longer prep day.{' '}
+          {sc.total > windowMax ? <span className="pill p-warn">Over {window}</span> : <span className="pill p-ok">Fits {window}</span>}
+        </p>
+      </section>
+      <section className="msec">
+        <SecHead title="New menu" />
+        <p className="lead-note">Swaps every meal you haven’t approved for another one that fits your rules. Tap again for another option.</p>
+        <button type="button" className="btn soft wide" onClick={actions.regenerate}>
+          <Icon name="swap" size={16} /> New menu
+        </button>
+      </section>
+      {hasGoals(goals) && (
+        <section className="msec">
+          <SecHead title="Your goals" />
+          <p className="lead-note">
+            Fitted to {[goals.kcal && `${goals.kcal.toLocaleString('en-US')} kcal`, goals.pro && `${goals.pro} g protein`].filter(Boolean).join(' and ')}: about{' '}
+            <b>{Math.round(avg.kcal).toLocaleString('en-US')} kcal</b> and <b>{Math.round(avg.pro)} g protein</b> a day
+            {size !== 1 ? `, main-meal portions ${Math.round(size * 100)}%` : ''}.
+          </p>
+          <button type="button" className="btn ghost wide" onClick={actions.fitGoals}>
+            Fit again
+          </button>
+        </section>
+      )}
+    </SheetFrame>
+  );
+}
+
 export function PlanSheets() {
   const { ui, planState } = useRemy();
-  if (!ui.sheetArg || !planState.plan) return null;
+  if (!planState.plan) return null;
+  if (ui.sheet === 'menuSettings') return <MenuSettingsSheet />;
+  if (!ui.sheetArg) return null;
   const m = planState.plan[ui.sheetArg.d]?.meals[ui.sheetArg.slot];
+  if (ui.sheet === 'meal' && m?.r) return <MealSheet arg={ui.sheetArg} />;
   if (ui.sheet === 'replace') return <ReplaceSheet arg={ui.sheetArg} />;
   if (ui.sheet === 'move' && m?.r) return <MoveSheet arg={ui.sheetArg} />;
   if (ui.sheet === 'side' && m?.r) return <SideSheet arg={ui.sheetArg} />;

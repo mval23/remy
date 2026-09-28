@@ -210,6 +210,25 @@ export function approvalCounts(plan: WeekPlan) {
   return { total, ok };
 }
 
+/** Dishes and sides on this week's menu, not counting store-bought items: one count for every screen. */
+export function menuCount(plan: WeekPlan): { dishes: number; sides: number } {
+  const ids = Object.keys(portions(plan)).filter((id) => !R[id].store);
+  const sides = ids.filter((id) => R[id].side).length;
+  return { dishes: ids.length - sides, sides };
+}
+
+/** "11 dishes + 1 side" */
+export function menuCountText(plan: WeekPlan): string {
+  const { dishes, sides } = menuCount(plan);
+  return `${dishes} dish${dishes === 1 ? '' : 'es'}${sides ? ` + ${sides} side${sides === 1 ? '' : 's'}` : ''}`;
+}
+
+/** Whether every planned meal on a day is approved (nothing to approve counts as not done). */
+export function dayApproved(day: PlanDay): boolean {
+  const meals = Object.values(day.meals).filter((m) => m && (m.r || m.need));
+  return meals.length > 0 && meals.every((m) => m!.ok);
+}
+
 /** Recipes that need cooking or packing on prep day (not store-bought). */
 export function recipesToCook(plan: WeekPlan): Recipe[] {
   return Object.keys(portions(plan)).map((id) => R[id]).filter((r) => r.tasks.length > 0);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BottomNav, Header, StoragePill } from '../components/Chrome';
-import { Lead, MacroLine, Mast, SecHead } from '../components/Dish';
+import { ChefNote, Lead, MacroLine, Mast, SecHead } from '../components/Dish';
 import { Icon } from '../components/Icon';
 import { LaneTag, StepLines } from '../components/Steps';
 import { allRatings } from '../interview/helpers';
@@ -11,7 +11,7 @@ import { fraction, quantityText } from '../planning/grocery';
 import { isDetailed, taskLines } from '../planning/method';
 import { estimatesOn, proteinTarget } from '../planning/nutrition';
 import { eachMeal, portions, portionSizes } from '../planning/planner';
-import { check, matches, storage } from '../planning/rules';
+import { check, matchReasons, storage } from '../planning/rules';
 import { duration } from '../planning/schedule';
 import { DAY_FULL, type Day, type StorageInfo } from '../planning/types';
 import { useRemy } from '../store';
@@ -36,7 +36,7 @@ export function Recipe() {
   const handsOn = r.tasks.filter((t) => t.l === 'hands').reduce((s, t) => s + t.m, 0);
   const nums = estimatesOn(planState.nutrition, A);
   const target = proteinTarget(r.slot, ctx.hungry);
-  const found = matches(r, A);
+  const found = matchReasons(r, A).filter((x) => !r.why.slice(1).some((w) => w.toLowerCase().startsWith(x.name.toLowerCase())));
 
   const days: { d: Day; st: StorageInfo }[] = [];
   eachMeal(plan, (m, _slot, i, day) => {
@@ -70,11 +70,11 @@ export function Recipe() {
 
   return (
     <>
-      <Header title="Recipe" sub={r.slot} back={ui.recipeBack} />
+      <Header title="Recipe" back={ui.recipeBack} />
       <main className="body wide" tabIndex={0}>
         <div className="cols">
           <div>
-            <Mast kicker={`${r.slot} · makes ${r.serves}`} title={r.short} sub={r.name !== r.short ? r.name : undefined}>
+            <Mast kicker={`${r.slot} · makes ${r.serves}${count ? ` · ${count} this week` : ''}`} title={r.short} sub={r.name !== r.short ? r.name : undefined}>
               {nums && (
                 <>
                   <p className="mast-kcal">{r.kcal.toLocaleString('en-US')} kcal</p>
@@ -89,15 +89,19 @@ export function Recipe() {
             </Mast>
 
             {why && (
-              <div className="why-quote">
+              <ChefNote kicker="Why Remy picked it">
                 <p>{why}</p>
-                <ul>
-                  {moreWhy.map((w) => (
-                    <li key={w}>{w}</li>
-                  ))}
-                  {found.length > 0 && <li>Matches your profile: {found.join(', ')}</li>}
-                </ul>
-              </div>
+                {moreWhy.length > 0 && (
+                  <ul className="note-list">
+                    {moreWhy.map((w) => (
+                      <li key={w}>{w}</li>
+                    ))}
+                  </ul>
+                )}
+                {found.map((x) => (
+                  <Lead key={x.name} k={x.name} v={x.why} />
+                ))}
+              </ChefNote>
             )}
             {r.note && (
               <div className="warnline">

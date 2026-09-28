@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { BottomNav, Header } from '../components/Chrome';
+import { BottomNav, Header, SyncButton } from '../components/Chrome';
 import { AiConsent } from '../components/AiIdea';
 import { DishLine, Leader, LeadLink, Mast, SecHead } from '../components/Dish';
 import { Icon } from '../components/Icon';
@@ -39,15 +39,7 @@ export function Preferences() {
 
   return (
     <>
-      <Header
-        title="Profile"
-        sub="What Remy knows, and how to change it"
-        right={
-          <button type="button" className="iconbtn" aria-label="Sync and install" onClick={() => actions.go('account')}>
-            <Icon name={sync.signedIn && sync.status !== 'offline' ? 'cloud' : 'cloudOff'} size={22} />
-          </button>
-        }
-      />
+      <Header title="Profile" right={<SyncButton />} />
       <main className="body wide">
         <Mast
           kicker="Remy’s notes"

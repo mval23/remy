@@ -86,13 +86,13 @@ export function ChefNote({ kicker, icon = 'spark', children }: { kicker: string;
 }
 
 /** A screen's masthead: small kicker, big headline, a line under it, then anything else. */
-export function Mast({ kicker, icon = 'toque', title, sub, children }: { kicker: ReactNode; icon?: IconName; title: string; sub?: ReactNode; children?: ReactNode }) {
+export function Mast({ kicker, icon = 'toque', title, sub, compact, children }: { kicker: ReactNode; icon?: IconName; title: string; sub?: ReactNode; compact?: boolean; children?: ReactNode }) {
   return (
     <div className="mast">
       <span className="mast-kicker">
         <Icon name={icon} size={16} /> {kicker}
       </span>
-      <h2 className={title.length > 13 ? 'long' : undefined}>{title}</h2>
+      <h2 className={compact || title.length > 13 ? 'long' : undefined}>{title}</h2>
       {sub && <p className="mast-sub">{sub}</p>}
       {children}
     </div>

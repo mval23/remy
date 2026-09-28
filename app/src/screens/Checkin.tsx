@@ -86,9 +86,9 @@ export function Checkin() {
 
   return (
     <>
-      <Header title="Weekly check-in" sub="About 2 minutes" back="home" />
+      <Header title="Weekly check-in" back="home" />
       <main className="body">
-        <Mast kicker="End of the week" title="How was the menu?" sub="Rate what you ate and skip anything you didn’t try. Then I’ll plan next week around it." />
+        <Mast kicker="End of the week" title="How was the menu?" sub="About 2 minutes. Rate what you ate and skip anything you didn’t try, then I’ll plan next week around it." />
 
         <section className="msec">
           <SecHead title="This week’s dishes" aside={`${rated} of ${meals.length} rated`} />

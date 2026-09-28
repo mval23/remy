@@ -42,7 +42,7 @@ import { useSync } from './sync/useSync';
 export type Screen =
   | 'welcome' | 'interview' | 'resume' | 'summary' | 'home' | 'planner' | 'nutrition' | 'recipe' | 'grocery' | 'prep'
   | 'account' | 'checkin' | 'prefs' | 'privacy' | 'reminders' | 'cook';
-export type SheetName = 'map' | 'options' | 'confirmRestart' | 'replace' | 'move' | 'side' | 'food' | 'confirmForget' | 'confirmImport';
+export type SheetName = 'map' | 'options' | 'confirmRestart' | 'replace' | 'move' | 'side' | 'food' | 'confirmForget' | 'confirmImport' | 'meal' | 'menuSettings';
 export interface SheetArg {
   d: number;
   slot: Slot;
