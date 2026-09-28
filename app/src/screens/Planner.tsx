@@ -198,7 +198,7 @@ export function Planner() {
             </button>
           </div>
         )}
-        <div className="acts">
+        <div className="acts toolbar">
           <button type="button" className="yes" aria-pressed={!!m.ok} onClick={() => actions.toggleApproved(d, slot)}>
             <Icon name="check" size={15} /> {m.ok ? 'Approved' : 'Approve'}
           </button>

@@ -11,7 +11,7 @@ function InterviewMap() {
   const open = firstOpen(s);
   return (
     <SheetFrame label="Interview map">
-      <h3>Interview map</h3>
+      <h2 className="sheet-title">Interview map</h2>
       <p className="hint">Tap any answered question to change it.</p>
       {sectionStats(s).map((x) => (
         <section className="sec" key={x.sec.id}>
@@ -50,7 +50,7 @@ function Options() {
   const { actions } = useRemy();
   return (
     <SheetFrame label="Interview options">
-      <h3>Interview options</h3>
+      <h2 className="sheet-title">Interview options</h2>
       <div className="list gap-top">
         <button type="button" className="li li-btn" onClick={() => actions.openSheet('map')}>
           <Icon name="list" />
@@ -91,7 +91,7 @@ function ConfirmRestart() {
   const where = sync.signedIn ? 'this device and your cloud copy' : 'this device';
   return (
     <SheetFrame label={fromPrefs ? 'Delete everything' : 'Start over'}>
-      <h3>{fromPrefs ? 'Delete everything?' : 'Start the interview over?'}</h3>
+      <h2 className="sheet-title">{fromPrefs ? 'Delete everything?' : 'Start the interview over?'}</h2>
       <p className="sheet-text">
         This permanently deletes your answers, meal plan, grocery list, check-ins and everything Remy learned from {where}. It can’t be undone. Backup files you downloaded aren’t
         affected.
@@ -112,7 +112,7 @@ function ConfirmForget() {
   const { actions } = useRemy();
   return (
     <SheetFrame label="Delete learned preferences">
-      <h3>Delete learned preferences?</h3>
+      <h2 className="sheet-title">Delete learned preferences?</h2>
       <p className="sheet-text">
         This removes everything Remy inferred or learned from check-ins and skipped meals, and undoes what it changed. Your interview answers, your week and your check-in history stay.
       </p>
@@ -121,7 +121,7 @@ function ConfirmForget() {
           Cancel
         </button>
         <button type="button" className="btn warn grow" onClick={actions.forgetAll}>
-          Delete
+          Delete learned
         </button>
       </div>
     </SheetFrame>
@@ -136,7 +136,7 @@ function ConfirmImport() {
   const parts = [b.interview.started && 'your answers', b.plan.plan && 'a meal plan', b.plan.learned.length > 0 && 'what Remy learned'].filter((x): x is string => !!x);
   return (
     <SheetFrame label="Restore a backup">
-      <h3>Restore this backup?</h3>
+      <h2 className="sheet-title">Restore this backup?</h2>
       <p className="sheet-text">
         Backup from {when}
         {parts.length ? `, with ${listText(parts)}` : ''}.
@@ -162,11 +162,11 @@ function FoodLevel() {
   const current = allRatings(activeAnswers(interview))[f];
   return (
     <SheetFrame label={`Change ${FOODS[f].n}`}>
-      <h3>
+      <h2 className="sheet-title">
         <span aria-hidden="true">{FOODS[f].e}</span> {FOODS[f].n}
-      </h3>
+      </h2>
       <p className="sheet-text">Remy updates the meals you haven’t approved yet. “Some ways” keeps the preparations you picked in the interview.</p>
-      <div className="levels" role="radiogroup" aria-label={FOODS[f].n}>
+      <div className="levels" role="group" aria-label={FOODS[f].n}>
         {LEVELS.map((l) => (
           <button key={l.id} type="button" className={`l-${l.id}`} aria-pressed={current === l.id} onClick={() => actions.setFoodLevel(f, l.id, l.name)}>
             {l.label}

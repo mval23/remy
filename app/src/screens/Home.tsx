@@ -60,9 +60,6 @@ export function Home() {
             <button type="button" className="iconbtn" aria-label="Sync and install" onClick={() => actions.go('account')}>
               <Icon name={sync.signedIn && sync.status !== 'offline' ? 'cloud' : 'cloudOff'} size={22} />
             </button>
-            <button type="button" className="iconbtn" aria-label="Your preferences" onClick={() => actions.go('prefs')}>
-              <Icon name="user" size={22} />
-            </button>
           </>
         }
       />
@@ -176,7 +173,7 @@ export function Home() {
             />
             <RowButton icon="cal" tone="c-blue" title="Meal plan" sub={`${approvals.ok} of ${approvals.total} meals approved`} onClick={() => actions.go('planner')} />
             <RowButton
-              icon="clock"
+              icon="bell"
               tone="c-citrus"
               title="Reminders"
               sub={nextReminder ? `Next: ${nextReminder.title.toLowerCase()}, ${new Date(nextReminder.at).toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' })}` : 'Thawing, check-in and prep day'}

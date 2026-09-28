@@ -14,6 +14,12 @@
       "port": 5173
     },
     {
+      "name": "remy-app-5190",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "app", "run", "dev", "--", "--port", "5190", "--strictPort"],
+      "port": 5190
+    },
+    {
       "name": "remy-app-build",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "app", "run", "preview", "--", "--base", "/remy/"],

@@ -68,23 +68,23 @@ export function Summary() {
 
         <section className="sec">
           <div className="safety">
-            <h3>
+            <h2>
               <Icon name="lock" size={18} /> Hard safety rules
-            </h3>
+            </h2>
             <p className="safety-sub">Never suggested anywhere, including sauces, substitutions and replacements.</p>
             {hasSafety ? (
               <div className="chips">
                 {safety.allergies.map((x) => (
                   <span className="chip" key={x}>
                     <Icon name="shield" size={14} />
-                    {x} · allergy
+                    {x} allergy
                   </span>
                 ))}
                 {safety.diet.map((x) => (
                   <span className="chip" key={x}>{x}</span>
                 ))}
                 {safety.intolerances.map((x) => (
-                  <span className="chip" key={x}>{x} · intolerance</span>
+                  <span className="chip" key={x}>{x} intolerance</span>
                 ))}
               </div>
             ) : (
@@ -294,7 +294,7 @@ export function Summary() {
           </button>
         ) : (
           <button type="button" className="btn" onClick={actions.confirm}>
-            <Icon name="check" size={18} /> Looks right, plan my week
+            <Icon name="check" size={18} /> Plan my week
           </button>
         )}
       </footer>

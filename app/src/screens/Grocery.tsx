@@ -45,7 +45,7 @@ export function Grocery() {
             aria-label={`Check off ${x.n}`}
             onClick={() => edit((g) => ({ ...g, checked: { ...g.checked, [x.k]: !done } }))}
           >
-            {done && <Icon name="check" size={16} />}
+            <span>{done && <Icon name="check" size={16} />}</span>
           </button>
           <button type="button" className="gi-main" aria-expanded={open === x.k} onClick={() => setOpen(open === x.k ? null : x.k)}>
             <div className="nm">{x.n}</div>

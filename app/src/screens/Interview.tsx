@@ -111,22 +111,22 @@ export function Interview() {
         ))}
       </button>
       {ui.editReturn ? (
-        <div className="editbar">
+        <section className="editbar" aria-label="Editing an answer">
           <Icon name="edit" size={16} />
           <span className="grow">Editing one answer. Changes save automatically.</span>
           <button type="button" className="linkbtn tight" onClick={actions.cancelEdit}>
             Cancel
           </button>
-        </div>
+        </section>
       ) : (
         s.done && (
-          <div className="editbar">
+          <section className="editbar" aria-label="Reviewing answers">
             <Icon name="check" size={16} />
             <span className="grow">Interview complete. You’re reviewing answers.</span>
             <button type="button" className="linkbtn tight" onClick={() => actions.go('summary')}>
               Profile
             </button>
-          </div>
+          </section>
         )
       )}
 
