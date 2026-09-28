@@ -3,7 +3,7 @@ import { Avatar, Icon } from '../components/Icon';
 import { activeAnswers, applies, formatAnswer, sequence } from '../interview/engine';
 import { allRatings, arr, asPreparations, listText, real, str } from '../interview/helpers';
 import { FOODS, LEVELS, QBY } from '../interview/questions';
-import { inferences, LATER_QUESTIONS, safetyRules, type Confidence } from '../profile/profile';
+import { inferences, laterQuestions, safetyRules, type Confidence } from '../profile/profile';
 import { useRemy } from '../store';
 
 const DAY_FULL: Record<string, string> = { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' };
@@ -234,6 +234,9 @@ export function Summary() {
             <Row label="Microwave at work" id="workmicro" />
             <Row label="Eaten away from home" id="away" />
             <Row label="Pantry" id="pantry" />
+            <Row label="Frozen vegetables and fruit" id="frozenveg" src="From a weekly check-in" />
+            <Row label="Trusted brands" id="brands" src="From a weekly check-in" />
+            <Row label="Dishes from home" id="homedishes" src="From a weekly check-in" />
           </div>
         </section>
 
@@ -268,12 +271,12 @@ export function Summary() {
                 <Icon name="right" size={18} />
               </button>
             ))}
-            {LATER_QUESTIONS.map((t) => (
-              <div className="li" key={t}>
+            {laterQuestions(A).map((q) => (
+              <div className="li" key={q.id}>
                 <span className="c-muted"><Icon name="chat" size={18} /></span>
                 <div className="grow">
-                  <div className="t">{t}</div>
-                  <div className="s">I’ll ask this in a later check-in</div>
+                  <div className="t">{q.say(A)}</div>
+                  <div className="s">I’ll ask this in a weekly check-in</div>
                 </div>
               </div>
             ))}

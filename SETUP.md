@@ -86,8 +86,18 @@ Remy can ask Google's Gemini AI for new recipe ideas. It uses Gemini's **free ti
 
 Every idea is checked against your allergies, diet rules and food ratings before you see it. If you ever want to stop: turn it off in Remy, or delete the `remy-ai` function in Supabase.
 
+## 9. Keep the free project from pausing
+
+Free Supabase projects pause after about a week with no activity, and sync stops until you restore them. A scheduled GitHub Action now pokes the project every 3 days. It needs one small database function:
+
+1. In Supabase, open **SQL Editor → New query**.
+2. Paste all of [`supabase/schema.sql`](supabase/schema.sql) again and click **Run**. It’s safe to run twice: it keeps your data and only adds what’s missing (the `keep_alive` function at the end).
+3. On GitHub, open **Actions → Keep Supabase awake → Run workflow** once. A green check means it works; after that it runs by itself.
+
+GitHub pauses scheduled actions in repositories with no commits for 60 days and emails you first. If that happens, click **Enable workflow** on that action’s page.
+
 ## Good to know about the free plan
 
-- **Pausing:** free projects pause after about a week with no activity. Your data is kept. Remy keeps working on each device, and sync resumes after you click **Restore** in the Supabase dashboard.
+- **Pausing:** free projects pause after about a week with no activity; step 9 prevents that. If it ever happens, your data is kept, Remy keeps working on each device, and sync resumes after you click **Restore** in the Supabase dashboard.
 - **Email limits:** Supabase's built-in email sender allows only a few emails per hour. Remy only emails you when you create the account or reset the password, so that's plenty.
 - **Deleting your data:** in Remy, **Delete everything** removes the cloud copy too. Deleting the Supabase project removes it all.

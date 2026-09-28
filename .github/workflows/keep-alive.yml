@@ -1,0 +1,31 @@
+# Free Supabase projects pause after about a week without activity, which stops sync.
+# This calls a tiny database function (keep_alive in supabase/schema.sql) every 3 days.
+name: Keep Supabase awake
+
+on:
+  schedule:
+    - cron: '17 9 */3 * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call keep_alive
+        env:
+          URL: ${{ vars.SUPABASE_URL }}
+          KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then
+            echo "Sync isn't set up (no SUPABASE_URL / SUPABASE_ANON_KEY variables), so there's nothing to keep awake."
+            exit 0
+          fi
+          if ! curl --fail-with-body -sS -X POST "$URL/rest/v1/rpc/keep_alive" \
+               -H "apikey: $KEY" -H "Content-Type: application/json" -d '{}'; then
+            echo
+            echo "The keep_alive call failed. If the message mentions keep_alive not being found,"
+            echo "run the keep-alive part of supabase/schema.sql in the Supabase SQL Editor (SETUP.md step 9)."
+            exit 1
+          fi

@@ -122,6 +122,8 @@ export function profileForAi(A: Answers): string {
     `Dislikes (avoid): ${group('dislike').join(', ') || 'none'}`,
     `Never (avoid completely): ${[...group('never'), ...arr(A.never).map((x) => x.toLowerCase())].join(', ') || 'none'}`,
     `Favorite meals: ${real(A.favorites).join(', ') || 'none listed'}`,
+    `Dishes from home they still love: ${arr(A.homedishes).join(', ') || 'none listed'}`,
+    `Frozen vegetables and fruit: ${str(A.frozenveg) || 'no preference given'}`,
     `Flavors: ${arr(A.flavors).join(', ') || 'any'}. Sauces: ${arr(A.sauces).join(', ') || 'any'}. Cuisines: ${arr(A.cuisines).join(', ') || 'any'}.`,
     `Spice: ${str(A.spice) || 'mild'}. Textures that are a no: ${arr(A.textures).join(', ') || 'none'}. Mixed dishes: ${str(A.mixed) || 'unknown'}.`,
     `Hidden vegetables: ${str(A.visible) || 'unknown'}. Doesn’t reheat well for them: ${arr(A.reheat).join(', ') || 'nothing noted'}.`,

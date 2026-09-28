@@ -45,6 +45,8 @@ export interface Question {
   opts?: (string | Option)[];
   optsFn?: (A: Answers) => string[];
   suggest?: string[];
+  /** Placeholder for typed answers. */
+  placeholder?: string;
   foods?: string[];
   unit?: string;
   sample?: AnswerValue;

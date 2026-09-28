@@ -8,6 +8,7 @@ import { Interview } from './screens/Interview';
 import { Nutrition } from './screens/Nutrition';
 import { Planner } from './screens/Planner';
 import { Preferences } from './screens/Preferences';
+import { Privacy } from './screens/Privacy';
 import { Prep } from './screens/Prep';
 import { Recipe } from './screens/Recipe';
 import { Resume } from './screens/Resume';
@@ -45,6 +46,8 @@ function CurrentScreen() {
       return <Checkin />;
     case 'prefs':
       return <Preferences />;
+    case 'privacy':
+      return <Privacy />;
     default:
       return <Welcome />;
   }

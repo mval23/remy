@@ -13,13 +13,17 @@ export interface PlanContext {
   adj: Record<string, number>;
   /** User reported being often hungry: raise protein thresholds. */
   hungry: boolean;
+  /** Meal recipes from last week, so a new week can rotate in something different. */
+  recent: string[];
 }
 
-export const context = (A: Answers, adj: Record<string, number> = {}, hungry = false): PlanContext => ({ A, adj, hungry });
+export const context = (A: Answers, adj: Record<string, number> = {}, hungry = false, recent: string[] = []): PlanContext => ({ A, adj, hungry, recent });
 
 /** Score adjustment at or below which a recipe is left out of new plans (“Not again”, or rejected twice with a reason). */
 export const AVOID_AT = -4;
 export const avoided = (id: string, ctx: PlanContext) => (ctx.adj[id] ?? 0) <= AVOID_AT;
+/** Score adjustment at or above which a recipe stays in rotation week after week (“Loved”). */
+export const KEEP_AT = 2;
 
 /* ---------- hard restrictions ---------- */
 

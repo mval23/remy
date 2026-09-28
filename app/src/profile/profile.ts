@@ -1,5 +1,6 @@
 import { asBudget, asPreparations, has, hasAny, real, arr } from '../interview/helpers';
-import type { Answers } from '../interview/types';
+import { QBY } from '../interview/questions';
+import type { Answers, Question } from '../interview/types';
 
 export type Confidence = 'high' | 'medium' | 'low';
 
@@ -48,9 +49,8 @@ export function inferences(A: Answers, hidden: Record<string, boolean> = {}): In
   return out.filter((x) => !hidden[x.id]);
 }
 
-/** Questions worth asking in a later check-in, beyond the ones that were skipped. */
-export const LATER_QUESTIONS = [
-  'Which brands of yogurt, sauce or snacks do you trust?',
-  'Are frozen vegetables okay, or fresh only?',
-  'Any dishes from home or childhood you still love?',
-];
+/** Questions asked one per weekly check-in instead of in the interview. */
+export const LATER_IDS = ['frozenveg', 'brands', 'homedishes'];
+
+/** Later questions not answered yet. */
+export const laterQuestions = (A: Answers): Question[] => LATER_IDS.filter((id) => A[id] === undefined).map((id) => QBY[id]);

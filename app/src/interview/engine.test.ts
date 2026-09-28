@@ -15,6 +15,7 @@ import {
 import { toggleOption } from './helpers';
 import { Q, QBY } from './questions';
 import { emptyInterview, type Answers } from './types';
+import { LATER_IDS, laterQuestions } from '../profile/profile';
 
 const ids = (A: Answers) => sequence(A).map((q) => q.id);
 
@@ -109,11 +110,19 @@ describe('answering', () => {
 });
 
 describe('sample profile', () => {
-  it('completes the interview, asking 59 of the 61 questions', () => {
+  it('completes the interview, asking 59 of the 61 interview questions', () => {
     const s = fillWithSamples(emptyInterview());
-    expect(Q.length).toBe(61);
+    expect(Q.length).toBe(61 + LATER_IDS.length);
     expect(s.done).toBe(true);
     expect(sequence(s.answers).length).toBe(59);
+  });
+
+  it('leaves the later questions for check-ins, then treats them as normal answers', () => {
+    const s = fillWithSamples(emptyInterview());
+    expect(laterQuestions(s.answers).map((q) => q.id)).toEqual(LATER_IDS);
+    const answered = { ...s.answers, frozenveg: 'Fresh only' };
+    expect(sequence(answered).map((q) => q.id)).toContain('frozenveg');
+    expect(laterQuestions(answered).map((q) => q.id)).toEqual(['brands', 'homedishes']);
   });
 
   it('can stop part-way for a half-finished example', () => {

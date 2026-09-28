@@ -84,6 +84,16 @@ describe('weekly check-in', () => {
     expect(changes.at(-1)).toMatch(/^Plan a new week \(prep day about .+, this week was .+\) and start a fresh grocery list$/);
   });
 
+  it('rotates some new recipes into next week and names them', () => {
+    const s = week();
+    const { changes, next } = applyCheckin(s, SAMPLE);
+    const before = mealsToRate(s.plan!).map((m) => m.id);
+    expect(next.recent.sort()).toEqual([...before].sort());
+    const added = mealsToRate(next.plan!).filter((m) => !before.includes(m.id));
+    expect(added.length).toBeGreaterThan(0);
+    expect(changes.find((c) => c.startsWith('New next week:'))).toContain(R[added[0].id].short);
+  });
+
   it('never plans anything the safety rules block', () => {
     const A = with_({ allergies: ['Milk / dairy'] });
     const { next } = applyCheckin(withCheckin(week(A), { rated: { teriyaki: 'loved' } }), A);

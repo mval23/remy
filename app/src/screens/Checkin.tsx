@@ -1,9 +1,12 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
+import { AnswerControls } from '../components/AnswerControls';
 import { BottomNav, Header } from '../components/Chrome';
 import { Avatar, Icon } from '../components/Icon';
 import { applyCheckin, BODY_QUESTIONS, bodyCheckinOn, checkinDue, mealsToRate, NOT_AGAIN_REASONS, weekQuestions, weightOn, type CheckinQuestion } from '../learning/learning';
 import type { CheckinDraft, MealRating } from '../learning/types';
+import type { AnswerValue, Question as InterviewQuestion } from '../interview/types';
 import { R } from '../planning/data/recipes';
+import { laterQuestions } from '../profile/profile';
 import { useRemy } from '../store';
 
 const RATINGS: [MealRating, string, string][] = [
@@ -35,6 +38,37 @@ function Question({ f, value, onPick }: { f: CheckinQuestion; value: string | un
   );
 }
 
+/**
+ * One question the interview left for later. It saves to the profile right away,
+ * separately from the check-in, and the next check-in asks the next one.
+ */
+function LaterQuestion({ q }: { q: InterviewQuestion }) {
+  const { ctx, actions } = useRemy();
+  const [draft, setDraft] = useState<AnswerValue>(q.type === 'chips' ? [] : '');
+  const save = (v: AnswerValue) => {
+    actions.setAnswer(q.id, v, q.ack?.(v, ctx.A) ?? 'Saved to your profile');
+    actions.editCheckin((c) => ({ ...c, later: q.id }));
+  };
+  const empty = Array.isArray(draft) ? draft.length === 0 : !draft;
+  return (
+    <div className="panel stack">
+      <p className="strong">{q.say(ctx.A)}</p>
+      <p className="hint">One question from your interview that I saved for later. It goes into your profile.</p>
+      <AnswerControls q={q} answers={ctx.A} draft={draft} setDraft={setDraft} pick={(v) => save(v)} submit={() => !empty && save(draft)} />
+      {q.type === 'chips' && (
+        <div className="row wrap">
+          <button type="button" className="btn sm" disabled={empty} onClick={() => save(draft)}>
+            Save answer
+          </button>
+          <button type="button" className="btn sm ghost" onClick={() => save([])}>
+            Nothing comes to mind
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Weekly check-in: rate the week's meals, a few quick questions, then see exactly what changes. */
 export function Checkin() {
   const { planState, ctx, actions } = useRemy();
@@ -47,6 +81,7 @@ export function Checkin() {
   const meals = mealsToRate(plan);
   const rated = meals.filter((m) => c.rated[m.id]).length;
   const { changes } = applyCheckin(planState, A);
+  const later = c.later ? null : laterQuestions(A)[0];
 
   return (
     <>
@@ -113,6 +148,7 @@ export function Checkin() {
             {weekQuestions(plan, A, planState).map((f) => (
               <Question key={f.id} f={f} value={c.q[f.id]} onPick={pick(f.id)} />
             ))}
+            {later && <LaterQuestion key={later.id} q={later} />}
           </div>
         </section>
 

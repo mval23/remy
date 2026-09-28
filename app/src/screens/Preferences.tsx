@@ -213,6 +213,9 @@ export function Preferences() {
                 ? 'Your data is saved on this device and synced to your account. Nobody else can read it.'
                 : 'Your data is saved only in this browser on this device. Nothing is sent anywhere. A backup file lets you move it or keep a copy.'}
             </p>
+            <button type="button" className="linkbtn self-start" onClick={() => actions.go('privacy')}>
+              <Icon name="lock" size={16} /> Read the privacy note
+            </button>
             <button type="button" className="btn ghost wide" onClick={actions.exportData}>
               <Icon name="download" size={17} /> Download a backup
             </button>

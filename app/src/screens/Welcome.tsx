@@ -88,7 +88,7 @@ export function Welcome() {
               />
             </>
           )}
-          <p className="hint">Remy gives general meal-planning and balance guidance. It isn’t medical advice or a replacement for a dietitian.</p>
+          <p className="hint">Remy gives general meal-planning and balance guidance. It isn’t medical advice or a replacement for a dietitian. <button type="button" className="linkbtn inline" onClick={() => actions.go('privacy')}>Privacy</button></p>
         </div>
       </main>
       <footer className="foot stacked">

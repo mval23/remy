@@ -26,7 +26,7 @@ const TABS: { id: Screen; icon: IconName; label: string; also: Screen[] }[] = [
   { id: 'planner', icon: 'cal', label: 'Plan', also: ['nutrition', 'recipe'] },
   { id: 'grocery', icon: 'cart', label: 'Grocery', also: [] },
   { id: 'prep', icon: 'clock', label: 'Prep', also: [] },
-  { id: 'prefs', icon: 'user', label: 'Profile', also: ['summary', 'account'] },
+  { id: 'prefs', icon: 'user', label: 'Profile', also: ['summary', 'account', 'privacy'] },
 ];
 
 export function BottomNav() {

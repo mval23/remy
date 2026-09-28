@@ -419,6 +419,27 @@ const QUESTIONS: Omit<Question, 'i'>[] = [
     why: 'I’ll leave these off the grocery list. You can add them back anytime.',
     opts: ['Rice', 'Pasta', 'Oats', 'Flour', 'Sugar', 'Baking basics', 'Olive oil', 'Soy sauce', 'Basic spices', 'Honey', 'Cocoa powder', 'Peanut butter'],
     sample: ['Rice', 'Flour', 'Sugar', 'Baking basics', 'Olive oil', 'Soy sauce', 'Basic spices', 'Honey', 'Cocoa powder'] },
+
+  /*
+   * Asked later, one per weekly check-in (see `laterQuestion` in profile/profile.ts), not during the interview.
+   * They join the profile once answered, so they show on the summary and can be edited like any answer.
+   */
+  { id: 'frozenveg', sec: 'life', type: 'single', skip: true,
+    when: (A) => A.frozenveg !== undefined,
+    say: () => 'Are frozen vegetables and fruit okay, or fresh only?',
+    opts: ['Frozen is great', 'Fresh only', 'Depends on what it is'], sample: 'Frozen is great',
+    ack: (v) => (v === 'Fresh only' ? 'Got it. Your grocery list will point out the frozen items so you can buy them fresh.' : 'Good to know.') },
+  { id: 'brands', sec: 'life', type: 'chips', skip: true,
+    when: (A) => A.brands !== undefined,
+    say: () => 'Which brands of yogurt, sauce or snacks do you trust?',
+    placeholder: 'Type a brand, then Add',
+    ack: (v) => (arr(v).length ? 'I’ll show these on your grocery list.' : null) },
+  { id: 'homedishes', sec: 'life', type: 'chips', skip: true,
+    when: (A) => A.homedishes !== undefined,
+    say: () => 'Any dishes from home or childhood you still love?',
+    placeholder: 'Type a dish, then Add',
+    suggest: ['Chicken noodle soup', 'Lasagna', 'Rice and beans', 'Pot roast', 'Empanadas', 'Fried rice'],
+    ack: (v) => (arr(v).length ? 'Lovely. Remy’s AI ideas will use these as inspiration.' : null) },
 ];
 
 export const Q: Question[] = QUESTIONS.map((q, i) => ({ ...q, i }));

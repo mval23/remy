@@ -34,7 +34,7 @@ import { useSync } from './sync/useSync';
 
 export type Screen =
   | 'welcome' | 'interview' | 'resume' | 'summary' | 'home' | 'planner' | 'nutrition' | 'recipe' | 'grocery' | 'prep'
-  | 'account' | 'checkin' | 'prefs';
+  | 'account' | 'checkin' | 'prefs' | 'privacy';
 export type SheetName = 'map' | 'options' | 'confirmRestart' | 'replace' | 'move' | 'side' | 'food' | 'confirmForget' | 'confirmImport';
 export interface SheetArg {
   d: number;
@@ -73,7 +73,7 @@ const initialUi = (screen: Screen = 'welcome'): UiState => ({
   sheetFood: null, pendingImport: null,
 });
 
-const planContext = (s: InterviewState, p: PlanState): PlanContext => context(activeAnswers(s), p.adj, p.hungry);
+const planContext = (s: InterviewState, p: PlanState): PlanContext => context(activeAnswers(s), p.adj, p.hungry, p.recent);
 
 function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
   const [interview, setInterview] = useState<InterviewState>(initial.interview);

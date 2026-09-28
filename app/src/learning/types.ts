@@ -32,6 +32,8 @@ export interface CheckinDraft {
   /** Optional weekly weight, as typed. */
   weight: string;
   unit: 'lb' | 'kg';
+  /** The later interview question answered during this check-in (one per week). */
+  later?: string;
 }
 
 export const emptyCheckin = (): CheckinDraft => ({ rated: {}, why: {}, q: {}, weight: '', unit: 'lb' });

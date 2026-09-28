@@ -1,7 +1,7 @@
 import { MEAL_IDS, R } from './data/recipes';
 import { WEEKS } from './data/weeks';
 import { balanceDay } from './nutrition';
-import { activeSlots, avoided, check, isAway, score, storage, sweetDays, weekDays, type CheckResult, type PlanContext } from './rules';
+import { activeSlots, avoided, check, isAway, KEEP_AT, score, storage, sweetDays, weekDays, type CheckResult, type PlanContext } from './rules';
 import type { Meal, PlanDay, Recipe, Slot, Variety, WeekPlan } from './types';
 import { SLOTS } from './types';
 
@@ -21,9 +21,61 @@ export function resolve(templateId: string, slot: Slot, day: number, used: Set<s
   return candidates[0]?.id ?? null;
 }
 
+/** Minutes of prep-day work (everything except fridge and freezer time). */
+const work = (r: Recipe) => r.tasks.filter((t) => t.l !== 'chill').reduce((s, t) => s + t.m, 0);
+/** A rotated-in recipe may take at most this many more minutes than the one it replaces. */
+const ROTATE_EXTRA_MINUTES = 5;
+
+/** How many recipes per meal slot a new week swaps for something different. */
+const ROTATE_PER_SLOT: Record<Variety, number> = { favorites: 0, balanced: 1, variety: 2 };
+
+/**
+ * Which template recipes to swap this week, so consecutive weeks don't repeat exactly.
+ * Only recipes eaten last week (`ctx.recent`) rotate out, never ones marked Loved, least-liked first.
+ * Replacements must pass every rule, keep safely until the last day they're eaten, contain
+ * something the person likes (score above 0), take about the same prep-day work (so prep day
+ * doesn't grow), and not be last week's or already in the template.
+ * The result is deterministic, so rebuilding the same week gives the same swaps.
+ */
+export function rotation(variety: Variety, ctx: PlanContext): Record<string, string> {
+  const swap: Record<string, string> = {};
+  const limit = ROTATE_PER_SLOT[variety];
+  if (!limit || !ctx.recent.length) return swap;
+  const template = WEEKS[variety].days;
+  const recent = new Set(ctx.recent);
+  const inTemplate = new Set(template.flat());
+  const taken = new Set<string>();
+  SLOTS.forEach((slot, si) => {
+    const lastDay: Record<string, number> = {};
+    template.forEach((row, i) => {
+      lastDay[row[si]] = i + 1;
+    });
+    const out = Object.keys(lastDay)
+      .filter((id) => R[id] && recent.has(id) && (ctx.adj[id] ?? 0) < KEEP_AT)
+      .sort((a, b) => score(R[a], ctx) - score(R[b], ctx) || a.localeCompare(b))
+      .slice(0, limit);
+    for (const id of out) {
+      const pick = MEAL_IDS.map((x) => R[x])
+        .filter(
+          (r) =>
+            r.slot === slot && !recent.has(r.id) && !inTemplate.has(r.id) && !taken.has(r.id) && !avoided(r.id, ctx) &&
+            check(r, ctx.A).ok && storage(r, lastDay[id]).k !== 'unsafe' && score(r, ctx) > 0 &&
+            work(r) <= work(R[id]) + ROTATE_EXTRA_MINUTES,
+        )
+        .sort((a, b) => score(b, ctx) - score(a, ctx) || a.id.localeCompare(b.id))[0];
+      if (pick) {
+        swap[id] = pick.id;
+        taken.add(pick.id);
+      }
+    }
+  });
+  return swap;
+}
+
 /**
  * Build a week from a template.
  * With `previous`, approved meals that are still allowed are kept and only the rest is rebuilt.
+ * After the first week, some recipes rotate (see `rotation`).
  * Adds balancing sides when the user asked for them.
  */
 export function buildPlan(variety: Variety, ctx: PlanContext, previous?: WeekPlan | null): { plan: WeekPlan; changed: number } {
@@ -32,6 +84,7 @@ export function buildPlan(variety: Variety, ctx: PlanContext, previous?: WeekPla
   const days = weekDays(ctx.A);
   const sweets = sweetDays(ctx.A);
   const used = new Set<string>();
+  const swap = rotation(variety, ctx);
   let changed = 0;
 
   let plan: WeekPlan = days.map((d, i) => {
@@ -52,7 +105,8 @@ export function buildPlan(variety: Variety, ctx: PlanContext, previous?: WeekPla
         meals[slot] = { out: true };
         return;
       }
-      const rid = resolve(template[i][si], slot, i + 1, used, ctx);
+      const planned = template[i][si];
+      const rid = resolve(swap[planned] ?? planned, slot, i + 1, used, ctx);
       if (rid) used.add(rid);
       if (!prev || prev.r !== rid) changed++;
       meals[slot] = rid ? { r: rid, ok: false } : { r: null, need: true, ok: false };

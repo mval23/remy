@@ -9,6 +9,8 @@ export interface PlanState {
   variety: Variety | null;
   /** Day selected in the planner (0–6). */
   day: number;
+  /** Meal recipes from the previous week; new weeks rotate some of them out. */
+  recent: string[];
   /** When the current week was planned (0 = before weeks were tracked). Grocery check-offs belong to one week. */
   weekStartedAt: number;
   groceries: GroceryEdits;
@@ -41,6 +43,7 @@ export const emptyPlanState = (): PlanState => ({
   plan: null,
   variety: null,
   day: 0,
+  recent: [],
   weekStartedAt: 0,
   groceries: emptyGroceryEdits(),
   nutrition: defaultNutrition(),
