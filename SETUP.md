@@ -59,6 +59,33 @@ The anon key is designed to be public. It's built into the app, and the security
 
 In the `app` folder, copy `.env.example` to a new file named `.env.local` and fill in the two values. Git ignores `.env.local`, so it never gets uploaded. Restart `npm run dev`.
 
+## 8. (Optional) Turn on free AI recipe ideas
+
+Remy can ask Google's Gemini AI for new recipe ideas. It uses Gemini's **free tier**: no credit card, so it can't cost money. The trade-off: on the free tier, Google may use what's sent to improve its products. Remy sends only food preferences, allergy rules and the typed request, never names, emails, weight or health answers. It needs sync (steps 1–6), because the AI key is kept in your Supabase project, never in the app.
+
+**Get a free Gemini key**
+
+1. Go to [aistudio.google.com](https://aistudio.google.com) and sign in with a Google account.
+2. Click **Get API key**, then **Create API key**. Copy it.
+3. Don't turn on billing for that Google project. Without billing it stays free; if the free limit is reached, Remy just says “try again later”.
+
+**Create the server function**
+
+1. In Supabase, open **Edge Functions** in the left menu and click **Deploy a new function**, then **Via Editor**.
+2. Name the function exactly `remy-ai`.
+3. Delete the example code, then open [`supabase/functions/remy-ai/index.ts`](supabase/functions/remy-ai/index.ts) from this project, copy everything, and paste it in.
+4. Click **Deploy function** and wait about 30 seconds.
+5. Open **Edge Functions → Secrets** (sometimes under the function's settings) and add a secret:
+   - Name `GEMINI_API_KEY`, value: the key from Google.
+6. Leave JWT verification on (the default). The function also checks that the person is signed in.
+
+**Try it**
+
+1. In Remy, sign in, then open **Profile → AI ideas** and tap **Turn on AI ideas**.
+2. In **Plan**, tap **Replace** on any meal, type what you feel like (or nothing), and tap **Ask**.
+
+Every idea is checked against your allergies, diet rules and food ratings before you see it. If you ever want to stop: turn it off in Remy, or delete the `remy-ai` function in Supabase.
+
 ## Good to know about the free plan
 
 - **Pausing:** free projects pause after about a week with no activity. Your data is kept. Remy keeps working on each device, and sync resumes after you click **Restore** in the Supabase dashboard.

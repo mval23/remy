@@ -289,3 +289,16 @@ for (const [id, s] of Object.entries(SIDES)) {
 
 export const SIDE_IDS = Object.keys(SIDES);
 export const MEAL_IDS = Object.keys(MEALS);
+
+/**
+ * Recipes created by the AI live in the user's saved data, not in this file.
+ * Register them so every lookup (R, MEAL_IDS) finds them; ids not in `saved` are removed.
+ */
+export function registerAiRecipes(saved: Record<string, Recipe>): void {
+  for (const id of Object.keys(R)) if (id.startsWith('ai_') && !saved[id]) delete R[id];
+  for (let i = MEAL_IDS.length - 1; i >= 0; i--) if (MEAL_IDS[i].startsWith('ai_') && !saved[MEAL_IDS[i]]) MEAL_IDS.splice(i, 1);
+  for (const [id, r] of Object.entries(saved)) {
+    R[id] = r;
+    if (!MEAL_IDS.includes(id)) MEAL_IDS.push(id);
+  }
+}

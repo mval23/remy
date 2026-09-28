@@ -1,7 +1,7 @@
 import { emptyCheckin, type CheckinDraft, type LearnedItem, type Noticed, type ProgressEntry, type SweetPortion } from '../learning/types';
 import { emptyGroceryEdits, type GroceryEdits } from '../planning/grocery';
 import { defaultNutrition, type NutritionSettings } from '../planning/nutrition';
-import type { Variety, WeekPlan } from '../planning/types';
+import type { Recipe, Variety, WeekPlan } from '../planning/types';
 
 /** Everything about the current week and what Remy has learned, apart from the interview. */
 export interface PlanState {
@@ -31,6 +31,10 @@ export interface PlanState {
   checkin: CheckinDraft;
   /** Body check-ins, newest first. */
   progress: ProgressEntry[];
+  /** Recipes created by the AI and kept by the user, by id (ai_…). */
+  aiRecipes: Record<string, Recipe>;
+  /** The user read what the AI sends where, and turned it on. */
+  aiConsent: boolean;
 }
 
 export const emptyPlanState = (): PlanState => ({
@@ -49,6 +53,8 @@ export const emptyPlanState = (): PlanState => ({
   trial: null,
   checkin: emptyCheckin(),
   progress: [],
+  aiRecipes: {},
+  aiConsent: false,
 });
 
 /** Fill in fields added since a copy was saved (older devices, the cloud, backups). */
