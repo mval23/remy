@@ -177,6 +177,21 @@ export function gearList(plan: WeekPlan, sc: Schedule): string[] {
     .map((name) => (most[name] > 1 ? `${name} ×${most[name]}` : name));
 }
 
+/**
+ * How to eat a dish, in a word or two, for the end of a dotted line when calories are off:
+ * "cold", "as is", "frozen", "fresh", or the first heating time ("2–3 min", "45–60 s").
+ */
+export function heatShort(reheat: string): string {
+  const s = reheat.split('.')[0].trim();
+  if (/^(eat )?cold\b/i.test(s)) return 'cold';
+  if (/^(eat )?(straight from the freezer)/i.test(s)) return 'frozen';
+  if (/^(eat )?(at )?room temperature|^eat as is/i.test(s)) return 'as is';
+  if (/^(on the night|on the day|each morning|cooked fresh|make it fresh|eat fresh)/i.test(s)) return 'fresh';
+  const m = /(\d+(?:½|\s?[–-]\s?\d+)?)\s*(minutes?|seconds?)/i.exec(s);
+  if (m) return `${m[1].replace(/\s/g, '')} ${m[2].toLowerCase().startsWith('min') ? 'min' : 's'}`;
+  return 'fresh';
+}
+
 /** The equipment list sorted the way a kitchen is: pans and pots, bowls, then tools. Empty groups are left out. */
 export function gearGroups(gear: string[]): { name: string; items: string[] }[] {
   const pans = gear.filter((g) => /\b(pans?|pots?|dish)\b/.test(g));

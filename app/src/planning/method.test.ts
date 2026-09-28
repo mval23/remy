@@ -3,8 +3,8 @@ import { activeAnswers, fillWithSamples } from '../interview/engine';
 import { emptyInterview } from '../interview/types';
 import { ING } from './data/ingredients';
 import { R } from './data/recipes';
-import { batchesFor, gearGroups, gearList, ingredientName, isDetailed, partsText, placeholders, recipeSteps, renderLine, scaledIngredients, setupLines, timelineSteps } from './method';
-import { buildPlan, dayApproved, menuCount, menuCountText, replaceMeal } from './planner';
+import { batchesFor, gearGroups, gearList, heatShort, ingredientName, isDetailed, partsText, placeholders, recipeSteps, renderLine, scaledIngredients, setupLines, timelineSteps } from './method';
+import { buildPlan, dayApproved, handsOnMinutes, menuCount, menuCountText, replaceMeal, sortOptions } from './planner';
 import { context, matches, matchReasons } from './rules';
 import { schedule } from './schedule';
 import { migrateRecipe, quantityText } from './units';
@@ -164,5 +164,35 @@ describe('screen summaries', () => {
     const reasons = matchReasons(R.oats, A);
     expect(reasons.length).toBe(matches(R.oats, A).length);
     for (const x of reasons) expect(x.name.charAt(0)).toBe(x.name.charAt(0).toUpperCase());
+  });
+});
+
+describe('how to eat it, in a word', () => {
+  it('turns reheating instructions into a short value for the dotted line', () => {
+    expect(heatShort('Eat cold, straight from the fridge. If you want it warm, microwave 60–90 seconds.')).toBe('cold');
+    expect(heatShort('Microwave 3–4 minutes, stirring halfway, until steaming (74°C).')).toBe('3–4 min');
+    expect(heatShort('Microwave 30–45 seconds, or eat cold.')).toBe('30–45 s');
+    expect(heatShort('From frozen: remove foil, microwave 1½ minutes, flip.')).toBe('1½ min');
+    expect(heatShort('Eat as is, or 10 seconds in the microwave.')).toBe('as is');
+    expect(heatShort('Eat at room temperature, or microwave 15 seconds.')).toBe('as is');
+    expect(heatShort('Straight from the freezer; let them sit 2 minutes.')).toBe('frozen');
+    expect(heatShort('On the night: boil the spaghetti.')).toBe('fresh');
+  });
+
+  it('gives every library recipe a short value', () => {
+    for (const r of Object.values(R)) expect(heatShort(r.reheat).length, r.id).toBeLessThanOrEqual(10);
+  });
+});
+
+describe('ordering replacement options', () => {
+  it('sorts by lightest, most protein and quickest, keeping Remy’s order for ties and for best match', () => {
+    const list = [R.oats, R.pancakes, R.burritos];
+    expect(sortOptions(list, 'match')).toEqual(list);
+    const light = sortOptions(list, 'light');
+    for (let i = 1; i < light.length; i++) expect(light[i].kcal).toBeGreaterThanOrEqual(light[i - 1].kcal);
+    const pro = sortOptions(list, 'protein');
+    for (let i = 1; i < pro.length; i++) expect(pro[i].pro).toBeLessThanOrEqual(pro[i - 1].pro);
+    const quick = sortOptions(list, 'quick');
+    for (let i = 1; i < quick.length; i++) expect(handsOnMinutes(quick[i])).toBeGreaterThanOrEqual(handsOnMinutes(quick[i - 1]));
   });
 });

@@ -70,5 +70,6 @@
 
   /* Plan: the day's meals sit in two columns, like a printed menu. */
   .courses { columns: 2; column-gap: 48px; }
-  .courses > .course-line { break-inside: avoid; }
+  .courses > .course { break-inside: avoid; }
+  .course + .course { border-top: 0; }
 }

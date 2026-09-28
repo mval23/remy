@@ -33,7 +33,7 @@ function StepRow({ step, done, onToggle, onRecipe, time }: { step: CookStep; don
             <Leader />
             <span className="min">{duration(step.minutes)}</span>
           </span>
-          <LaneTag lane={step.lane} temp={step.temp} />
+          {step.lane !== 'hands' && <LaneTag lane={step.lane} temp={step.temp} />}
         </summary>
         {step.alreadyDone ? (
           <p className="hint gap-top">Same step as for {step.alreadyDone} above: once covers both.</p>
@@ -211,7 +211,7 @@ export function Prep() {
           </section>
 
           <section className="msec">
-            <SecHead title="Timeline" aside={`${doneCount} of ${timeline.length} done`} />
+            <SecHead title="Order of service" aside={`fastest order · ${doneCount} of ${timeline.length} done`} />
             <div className="steps-flat">
               {timeline.map((step) => (
                 <StepRow

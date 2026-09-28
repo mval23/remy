@@ -223,6 +223,17 @@ export function menuCountText(plan: WeekPlan): string {
   return `${dishes} dish${dishes === 1 ? '' : 'es'}${sides ? ` + ${sides} side${sides === 1 ? '' : 's'}` : ''}`;
 }
 
+/** Minutes of hands-on work for one batch. */
+export const handsOnMinutes = (r: Recipe) => r.tasks.filter((t) => t.l === 'hands').reduce((s, t) => s + t.m, 0);
+
+export type OptionOrder = 'match' | 'light' | 'protein' | 'quick';
+
+/** Replacement options in the chosen order; "match" keeps Remy's own order (best fit first). Ties keep that order too. */
+export function sortOptions(list: Recipe[], order: OptionOrder): Recipe[] {
+  const key: Record<OptionOrder, (r: Recipe) => number> = { match: () => 0, light: (r) => r.kcal, protein: (r) => -r.pro, quick: handsOnMinutes };
+  return list.map((r, i) => ({ r, i })).sort((a, b) => key[order](a.r) - key[order](b.r) || a.i - b.i).map((x) => x.r);
+}
+
 /** Whether every planned meal on a day is approved (nothing to approve counts as not done). */
 export function dayApproved(day: PlanDay): boolean {
   const meals = Object.values(day.meals).filter((m) => m && (m.r || m.need));

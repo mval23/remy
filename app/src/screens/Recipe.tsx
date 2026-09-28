@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BottomNav, Header, StoragePill } from '../components/Chrome';
-import { ChefNote, Lead, MacroLine, Mast, SecHead } from '../components/Dish';
+import { Lead, Mast, SecHead } from '../components/Dish';
 import { Icon } from '../components/Icon';
 import { LaneTag, StepLines } from '../components/Steps';
 import { allRatings } from '../interview/helpers';
@@ -74,12 +74,14 @@ export function Recipe() {
       <main className="body wide" tabIndex={0}>
         <div className="cols">
           <div>
-            <Mast kicker={`${r.slot} · makes ${r.serves}${count ? ` · ${count} this week` : ''}`} title={r.short} sub={r.name !== r.short ? r.name : undefined}>
+            <Mast icon={null} kicker={`${r.e} ${r.slot} · makes ${r.serves}${count ? ` · ${count} this week` : ''}`} title={r.short} sub={r.name !== r.short ? r.name : undefined}>
               {nums && (
-                <>
-                  <p className="mast-kcal">{r.kcal.toLocaleString('en-US')} kcal</p>
-                  <MacroLine n={r} note="per portion" />
-                </>
+                <div className="macro-tiles" role="group" aria-label="Per portion">
+                  <div><b>{r.kcal.toLocaleString('en-US')}</b><span>kcal</span></div>
+                  <div><b>{r.pro} g</b><span>protein</span></div>
+                  <div><b>{r.carb} g</b><span>carbs</span></div>
+                  <div><b>{r.fat} g</b><span>fat</span></div>
+                </div>
               )}
               <div className="chips tight">
                 <span className="pill p-muted">{r.store ? 'Store-bought' : `${handsOn} min hands-on`}</span>
@@ -88,21 +90,7 @@ export function Recipe() {
               </div>
             </Mast>
 
-            {why && (
-              <ChefNote kicker="Why Remy picked it">
-                <p>{why}</p>
-                {moreWhy.length > 0 && (
-                  <ul className="note-list">
-                    {moreWhy.map((w) => (
-                      <li key={w}>{w}</li>
-                    ))}
-                  </ul>
-                )}
-                {found.map((x) => (
-                  <Lead key={x.name} k={x.name} v={x.why} />
-                ))}
-              </ChefNote>
-            )}
+            {why && <p className="why-line">“{why}”</p>}
             {r.note && (
               <div className="warnline">
                 <Icon name="info" size={16} />
@@ -144,7 +132,7 @@ export function Recipe() {
           <div>
             {isDetailed(r) ? (
               <section className="msec">
-                <SecHead title="Method" aside={r.store ? undefined : `${handsOn} min hands-on`} />
+                <SecHead title="Preparation" aside={r.store ? undefined : `${handsOn} min hands-on`} />
                 {r.tasks.map((t, i) => (
                   <div className="mstep" key={i}>
                     <div className="dish-line">
@@ -170,6 +158,22 @@ export function Recipe() {
                   </ol>
                 </section>
               )
+            )}
+
+            {(moreWhy.length > 0 || found.length > 0) && (
+              <section className="msec">
+                <SecHead title="Why Remy picked it" />
+                {moreWhy.length > 0 && (
+                  <ul className="note-list">
+                    {moreWhy.map((w) => (
+                      <li key={w}>{w}</li>
+                    ))}
+                  </ul>
+                )}
+                {found.map((x) => (
+                  <Lead key={x.name} k={x.name} v={x.why} />
+                ))}
+              </section>
             )}
 
             <section className="msec">

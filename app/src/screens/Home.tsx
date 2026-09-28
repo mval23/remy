@@ -93,40 +93,34 @@ export function Home() {
                 </button>
               )}
             </Mast>
-            <div className="home-menu">
-              {allFridge && (
-                <p className="day-note-line center">
-                  <Icon name="fridge" size={14} /> Everything from the fridge
-                </p>
-              )}
+            {/* The day's food set like the menu card on a restaurant table: course, dish, how to eat it. */}
+            <div className="menu-card">
+              <p className="menu-card-note">{allFridge ? 'Everything from the fridge' : 'From the fridge unless marked'}</p>
               {SLOTS.map((slot) => {
                 const m = day.meals[slot];
                 if (!m || m.skip) return null;
                 if (m.out || !m.r)
                   return (
-                    <div className="dish" key={slot}>
-                      <span className="dish-emoji" aria-hidden="true">{m.out ? '🍽️' : '❔'}</span>
-                      <div className="dish-body">
-                        <span className="slot-label">{SLOT_SHORT[slot]}</span>
-                        <DishLine name={m.out ? 'Eating out' : 'Needs a choice'} />
-                      </div>
+                    <div className="menu-course" key={slot}>
+                      <span className="slot-label">{SLOT_SHORT[slot]}</span>
+                      <span className="menu-dish">{m.out ? 'Eating out' : 'Needs a choice'}</span>
                     </div>
                   );
                 const r = R[m.r];
                 const mn = mealNutrition(m);
+                const st = storage(r, ti + 1);
                 return (
-                  <div className="dish" key={slot}>
-                    <span className="dish-emoji" aria-hidden="true">{r.e}</span>
-                    <div className="dish-body">
-                      <span className="slot-label">{SLOT_SHORT[slot]}</span>
-                      <DishLine name={r.short} kcal={nums && mn ? mn.kcal : null} onOpen={() => actions.openRecipe(r.id)} />
-                      {m.side && <p className="dish-desc">+ {R[m.side].short}</p>}
-                      {!allFridge && storage(r, ti + 1).k !== 'fridge' && (
-                        <div className="dish-meta">
-                          <StoragePill st={storage(r, ti + 1)} />
-                        </div>
-                      )}
-                    </div>
+                  <div className="menu-course" key={slot}>
+                    <span className="slot-label">{SLOT_SHORT[slot]}</span>
+                    <button type="button" className="menu-dish" onClick={() => actions.openRecipe(r.id)}>
+                      <span aria-hidden="true">{r.e}</span> {r.short}
+                    </button>
+                    {m.side && <span className="menu-how">with {R[m.side].short.toLowerCase()}</span>}
+                    <span className="menu-how">
+                      {(st.k === 'freezer' && r.thaw ? r.thaw : r.reheat).split(/[.,;:]/)[0]}
+                      {nums && mn ? ` · ${mn.kcal.toLocaleString('en-US')} kcal` : ''}
+                    </span>
+                    {st.k !== 'fridge' && <StoragePill st={st} />}
                   </div>
                 );
               })}

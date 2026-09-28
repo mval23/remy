@@ -1,18 +1,20 @@
 import { BottomNav, Header, StoragePill } from '../components/Chrome';
-import { describe, DishLine, Leader, MacroLine } from '../components/Dish';
+import { describe, DishLine, Leader, MacroLine, Mast } from '../components/Dish';
 import { Icon } from '../components/Icon';
 import { str } from '../interview/helpers';
 import { fraction } from '../planning/grocery';
 import { R } from '../planning/data/recipes';
+import { heatShort } from '../planning/method';
 import { balanceOn, dayNutrition, estimatesOn, mealNutrition, proteinTarget } from '../planning/nutrition';
-import { dayApproved, portions } from '../planning/planner';
+import { approvalCounts, dayApproved, portions } from '../planning/planner';
 import { storage } from '../planning/rules';
 import { DAY_FULL, SLOT_SHORT, SLOTS, type Day, type Slot } from '../planning/types';
 import { useRemy } from '../store';
 
 /**
- * The week, one day at a time, as a restaurant menu. Each meal is one line: a tick to approve it, the dish, and "⋯" for
- * everything else (side, replace, move, not this). Variety and New menu live in the menu settings sheet.
+ * The week, one day at a time, set like the recipe menu page: each meal is a course with its heading and how to eat it,
+ * the dish as name ........ kcal (or how long to heat it when estimates are off), and two labeled buttons: Approve and
+ * Change (side, replace, move, not this). The day's total closes it like a bill.
  */
 export function Planner() {
   const { planState, ctx, actions } = useRemy();
@@ -30,6 +32,7 @@ export function Planner() {
     const m = day.meals[s];
     return !m?.r || storage(R[m.r], d + 1).k === 'fridge';
   });
+  const dayCount = approvalCounts([day]);
 
   return (
     <>
@@ -57,30 +60,35 @@ export function Planner() {
           })}
         </div>
 
-        <div className="day-status">
-          <h2>{DAY_FULL[day.d]}</h2>
+        <Mast
+          kicker={`Remy’s kitchen · day ${d + 1} after prep`}
+          title={DAY_FULL[day.d]}
+          compact
+          sub={allFridge ? `Everything from the fridge, made ${prepDay}.` : `Made ${prepDay}. From the fridge unless marked.`}
+        >
           {balance && (
-            <div className="chips tight">
+            <p className="mast-checks">
               {dn.proteinOk ? (
-                <span className="pill p-ok"><Icon name="check" size={12} /> Protein</span>
+                <span><b>✓</b> Protein at every meal</span>
               ) : (
-                <span className="pill p-warn">Protein light: {dn.low.map((s) => SLOT_SHORT[s].toLowerCase()).join(', ')}</span>
+                <span className="c-citrus">Protein light: {dn.low.map((s) => SLOT_SHORT[s].toLowerCase()).join(', ')}</span>
               )}
-              <span className={`pill ${dn.produceOk ? 'p-ok' : 'p-warn'}`}>
-                {dn.produceOk && <Icon name="check" size={12} />} Fruit &amp; veg {fraction(dn.prod)}{dn.produceOk ? '' : ' of 3'}
-              </span>
-              {dn.sweet && <span className="pill p-sweet">Sweet</span>}
+              {dn.produceOk ? (
+                <span><b>✓</b> Fruit &amp; veg {fraction(dn.prod)}</span>
+              ) : (
+                <span className="c-citrus">Fruit &amp; veg {fraction(dn.prod)} of 3</span>
+              )}
+              {dn.sweet && <span><b>✓</b> Sweet</span>}
+            </p>
+          )}
+          {balance && !dn.ok && (
+            <div className="mast-acts">
+              <button type="button" className="btn sm soft" onClick={() => actions.balance([d])}>
+                <Icon name="plus" size={15} /> Balance this day
+              </button>
             </div>
           )}
-        </div>
-        <p className="day-note-line">
-          <Icon name="fridge" size={14} /> Day {d + 1} after prep{allFridge ? `: everything is from the fridge, made ${prepDay}` : ` on ${prepDay}. From the fridge unless marked.`}
-        </p>
-        {balance && !dn.ok && (
-          <button type="button" className="btn sm soft gap-top" onClick={() => actions.balance([d])}>
-            <Icon name="plus" size={15} /> Balance this day
-          </button>
-        )}
+        </Mast>
         {balance && dn.light && (
           <div className="badline gap-top-lg">
             <Icon name="info" size={16} />
@@ -102,12 +110,15 @@ export function Planner() {
             </p>
           </div>
         ) : (
-          <p className="bill bill-note">
-            {dn.out ? 'The meal out isn’t counted. ' : ''}Calorie estimates are off.{' '}
-            <button type="button" className="linkbtn tight inline" onClick={() => actions.go('nutrition')}>
-              Nutrition balance
-            </button>
-          </p>
+          <div className="bill">
+            <DishLine name={DAY_FULL[day.d]} value={`${dayCount.ok} of ${dayCount.total} approved`} />
+            <p className="bill-note">
+              {dn.out ? 'The meal out isn’t counted. ' : ''}The dotted lines show how to eat each dish; calorie estimates are off.{' '}
+              <button type="button" className="linkbtn tight inline" onClick={() => actions.go('nutrition')}>
+                Nutrition balance
+              </button>
+            </p>
+          </div>
         )}
 
         <div className="row gap-top-lg">
@@ -126,24 +137,29 @@ export function Planner() {
   function course(slot: Slot) {
     const m = day.meals[slot];
     if (!m) return null;
-    const label = <span className="slot-label">{SLOT_SHORT[slot]}</span>;
+    const head = (note?: string) => (
+      <div className="course-head">
+        <h3>{SLOT_SHORT[slot]}</h3>
+        {note && <span className="course-note">{note}</span>}
+      </div>
+    );
     if (m.skip || m.out || !m.r)
       return (
-        <section className="course-line" key={slot} aria-label={SLOT_SHORT[slot]}>
-          <span className="tick-space" aria-hidden="true" />
-          <div className="course-main">
-            {label}
-            <DishLine name={m.out ? 'Eating out' : m.skip ? 'No sweet today' : 'Nothing fits yet'} />
-            <p className="dish-meta">
-              {m.out ? `You said you usually eat out on ${DAY_FULL[day.d]}s.` : m.skip ? 'Based on how often you said you want one.' : 'No recipe in the library fits your rules for this slot yet.'}
-            </p>
-            <button
-              type="button"
-              className="linkbtn tight"
-              onClick={() => (m.skip || m.out ? actions.planAnyway(d, slot) : actions.openSheet('replace', { d, slot }))}
-            >
-              <Icon name={m.skip || m.out ? 'plus' : 'swap'} size={15} /> {m.out ? 'Plan a meal anyway' : m.skip ? 'Add one anyway' : 'Choose a meal'}
-            </button>
+        <section className="course" key={slot}>
+          {head()}
+          <div className="dish">
+            <span className="dish-emoji" aria-hidden="true">{m.out ? '🍽️' : m.skip ? '🌙' : '❔'}</span>
+            <div className="dish-body">
+              <DishLine name={m.out ? 'Eating out' : m.skip ? 'No sweet today' : 'Nothing fits yet'} />
+              <p className="dish-desc">
+                {m.out ? `You said you usually eat out on ${DAY_FULL[day.d]}s.` : m.skip ? 'Based on how often you said you want one.' : 'No recipe in the library fits your rules for this slot yet.'}
+              </p>
+              <div className="dish-btns">
+                <button type="button" className="btn sm soft" onClick={() => (m.skip || m.out ? actions.planAnyway(d, slot) : actions.openSheet('replace', { d, slot }))}>
+                  <Icon name={m.skip || m.out ? 'plus' : 'swap'} size={15} /> {m.out ? 'Plan a meal anyway' : m.skip ? 'Add one anyway' : 'Choose a meal'}
+                </button>
+              </div>
+            </div>
           </div>
         </section>
       );
@@ -156,66 +172,61 @@ export function Planner() {
     // The dish on its own line; a side gets its own line and calories.
     const main = mealNutrition({ ...m, side: undefined });
     const side = m.side ? R[m.side] : null;
+    // How to eat it goes next to the course heading, said once.
+    const how = (st.k === 'freezer' && r.thaw ? r.thaw : r.reheat).split('.')[0];
     return (
-      <section className={`course-line${m.ok ? ' ok' : ''}`} key={slot} aria-label={SLOT_SHORT[slot]}>
-        <button
-          type="button"
-          className="tick"
-          aria-pressed={!!m.ok}
-          aria-label={`${m.ok ? 'Approved' : 'Approve'} ${r.short}`}
-          onClick={() => actions.toggleApproved(d, slot)}
-        >
-          <span>
-            <Icon name="check" size={16} />
-          </span>
-        </button>
-        <div className="course-main">
-          <span className="slot-label">
-            {SLOT_SHORT[slot]}
-            {m.ok && <span className="c-basil"> · approved</span>}
-          </span>
-          <DishLine name={r.short} kcal={nums && main ? main.kcal : null} onOpen={() => actions.openRecipe(r.id)} />
-          <p className="dish-desc clamp">{describe(r)}</p>
-          {nums && main && <MacroLine n={main} />}
-          {side && (
-            <div className="side-line">
-              <span aria-hidden="true">{side.e}</span>
-              <span className="n">+ {side.short}</span>
-              {nums && (
-                <>
-                  <Leader />
-                  <span className="dish-kcal">{side.kcal} kcal</span>
-                </>
-              )}
-            </div>
-          )}
-          <div className="dish-meta">
-            {st.k !== 'fridge' && <StoragePill st={st} />}
-            <span>
-              {pc[r.id] > 1 && `${nth} of ${pc[r.id]} · `}
-              {m.x && m.x !== 1 && `${Math.round(m.x * 100)}% portion · `}
-              {st.k === 'freezer' && r.thaw ? r.thaw : r.reheat.split('.')[0]}
-            </span>
-          </div>
-          {st.k === 'unsafe' && (
-            <div className="badline">
-              <Icon name="info" size={16} />
-              <span>This would be day {d + 1} after prep, past its {r.fridge}-day fridge limit, and it doesn’t freeze well. Move it earlier or replace it.</span>
-            </div>
-          )}
-          {balance && target > 0 && pro < target && (
-            <div className="warnline tight">
-              <Icon name="info" size={16} />
-              <span className="grow">Light on protein{nums ? ` (${pro} g; aim for ${target}+)` : ''}.</span>
-              <button type="button" className="linkbtn tight" onClick={() => actions.openSheet('side', { d, slot })}>
-                Add a side
+      <section className="course" key={slot}>
+        {head(`${how}.`)}
+        <div className="dish">
+          <span className="dish-emoji" aria-hidden="true">{r.e}</span>
+          <div className="dish-body">
+            <DishLine name={r.short} kcal={nums && main ? main.kcal : null} value={heatShort(r.reheat)} onOpen={() => actions.openRecipe(r.id)} />
+            <p className="dish-desc">{describe(r)}</p>
+            {nums && main && <MacroLine n={main} />}
+            {side && (
+              <div className="side-line">
+                <span aria-hidden="true">{side.e}</span>
+                <span className="n">+ {side.short}</span>
+                {nums && (
+                  <>
+                    <Leader />
+                    <span className="dish-kcal">{side.kcal} kcal</span>
+                  </>
+                )}
+              </div>
+            )}
+            {(pc[r.id] > 1 || (m.x && m.x !== 1) || st.k !== 'fridge') && (
+              <div className="chips tight">
+                {pc[r.id] > 1 && <span className="pill p-muted">{nth} of {pc[r.id]} this week</span>}
+                {m.x && m.x !== 1 && <span className="pill p-muted">{Math.round(m.x * 100)}% portion</span>}
+                {st.k !== 'fridge' && <StoragePill st={st} />}
+              </div>
+            )}
+            {st.k === 'unsafe' && (
+              <div className="badline">
+                <Icon name="info" size={16} />
+                <span>This would be day {d + 1} after prep, past its {r.fridge}-day fridge limit, and it doesn’t freeze well. Move it earlier or replace it.</span>
+              </div>
+            )}
+            {balance && target > 0 && pro < target && (
+              <div className="warnline tight">
+                <Icon name="info" size={16} />
+                <span className="grow">Light on protein{nums ? ` (${pro} g; aim for ${target}+)` : ''}.</span>
+                <button type="button" className="linkbtn tight" onClick={() => actions.openSheet('side', { d, slot })}>
+                  Add a side
+                </button>
+              </div>
+            )}
+            <div className="dish-btns">
+              <button type="button" className={`btn sm${m.ok ? '' : ' soft'}`} aria-pressed={!!m.ok} onClick={() => actions.toggleApproved(d, slot)}>
+                <Icon name="check" size={15} /> {m.ok ? 'Approved' : 'Approve'}
+              </button>
+              <button type="button" className="btn sm ghost" aria-label={`Change ${r.short}: side, replace, move or not this`} onClick={() => actions.openSheet('meal', { d, slot })}>
+                <Icon name="swap" size={15} /> Change
               </button>
             </div>
-          )}
+          </div>
         </div>
-        <button type="button" className="iconbtn more" aria-label={`More for ${r.short}: side, replace, move, not this`} onClick={() => actions.openSheet('meal', { d, slot })}>
-          <Icon name="more" size={22} />
-        </button>
       </section>
     );
   }

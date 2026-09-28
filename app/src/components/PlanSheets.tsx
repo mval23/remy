@@ -3,7 +3,8 @@ import { FOODS } from '../interview/questions';
 import { R, SIDE_IDS } from '../planning/data/recipes';
 import { REJECT_REASONS, WEEKS } from '../planning/data/weeks';
 import { estimatesOn, sideOptions } from '../planning/nutrition';
-import { approvalCounts, autoReplacement, menuCountText, moveBlocker, replacementOptions } from '../planning/planner';
+import { approvalCounts, autoReplacement, handsOnMinutes, menuCountText, moveBlocker, replacementOptions, sortOptions, type OptionOrder } from '../planning/planner';
+import { heatShort } from '../planning/method';
 import { check, matches, storage, windowMinutes } from '../planning/rules';
 import { duration, schedule } from '../planning/schedule';
 import { goalsOf, hasGoals, weekAverage } from '../planning/goals';
@@ -58,10 +59,13 @@ export function SheetFrame({ children, label }: { children: ReactNode; label: st
   );
 }
 
+const ORDERS: [OptionOrder, string][] = [['match', 'Best match'], ['light', 'Lightest'], ['protein', 'Most protein'], ['quick', 'Quickest']];
+
 function ReplaceSheet({ arg }: { arg: SheetArg }) {
   const { planState, ctx, actions } = useRemy();
   const [why, setWhy] = useState<string | null>(null);
   const [food, setFood] = useState<string | null>(null);
+  const [order, setOrder] = useState<OptionOrder>('match');
   const plan = planState.plan!;
   const { d, slot, reject } = arg;
   const day = plan[d];
@@ -118,30 +122,46 @@ function ReplaceSheet({ arg }: { arg: SheetArg }) {
             </button>
           }
         />
+        {opts.allowed.length > 1 && (
+          <div className="chips filter-chips" role="group" aria-label="Order">
+            {ORDERS.filter(([o]) => nums || o !== 'light').map(([o, label]) => (
+              <button type="button" key={o} className="chip" aria-pressed={order === o} onClick={() => setOrder(o)}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
         <div>
-          {opts.allowed.map((r) => {
+          {sortOptions(opts.allowed, order).map((r) => {
             const st = storage(r, d + 1);
             const fit = matches(r, ctx.A).slice(0, 3);
             return (
               <div className="dish" key={r.id}>
                 <span className="dish-emoji" aria-hidden="true">{r.e}</span>
                 <div className="dish-body">
-                  <DishLine name={r.short} kcal={nums ? r.kcal : null} />
+                  <DishLine name={r.short} kcal={nums ? r.kcal : null} value={heatShort(r.reheat)} />
                   <p className="dish-desc">{describe(r)}</p>
                   {nums && <MacroLine n={r} />}
                   <span className="dish-fit">
                     {fit.length > 0 && <Icon name="spark" size={13} />}
                     {fit.length ? `Uses ${fit.join(', ')}` : 'Fits your rules'}
                   </span>
-                  <div className="dish-meta">
-                    <StoragePill st={st} />
+                  <div className="chips tight">
+                    {!r.store && <span className="pill p-muted">Makes {r.serves}</span>}
+                    {!r.store && <span className="pill p-muted">{handsOnMinutes(r)} min hands-on</span>}
+                    {st.k !== 'fridge' && <StoragePill st={st} />}
                   </div>
                   {st.k === 'unsafe' ? (
                     <span className="hint">Not safe for day {d + 1}</span>
                   ) : (
-                    <button type="button" className="btn sm soft" onClick={() => actions.replace(d, slot, r.id, reason)}>
-                      Use this
-                    </button>
+                    <div className="dish-btns">
+                      <button type="button" className="btn sm" onClick={() => actions.replace(d, slot, r.id, reason)}>
+                        Choose
+                      </button>
+                      <button type="button" className="btn sm ghost" onClick={() => actions.openRecipe(r.id)}>
+                        Recipe
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
