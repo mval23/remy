@@ -1,5 +1,6 @@
 import { BottomNav, Header, StoragePill } from '../components/Chrome';
 import { Icon } from '../components/Icon';
+import { MacroRow } from '../components/Macros';
 import { str } from '../interview/helpers';
 import { fraction } from '../planning/grocery';
 import { R } from '../planning/data/recipes';
@@ -74,7 +75,7 @@ export function Planner() {
             </div>
             <div className="row wrap gap-top">
               <span className="hint grow">
-                {nums ? <span className="mono">≈{kcalRange(dn.kcal)} kcal · {dn.pro} g protein{dn.out ? ' · meal out not counted' : ''}</span> : dn.out ? 'The meal out isn’t counted.' : 'Estimates are off.'}
+                {nums ? <span className="mono">≈{kcalRange(dn.kcal)} kcal · {dn.pro} g protein · {dn.carb} g carbs · {dn.fat} g fat{dn.out ? ' · meal out not counted' : ''}</span> : dn.out ? 'The meal out isn’t counted.' : 'Estimates are off.'}
               </span>
               {!dn.ok && (
                 <button type="button" className="btn sm soft" onClick={() => actions.balance([d])}>
@@ -156,7 +157,8 @@ export function Planner() {
     const st = storage(r, d + 1);
     const nth = plan!.slice(0, d + 1).filter((x) => x.meals[slot]?.r === r.id).length;
     const target = proteinTarget(slot, ctx.hungry);
-    const pro = mealNutrition(m)?.pro ?? 0;
+    const mn = mealNutrition(m);
+    const pro = mn?.pro ?? 0;
     const side = m.side ? R[m.side] : null;
     return (
       <div className={`meal${m.ok ? ' ok' : ''}`} key={slot}>
@@ -174,6 +176,7 @@ export function Planner() {
           {pc[r.id] > 1 && `${nth} of ${pc[r.id]} this week · `}
           {st.k === 'freezer' && r.thaw ? r.thaw : r.reheat.split('.')[0]}
         </div>
+        {nums && mn && <MacroRow n={mn} note={m.side ? 'with the side' : undefined} />}
         {st.k === 'unsafe' && (
           <div className="badline">
             <Icon name="info" size={16} />

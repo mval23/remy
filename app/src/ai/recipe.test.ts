@@ -5,6 +5,7 @@ import { ING } from '../planning/data/ingredients';
 import { MEAL_IDS, R, registerAiRecipes } from '../planning/data/recipes';
 import { groceryList } from '../planning/grocery';
 import { emptyGroceryEdits } from '../planning/grocery';
+import { macrosOf } from '../planning/macros';
 import { buildPlan, replaceMeal } from '../planning/planner';
 import { context } from '../planning/rules';
 import { schedule } from '../planning/schedule';
@@ -108,6 +109,14 @@ describe('checking AI recipes', () => {
     expect(r.ok && r.recipe.freezer).toBe(3);
     const short = toRecipe(good({ fridge_days: 2, freezer_months: 0 }), SAMPLE, 'Lunch', 'ai_x');
     expect(short.ok && safeOnDay(short.recipe, 3)).toBe(false);
+  });
+
+  it('works out calories and macros from the ingredients, not the model’s guess', () => {
+    const r = toRecipe(good({ kcal: 1100, protein_g: 90 }), SAMPLE, 'Lunch', 'ai_x');
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.recipe).toMatchObject(macrosOf(r.recipe.ing, r.recipe.serves));
+    expect(r.recipe.kcal).toBeLessThan(1100);
   });
 
   it('rejects answers without steps or with nonsense', () => {

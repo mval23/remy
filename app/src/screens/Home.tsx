@@ -1,10 +1,11 @@
 import { BottomNav, Header, RowButton, StoragePill } from '../components/Chrome';
 import { Avatar, Icon } from '../components/Icon';
+import { macroText } from '../components/Macros';
 import { listText, str } from '../interview/helpers';
 import { checkinDue, mealsToRate, noticeSuggestion } from '../learning/learning';
 import { R } from '../planning/data/recipes';
 import { costEstimate, groceryList } from '../planning/grocery';
-import { balanceOn, dayNutrition } from '../planning/nutrition';
+import { balanceOn, dayNutrition, estimatesOn, mealNutrition } from '../planning/nutrition';
 import { approvalCounts } from '../planning/planner';
 import { dayIndexOn } from '../planning/calendar';
 import { storage } from '../planning/rules';
@@ -48,6 +49,7 @@ export function Home() {
   const ratedCount = toRate.filter((m) => planState.checkin.rated[m.id]).length;
   // The check-in matters most on the last day of the week, before the next prep day.
   const due = checkinDue(A, planState.weekStartedAt);
+  const nums = estimatesOn(planState.nutrition, A);
   const nextReminder = upcomingReminders(plan, A, planState.weekStartedAt, planState.reminders)[0];
 
   return (
@@ -98,6 +100,7 @@ export function Home() {
                         {r.short}
                         {m.side && <span className="hint"> + {R[m.side].short.toLowerCase()}</span>}
                       </div>
+                      {nums && <div className="s">≈{macroText(mealNutrition(m)!)}</div>}
                     </div>
                     <StoragePill st={storage(r, ti + 1)} />
                   </button>

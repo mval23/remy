@@ -10,6 +10,7 @@ import { useRemy, type SheetArg } from '../store';
 import { AiIdea } from './AiIdea';
 import { StoragePill } from './Chrome';
 import { Icon } from './Icon';
+import { macroText } from './Macros';
 
 const FOCUSABLE = 'button:not(:disabled), [href], input:not([type="hidden"]), select, textarea, summary, [tabindex]:not([tabindex="-1"])';
 
@@ -63,6 +64,7 @@ function ReplaceSheet({ arg }: { arg: SheetArg }) {
   const day = plan[d];
   const current = day.meals[slot]?.r ? R[day.meals[slot]!.r!] : null;
   const opts = replacementOptions(plan, d, slot, ctx);
+  const nums = estimatesOn(planState.nutrition, ctx.A);
   const reason = reject ? { why, food } : undefined;
   const title = `${reject ? 'Not this one' : current ? 'Replace' : 'Choose a meal'} · ${DAY_FULL[day.d]} ${SLOT_SHORT[slot].toLowerCase()}`;
   const pick = () => {
@@ -119,6 +121,7 @@ function ReplaceSheet({ arg }: { arg: SheetArg }) {
                 <div className="grow">
                   <div className="t">{r.short}</div>
                   <div className="s">{fit.length ? `Uses ${fit.join(', ')}` : 'Fits your rules'}</div>
+                  {nums && <div className="s">≈{macroText(r)}</div>}
                   <div className="gap-top"><StoragePill st={st} /></div>
                 </div>
                 {st.k === 'unsafe' ? (

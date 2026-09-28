@@ -33,6 +33,8 @@ export interface Ingredient {
   pan?: string;
   /** Food key from the interview ratings. */
   f?: string;
+  /** Grams of protein, carbs and fat per 100 g or 100 ml (for g/ml units), otherwise per one unit. Rough values. */
+  m?: [number, number, number];
 }
 
 export interface Task {
@@ -96,8 +98,12 @@ export interface Recipe {
   /** [what, swap to, food key to check against ratings] */
   subs?: [string, string, string?][];
   kcal: number;
-  /** Protein grams per portion (estimate). */
+  /** Protein grams per portion (estimate). kcal, pro, carb and fat are added up from the ingredients (see macros.ts). */
   pro: number;
+  /** Carbohydrate grams per portion (estimate). */
+  carb: number;
+  /** Fat grams per portion (estimate). */
+  fat: number;
   /** Fruit and vegetable servings per portion. */
   prod: number;
   /** Portion guidance in plain words. */
