@@ -31,6 +31,10 @@ const PATHS: Record<string, string> = {
   cloud: '<path d="M7 18.5a4.5 4.5 0 0 1-.6-9A6 6 0 0 1 18 8.6a4.2 4.2 0 0 1-.5 9.9z"/>',
   cloudOff: '<path d="M7 18.5a4.5 4.5 0 0 1-.6-9M9 5.3A6 6 0 0 1 18 8.6a4.2 4.2 0 0 1 2 7.4M3 3l18 18"/>',
   download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+  upload: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>',
+  smile: '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0M9 9.5h.01M15 9.5h.01"/>',
+  meh: '<circle cx="12" cy="12" r="9"/><path d="M8.5 15h7M9 9.5h.01M15 9.5h.01"/>',
+  frown: '<circle cx="12" cy="12" r="9"/><path d="M15.5 16a4.5 4.5 0 0 0-7 0M9 9.5h.01M15 9.5h.01"/>',
   phone: '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/>',
 };
 

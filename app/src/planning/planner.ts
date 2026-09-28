@@ -1,19 +1,22 @@
 import { MEAL_IDS, R } from './data/recipes';
 import { WEEKS } from './data/weeks';
 import { balanceDay } from './nutrition';
-import { activeSlots, check, isAway, score, storage, sweetDays, weekDays, type CheckResult, type PlanContext } from './rules';
+import { activeSlots, avoided, check, isAway, score, storage, sweetDays, weekDays, type CheckResult, type PlanContext } from './rules';
 import type { Meal, PlanDay, Recipe, Slot, Variety, WeekPlan } from './types';
 import { SLOTS } from './types';
 
 /**
  * Pick a recipe for a slot on day `day` (1–7 after prep).
- * Keeps the template choice when it's allowed and storage-safe; otherwise picks the best allowed
- * alternative, preferring recipes already in the plan so prep day stays short.
+ * Keeps the template choice when it's allowed, storage-safe and not avoided after feedback; otherwise picks
+ * the best allowed alternative, preferring recipes already in the plan so prep day stays short.
+ * Avoided recipes are used only when nothing else fits.
  */
 export function resolve(templateId: string, slot: Slot, day: number, used: Set<string>, ctx: PlanContext): string | null {
   const r = R[templateId];
-  if (r && check(r, ctx.A).ok && storage(r, day).k !== 'unsafe') return templateId;
-  const candidates = MEAL_IDS.map((id) => R[id]).filter((x) => x.slot === slot && check(x, ctx.A).ok && storage(x, day).k !== 'unsafe');
+  if (r && check(r, ctx.A).ok && storage(r, day).k !== 'unsafe' && !avoided(r.id, ctx)) return templateId;
+  const fits = MEAL_IDS.map((id) => R[id]).filter((x) => x.slot === slot && check(x, ctx.A).ok && storage(x, day).k !== 'unsafe');
+  const preferred = fits.filter((x) => !avoided(x.id, ctx));
+  const candidates = preferred.length ? preferred : fits;
   candidates.sort((a, b) => score(b, ctx) + (used.has(b.id) ? 3 : 0) - (score(a, ctx) + (used.has(a.id) ? 3 : 0)));
   return candidates[0]?.id ?? null;
 }

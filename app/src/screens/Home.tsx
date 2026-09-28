@@ -1,6 +1,7 @@
 import { BottomNav, Header, RowButton, StoragePill } from '../components/Chrome';
-import { Icon } from '../components/Icon';
+import { Avatar, Icon } from '../components/Icon';
 import { listText, str } from '../interview/helpers';
+import { checkinDue, mealsToRate, noticeSuggestion } from '../learning/learning';
 import { R } from '../planning/data/recipes';
 import { costEstimate, groceryList } from '../planning/grocery';
 import { balanceOn, dayNutrition } from '../planning/nutrition';
@@ -45,6 +46,11 @@ export function Home() {
   const prepDay = DAY_FULL[prepDayKey];
   // The last day of the week is also the next prep day; today's meals are still this week's.
   const isPrepDay = today === prepDayKey;
+  const notice = noticeSuggestion(A, planState.noticed);
+  const toRate = mealsToRate(plan);
+  const ratedCount = toRate.filter((m) => planState.checkin.rated[m.id]).length;
+  // The check-in matters most on the last day of the week, before the next prep day.
+  const due = checkinDue(A, planState.weekStartedAt);
 
   return (
     <>
@@ -56,7 +62,7 @@ export function Home() {
             <button type="button" className="iconbtn" aria-label="Sync and install" onClick={() => actions.go('account')}>
               <Icon name={sync.signedIn && sync.status !== 'offline' ? 'cloud' : 'cloudOff'} size={22} />
             </button>
-            <button type="button" className="iconbtn" aria-label="Your profile" onClick={() => actions.go('summary')}>
+            <button type="button" className="iconbtn" aria-label="Your preferences" onClick={() => actions.go('prefs')}>
               <Icon name="user" size={22} />
             </button>
           </>
@@ -110,6 +116,55 @@ export function Home() {
           </div>
         )}
 
+        {due && (
+          <section className="sec">
+            <h2>End of the week</h2>
+            <div className="panel stack">
+              <div className="row align-start">
+                <span className="c-berry"><Icon name="heart" size={22} /></span>
+                <div className="grow">
+                  <b>Weekly check-in</b>
+                  <p className="hint">Rate this week’s meals, then Remy plans next week around what you liked. About 2 minutes.</p>
+                </div>
+              </div>
+              <button type="button" className="btn wide" onClick={() => actions.go('checkin')}>
+                {ratedCount ? `Continue check-in (${ratedCount} of ${toRate.length} rated)` : 'Start the check-in'}
+              </button>
+            </div>
+          </section>
+        )}
+
+        {notice && (
+          <section className="sec">
+            <h2>Remy noticed</h2>
+            <div className="panel">
+              <div className="msg">
+                <Avatar />
+                <div className="bubble">{notice.text}</div>
+              </div>
+              <div className="row wrap gap-top-lg">
+                <button type="button" className="btn sm" onClick={() => actions.answerNotice('yes')}>
+                  Try it once
+                </button>
+                <button type="button" className="btn sm ghost" onClick={() => actions.answerNotice('no')}>
+                  No thanks
+                </button>
+                <button type="button" className="btn sm ghost" onClick={() => actions.answerNotice('stop')}>
+                  Stop asking
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+        {planState.trial && !notice && (
+          <div className="warnline">
+            <Icon name="spark" size={16} />
+            <span>
+              Next week includes {R[planState.trial].name.toLowerCase()} as a side, once. Delete it in Preferences if you change your mind.
+            </span>
+          </div>
+        )}
+
         <section className="sec">
           <h2>This week</h2>
           <div className="list">
@@ -124,6 +179,15 @@ export function Home() {
             <RowButton icon="cal" tone="c-blue" title="Meal plan" sub={`${approvals.ok} of ${approvals.total} meals approved`} onClick={() => actions.go('planner')} />
             {balanceOn(A) && (
               <RowButton icon="heart" tone="c-berry" title="Balance" sub={`${balancedDays} of 7 days have protein at every meal and 3+ fruit and veg`} onClick={() => actions.go('nutrition')} />
+            )}
+            {!due && (
+              <RowButton
+                icon="smile"
+                tone="c-berry"
+                title="Weekly check-in"
+                sub={ratedCount ? `${ratedCount} of ${toRate.length} meals rated so far` : 'Rate meals as you eat them, or all at once at the end of the week'}
+                onClick={() => actions.go('checkin')}
+              />
             )}
           </div>
         </section>

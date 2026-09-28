@@ -1,5 +1,6 @@
 import type { InterviewState } from '../interview/types';
-import type { PlanState, Stamps } from '../storage/db';
+import type { Stamps } from '../storage/db';
+import { normalizePlanState, type PlanState } from '../storage/planState';
 
 /** The cloud copy of one person's data (one row per account). */
 export interface RemoteRow {
@@ -27,7 +28,7 @@ export interface SyncDecision {
 /**
  * Decide what to download and upload. Each document (interview, plan) follows “newest change wins”,
  * compared by the time it last changed on any device.
- * Grocery check-offs are the exception: an item checked on either device stays checked,
+ * Grocery check-offs are the exception: within the same week, an item checked on either device stays checked,
  * so ticking things off in the store while offline is never lost.
  */
 export function reconcile(local: LocalDocs, remote: RemoteRow | null): SyncDecision {
@@ -40,9 +41,12 @@ export function reconcile(local: LocalDocs, remote: RemoteRow | null): SyncDecis
   else if (local.stamps.interviewAt > remote.interview_at) out.pushInterview = true;
 
   if (remote.plan && remote.plan_at > local.stamps.planAt) {
-    const checked = mergeChecked(local.plan.groceries.checked, remote.plan.groceries?.checked ?? {});
-    const added = Object.keys(checked).length > Object.keys(remote.plan.groceries?.checked ?? {}).filter((k) => remote.plan!.groceries.checked[k]).length;
-    const value: PlanState = { ...remote.plan, groceries: { ...remote.plan.groceries, checked } };
+    const cloud = normalizePlanState(remote.plan);
+    // Check-offs only carry over within the same week; a new week starts with a fresh list.
+    const sameWeek = cloud.weekStartedAt === local.plan.weekStartedAt;
+    const checked = sameWeek ? mergeChecked(local.plan.groceries.checked, cloud.groceries.checked) : cloud.groceries.checked;
+    const added = sameWeek && Object.keys(checked).length > Object.keys(cloud.groceries.checked).filter((k) => cloud.groceries.checked[k]).length;
+    const value: PlanState = { ...cloud, groceries: { ...cloud.groceries, checked } };
     // If this device ticked items the cloud doesn't have, keep them and upload the combined list.
     out.pullPlan = { value, at: added ? Date.now() : remote.plan_at };
     out.pushPlan = added;

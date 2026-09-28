@@ -4,6 +4,7 @@ import App from './App';
 import { listenForInstallPrompt, requestPersistentStorage } from './pwa';
 import './styles.css';
 import './planning.css';
+import './learning.css';
 
 listenForInstallPrompt();
 requestPersistentStorage();

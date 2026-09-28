@@ -9,12 +9,12 @@ import { useRemy } from '../store';
 const DAY_FULL: Record<string, string> = { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' };
 
 export function Summary() {
-  const { interview: s, actions } = useRemy();
+  const { interview: s, planState, actions } = useRemy();
   const A = activeAnswers(s);
   const safety = safetyRules(A);
   const rat = allRatings(A);
   const ways = asPreparations(A.ways);
-  const inf = inferences(A);
+  const inf = inferences(A, planState.hiddenInferences);
   const skippedQs = sequence(s.answers).filter((q) => s.skipped[q.id] && s.answers[q.id] === undefined);
 
   const Row = ({ label, id, value, conf = 'high', src }: { label: string; id: string; value?: string; conf?: Confidence; src?: string }) => {

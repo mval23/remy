@@ -7,6 +7,9 @@ const base = process.env.BASE_PATH ?? '/';
 
 export default defineConfig({
   base,
+  // The service worker downloads the whole app for offline use, so splitting the main file
+  // wouldn't reduce what a phone downloads. Warn only if it grows well past its current size.
+  build: { chunkSizeWarningLimit: 700 },
   plugins: [
     react(),
     VitePWA({

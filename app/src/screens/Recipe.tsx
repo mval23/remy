@@ -174,7 +174,17 @@ export function Recipe() {
             {r.plate && (
               <div>
                 <span className="c-basil"><Icon name="box" size={18} /></span>
-                <div className="grow"><div className="k">Portion</div><div className="v">{r.plate}</div></div>
+                <div className="grow">
+                  <div className="k">Portion</div>
+                  <div className="v">{r.plate}</div>
+                  {r.slot === 'Evening sweet' && planState.sweetPortion && (
+                    <div className="hint">
+                      {planState.sweetPortion === 'more'
+                        ? 'You said this portion felt small, so go a little bigger, about a quarter more. Satisfying beats strict.'
+                        : 'You said this portion felt like too much, so cut it a little smaller. Any extra keeps for another day.'}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
             <div>

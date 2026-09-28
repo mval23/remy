@@ -272,6 +272,13 @@ const SIDES: Record<string, SideInput> = {
     tasks: [{ t: 'Cut carrots for roasting', l: 'hands', m: 5 }, { t: 'Roast honey carrots for sides', l: 'oven', m: 25, temp: 425, pans: 1 }],
     why: [],
   },
+  // Offered only as a one-time try (“Remy noticed”) when zucchini is rated Dislike; otherwise a normal side.
+  side_zucchini: {
+    name: 'Crispy parmesan zucchini fries', short: 'Zucchini fries', e: '🥒', kind: 'produce', veg: true, for: ['Lunch', 'Dinner'], foods: { zucchini: 'Air-fried', cheese: 1 },
+    ing: [['zucchini', 1], ['panko', 0.25], ['parmesan', 0.0625], ['eggs', 0.5], ['oil', 0.33]], kcal: 150, pro: 7, prod: 1, fridge: 3,
+    tasks: [{ t: 'Cut zucchini into sticks and coat in egg, panko and parmesan', l: 'hands', m: 10 }],
+    why: ['Air-fried until crispy, with parmesan'],
+  },
 };
 
 export const R: Record<string, Recipe> = {};

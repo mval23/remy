@@ -22,11 +22,11 @@ export function Header({ title, sub, back, right }: { title: string; sub?: strin
 }
 
 const TABS: { id: Screen; icon: IconName; label: string; also: Screen[] }[] = [
-  { id: 'home', icon: 'home', label: 'Home', also: [] },
+  { id: 'home', icon: 'home', label: 'Home', also: ['checkin'] },
   { id: 'planner', icon: 'cal', label: 'Plan', also: ['nutrition', 'recipe'] },
   { id: 'grocery', icon: 'cart', label: 'Grocery', also: [] },
   { id: 'prep', icon: 'clock', label: 'Prep', also: [] },
-  { id: 'summary', icon: 'user', label: 'Profile', also: ['account'] },
+  { id: 'prefs', icon: 'user', label: 'Profile', also: ['summary', 'account'] },
 ];
 
 export function BottomNav() {

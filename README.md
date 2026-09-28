@@ -16,7 +16,8 @@ It's designed for picky eaters and people who want to eat in a more balanced way
 | `app/` Phase 1 | Done: conversational interview, progress and resume, taste profile, saved on the device |
 | `app/` Phase 2 | Done: week planner, recipes, grocery list, prep-day timeline, nutrition balance |
 | `app/` Phase 3 | Done: installable app that works offline, hosted on GitHub Pages; optional sign-in and sync (see [SETUP.md](SETUP.md)) |
-| `app/` Phase 4 | Next: weekly check-ins and learning from your ratings |
+| `app/` Phase 4 | Done: weekly check-in that plans the next week, learned preferences you can inspect and delete, backup file download and restore |
+| `app/` Phase 5 | Next: AI features, behind a spending cap |
 
 ## Run the app
 
