@@ -36,9 +36,9 @@ export function BottomNav() {
       {TABS.map((t) => {
         const on = ui.screen === t.id || t.also.includes(ui.screen);
         return (
-          <button key={t.id} type="button" className={on ? 'on' : ''} aria-current={on ? 'page' : undefined} onClick={() => actions.go(t.id)}>
-            <Icon name={t.icon} size={22} />
-            {t.label}
+          // Icons only; the name is still read out by screen readers and shown on hover.
+          <button key={t.id} type="button" className={on ? 'on' : ''} aria-current={on ? 'page' : undefined} aria-label={t.label} title={t.label} onClick={() => actions.go(t.id)}>
+            <Icon name={t.icon} size={24} />
           </button>
         );
       })}
