@@ -10,6 +10,7 @@ import type { Recipe, Slot } from '../planning/types';
 import { useRemy, type RejectReason } from '../store';
 import { StoragePill } from './Chrome';
 import { Icon } from './Icon';
+import { macroText } from './Macros';
 
 type State = { k: 'idle' } | { k: 'thinking' } | { k: 'idea'; r: Recipe } | { k: 'problem'; msg: string };
 
@@ -108,7 +109,7 @@ export function AiIdea({ d, slot, reason }: { d: number; slot: Slot; reason?: Re
               <div className="strong">{r.name}</div>
               <div className="hint">
                 {r.serves} portions · {duration(total)} on prep day ({duration(handsOn)} hands-on)
-                {estimatesOn(planState.nutrition, ctx.A) && ` · ≈${r.kcal} kcal, ${r.pro} g protein`}
+                {estimatesOn(planState.nutrition, ctx.A) && ` · ≈${macroText(r)}`}
               </div>
               <div className="gap-top">
                 <StoragePill st={storage(r, d + 1)} />

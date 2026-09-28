@@ -37,8 +37,10 @@ describe('metric amounts', () => {
 });
 
 describe('detailed instructions', () => {
-  it('has the pilot recipes written out in full', () => {
-    expect(detailed.map((r) => r.id).sort()).toEqual(['brownies', 'burritos', 'oats', 'pancakes', 'quesadilla', 'spaghetti', 'tenders', 'teriyaki']);
+  it('has the pilot recipes and the world-kitchen recipes written out in full', () => {
+    const pilot = ['brownies', 'burritos', 'oats', 'pancakes', 'quesadilla', 'spaghetti', 'tenders', 'teriyaki'];
+    const world = ['arepas', 'bfsandwich', 'frittata', 'arrozconpollo', 'frijoles', 'fajitabowl', 'pestopasta', 'greekbowl', 'lemonchicken', 'ajiaco', 'sudado', 'enchiladas', 'tortillasoup', 'lasagna', 'chickenparm', 'minestrone', 'turkeyburgers', 'lemonsalmon', 'tunamelt', 'tunapasta', 'pandebono', 'esquites', 'hummus', 'eggbox', 'side_boiledeggs', 'arrozconleche', 'tiramisu', 'applecrisp'];
+    expect(detailed.map((r) => r.id).sort()).toEqual([...pilot, ...world].sort());
   });
 
   it('every amount in a step is one of that recipe’s ingredients', () => {

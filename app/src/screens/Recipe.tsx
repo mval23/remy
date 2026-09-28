@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BottomNav, Header, StoragePill } from '../components/Chrome';
 import { Icon } from '../components/Icon';
+import { MacroRow } from '../components/Macros';
 import { StepLines, StepMeta } from '../components/Steps';
 import { allRatings } from '../interview/helpers';
 import { LEVELS } from '../interview/questions';
@@ -208,6 +209,12 @@ export function Recipe() {
 
             <section className="sec">
               <h2>Nutrition</h2>
+              {nums && (
+                <>
+                  <MacroRow n={r} note="per portion" />
+                  <p className="hint gap-top gap-bottom">Per portion. Rough estimates added up from the ingredients; brands and portions vary.</p>
+                </>
+              )}
               <div className="panel kv">
                 {r.plate && (
                   <div>
@@ -231,7 +238,6 @@ export function Recipe() {
                     <div className="k">Protein</div>
                     <div className="v">
                       {target ? (r.pro >= target ? `Good source for a ${r.slot.toLowerCase()}` : 'On the light side. Pair it with a protein side.') : r.pro >= 10 ? 'Some protein' : 'Not a focus for this slot'}
-                      {nums && <span className="mono hint"> ≈{r.pro} g</span>}
                     </div>
                   </div>
                 </div>
@@ -242,17 +248,8 @@ export function Recipe() {
                     <div className="v">{r.prod ? `${fraction(r.prod)} serving${r.prod > 1 ? 's' : ''}` : 'None'}</div>
                   </div>
                 </div>
-                {nums && (
-                  <div>
-                    <span className="c-muted"><Icon name="info" size={18} /></span>
-                    <div className="grow">
-                      <div className="k">Estimate</div>
-                      <div className="v">About {r.kcal} kcal per portion <span className="hint">(brands and portions vary)</span></div>
-                    </div>
-                  </div>
-                )}
               </div>
-              {!nums && <p className="hint gap-top">Calorie estimates are off. Turn them on in Nutrition balance if you want them.</p>}
+              {!nums && <p className="hint gap-top">Calories and macros are hidden. Turn on estimates in Nutrition balance to see calories, protein, carbs and fat.</p>}
             </section>
           </div>
         </div>

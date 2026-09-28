@@ -22,7 +22,7 @@ export const LEVELS: { id: Level; label: string; name: string }[] = [
 
 export const FOODS: Record<string, { n: string; e: string; veg?: boolean }> = {
   chicken: { n: 'Chicken', e: '🍗' }, beef: { n: 'Ground beef', e: '🥩' }, turkey: { n: 'Turkey', e: '🦃' },
-  salmon: { n: 'Salmon', e: '🐟' }, eggs: { n: 'Eggs', e: '🥚' }, tofu: { n: 'Tofu', e: '⬜' }, beans: { n: 'Beans', e: '🫘' },
+  salmon: { n: 'Salmon', e: '🐟' }, tuna: { n: 'Tuna', e: '🥫' }, eggs: { n: 'Eggs', e: '🥚' }, tofu: { n: 'Tofu', e: '⬜' }, beans: { n: 'Beans', e: '🫘' },
   rice: { n: 'Rice', e: '🍚' }, pasta: { n: 'Pasta', e: '🍝' }, potatoes: { n: 'Potatoes', e: '🥔' }, oats: { n: 'Oats', e: '🥣' },
   cheese: { n: 'Cheese', e: '🧀' }, yogurt: { n: 'Greek yogurt', e: '🥛' },
   broccoli: { n: 'Broccoli', e: '🥦', veg: true }, carrots: { n: 'Carrots', e: '🥕', veg: true },
@@ -32,9 +32,9 @@ export const FOODS: Record<string, { n: string; e: string; veg?: boolean }> = {
   greenbeans: { n: 'Green beans', e: '🫛', veg: true }, corn: { n: 'Corn', e: '🌽', veg: true },
   berries: { n: 'Berries', e: '🍓' }, bananas: { n: 'Bananas', e: '🍌' }, apples: { n: 'Apples', e: '🍎' }, grapes: { n: 'Grapes', e: '🍇' },
 };
-export const FOOD_GROUP_A = ['chicken', 'beef', 'turkey', 'salmon', 'eggs', 'tofu', 'beans', 'rice', 'pasta', 'potatoes', 'oats', 'cheese', 'yogurt'];
+export const FOOD_GROUP_A = ['chicken', 'beef', 'turkey', 'salmon', 'tuna', 'eggs', 'tofu', 'beans', 'rice', 'pasta', 'potatoes', 'oats', 'cheese', 'yogurt'];
 export const FOOD_GROUP_B = ['broccoli', 'carrots', 'spinach', 'peppers', 'zucchini', 'tomatoes', 'onions', 'mushrooms', 'greenbeans', 'corn', 'berries', 'bananas', 'apples', 'grapes'];
-export const WAYS = ['Roasted until crispy', 'Air-fried', 'Blended into a sauce', 'Finely chopped, cooked soft', 'Mashed', 'Baked into something', 'With cheese', 'Raw', 'Steamed', 'Scrambled', 'Sweetened or flavored'];
+export const WAYS = ['Roasted until crispy', 'Air-fried', 'Blended into a sauce', 'Finely chopped, cooked soft', 'Mashed', 'Baked into something', 'With cheese', 'Raw', 'Steamed', 'Scrambled', 'Hard-boiled', 'Sweetened or flavored'];
 
 export const ALLERGY_OPTS = ['Peanuts', 'Tree nuts', 'Milk / dairy', 'Eggs', 'Wheat / gluten', 'Soy', 'Fish', 'Shellfish', 'Sesame'];
 export const CURRENCIES = ['USD', 'CAD', 'EUR', 'GBP', 'MXN', 'COP'];
@@ -186,7 +186,7 @@ const QUESTIONS: Omit<Question, 'i'>[] = [
   { id: 'rateA', sec: 'taste', type: 'rate', foods: FOOD_GROUP_A, required: true,
     say: () => 'How do you feel about these staples? Tap one level for each.',
     why: '“Some ways” means you eat it only when it’s prepared a certain way. I’ll ask which ways next.',
-    sample: { chicken: 'love', beef: 'like', turkey: 'okay', salmon: 'dislike', eggs: 'ways', tofu: 'dislike', beans: 'dislike', rice: 'love', pasta: 'love', potatoes: 'love', oats: 'like', cheese: 'love', yogurt: 'ways' } },
+    sample: { chicken: 'love', beef: 'like', turkey: 'okay', salmon: 'dislike', tuna: 'dislike', eggs: 'ways', tofu: 'dislike', beans: 'dislike', rice: 'love', pasta: 'love', potatoes: 'love', oats: 'like', cheese: 'love', yogurt: 'ways' } },
   { id: 'rateB', sec: 'taste', type: 'rate', foods: FOOD_GROUP_B, required: true,
     say: () => 'And these vegetables and fruits?',
     sample: { broccoli: 'ways', carrots: 'like', spinach: 'ways', peppers: 'dislike', zucchini: 'dislike', tomatoes: 'ways', onions: 'ways', mushrooms: 'never', greenbeans: 'okay', corn: 'like', berries: 'love', bananas: 'like', apples: 'like', grapes: 'love' },

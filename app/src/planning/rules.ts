@@ -91,7 +91,7 @@ export function check(r: Recipe, A: Answers): CheckResult {
     const name = ING[k].n.toLowerCase();
     for (const n of never) if (new RegExp(`\\b${escapeRe(n)}(e|es|s)?\\b(?! oil)`).test(name)) return { ok: false, hidden: true, reason: `${ING[k].n} is on your never list` };
   }
-  if (has(A.smells, 'Fish') && r.ing.some(([k]) => k === 'salmon')) return { ok: false, hidden: true, reason: 'You said fish smells put you off' };
+  if (has(A.smells, 'Fish') && r.ing.some(([k]) => ING[k].alg?.includes('fish'))) return { ok: false, hidden: true, reason: 'You said fish smells put you off' };
   return { ok: true };
 }
 

@@ -161,7 +161,7 @@ export function Nutrition() {
                     </div>
                     {nums && (
                       <div className="mono hint gap-top">
-                        ≈{kcalRange(x.kcal)} kcal · {x.pro} g protein{x.out ? ' · meal out not counted' : ''}
+                        ≈{kcalRange(x.kcal)} kcal · {x.pro} g protein · {x.carb} g carbs · {x.fat} g fat{x.out ? ' · meal out not counted' : ''}
                       </div>
                     )}
                   </div>
@@ -217,9 +217,9 @@ export function Nutrition() {
             <div className="panel stack">
               <div className="row">
                 <div className="grow">
-                  <b>Show calorie and protein estimates</b>
+                  <b>Show calories and macros</b>
                   <p className="hint">
-                    Rough ranges from typical ingredients.
+                    Calories, protein, carbs and fat for every meal, added up from the ingredients. Rough estimates.
                     {n.nums === null && ` Default: ${A.pace === 'Detailed' ? 'on (you chose detailed)' : 'off'}.`}
                   </p>
                 </div>

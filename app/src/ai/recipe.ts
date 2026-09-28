@@ -3,6 +3,7 @@ import { FOODS, WAYS } from '../interview/questions';
 import type { Answers } from '../interview/types';
 import { ING } from '../planning/data/ingredients';
 import { MEAL_IDS, R } from '../planning/data/recipes';
+import { macrosOf } from '../planning/macros';
 import { check, storage } from '../planning/rules';
 import type { Lane, Recipe, Slot, Task } from '../planning/types';
 
@@ -235,8 +236,7 @@ export function toRecipe(raw: unknown, A: Answers, slot: Slot, id: string): AiRe
     reheat: text(raw.reheat, 300) || 'Reheat until steaming hot all the way through.',
     thaw: freezer ? text(raw.thaw, 200) || 'Move to the fridge the night before.' : undefined,
     tasks,
-    kcal: Math.round(num(raw.kcal, 50, 1200, 400)),
-    pro: Math.round(num(raw.protein_g, 0, 100, 10)),
+    ...macrosOf(ing, Math.round(num(raw.serves, 2, 8, 4))),
     prod: Math.round(num(raw.produce_servings, 0, 4, 0) * 4) / 4,
     plate: text(raw.portion, 200) || `One of ${Math.round(num(raw.serves, 2, 8, 4))} portions.`,
   };

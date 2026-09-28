@@ -15,7 +15,7 @@ export const PRODUCE_TARGET = 3;
 export const LIGHT_DAY_KCAL = 1200;
 
 export interface NutritionSettings {
-  /** Show calorie/protein estimates: true, false, or null for “follow the interview” (on for “Detailed”). */
+  /** Show calorie and macro estimates: true, false, or null for “follow the interview” (on for “Detailed”). */
   nums: boolean | null;
   /** Optional targets from a professional, as typed. */
   kcal: string;
@@ -38,12 +38,14 @@ export function mealNutrition(m: Meal | undefined) {
   if (!m?.r) return null;
   const r = R[m.r];
   const s = m.side ? R[m.side] : null;
-  return { kcal: r.kcal + (s?.kcal ?? 0), pro: r.pro + (s?.pro ?? 0), prod: r.prod + (s?.prod ?? 0) };
+  return { kcal: r.kcal + (s?.kcal ?? 0), pro: r.pro + (s?.pro ?? 0), carb: r.carb + (s?.carb ?? 0), fat: r.fat + (s?.fat ?? 0), prod: r.prod + (s?.prod ?? 0) };
 }
 
 export interface DayNutrition {
   kcal: number;
   pro: number;
+  carb: number;
+  fat: number;
   prod: number;
   /** A meal is eaten out, so the estimate is incomplete. */
   out: boolean;
@@ -57,7 +59,7 @@ export interface DayNutrition {
 }
 
 export function dayNutrition(day: PlanDay, hungry: boolean): DayNutrition {
-  let kcal = 0, pro = 0, prod = 0, out = false, sweet = false;
+  let kcal = 0, pro = 0, carb = 0, fat = 0, prod = 0, out = false, sweet = false;
   const low: Slot[] = [];
   for (const slot of SLOTS) {
     const m = day.meals[slot];
@@ -70,6 +72,8 @@ export function dayNutrition(day: PlanDay, hungry: boolean): DayNutrition {
     if (!n) continue;
     kcal += n.kcal;
     pro += n.pro;
+    carb += n.carb;
+    fat += n.fat;
     prod += n.prod;
     if (slot === 'Evening sweet') sweet = true;
     const target = proteinTarget(slot, hungry);
@@ -77,7 +81,7 @@ export function dayNutrition(day: PlanDay, hungry: boolean): DayNutrition {
   }
   const proteinOk = low.length === 0;
   const produceOk = prod >= PRODUCE_TARGET;
-  return { kcal, pro, prod, out, sweet, low, proteinOk, produceOk, ok: proteinOk && produceOk, light: !out && kcal > 0 && kcal < LIGHT_DAY_KCAL };
+  return { kcal, pro, carb, fat, prod, out, sweet, low, proteinOk, produceOk, ok: proteinOk && produceOk, light: !out && kcal > 0 && kcal < LIGHT_DAY_KCAL };
 }
 
 /** A calorie estimate as a rounded range, e.g. "1,700–2,100". */
