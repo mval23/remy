@@ -31,12 +31,13 @@ export interface CheckinDraft {
   q: Record<string, string>;
   /** Optional weekly weight, as typed. */
   weight: string;
+  /** Always kg now; 'lb' only in check-ins saved by earlier versions. */
   unit: 'lb' | 'kg';
   /** The later interview question answered during this check-in (one per week). */
   later?: string;
 }
 
-export const emptyCheckin = (): CheckinDraft => ({ rated: {}, why: {}, q: {}, weight: '', unit: 'lb' });
+export const emptyCheckin = (): CheckinDraft => ({ rated: {}, why: {}, q: {}, weight: '', unit: 'kg' });
 
 /** One body check-in. Weight is optional and shown only as a trend. */
 export interface ProgressEntry {

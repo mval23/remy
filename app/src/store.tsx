@@ -36,7 +36,7 @@ import { useSync } from './sync/useSync';
 
 export type Screen =
   | 'welcome' | 'interview' | 'resume' | 'summary' | 'home' | 'planner' | 'nutrition' | 'recipe' | 'grocery' | 'prep'
-  | 'account' | 'checkin' | 'prefs' | 'privacy' | 'reminders';
+  | 'account' | 'checkin' | 'prefs' | 'privacy' | 'reminders' | 'cook';
 export type SheetName = 'map' | 'options' | 'confirmRestart' | 'replace' | 'move' | 'side' | 'food' | 'confirmForget' | 'confirmImport';
 export interface SheetArg {
   d: number;
@@ -58,6 +58,8 @@ export interface UiState {
   recipeId: string | null;
   /** Screen to go back to from a recipe. */
   recipeBack: Screen;
+  /** Prep day as a time-saving timeline, or recipe by recipe (also the order cook mode follows). */
+  prepView: 'timeline' | 'recipe';
   /** Food whose level is being changed (food sheet). */
   sheetFood: string | null;
   /** A backup file that was read and is waiting for confirmation. */
@@ -72,7 +74,7 @@ export interface RejectReason {
 
 const initialUi = (screen: Screen = 'welcome'): UiState => ({
   screen, editReturn: null, lastAnswered: null, drafts: {}, sheet: null, sheetArg: null, toast: null, recipeId: null, recipeBack: 'planner',
-  sheetFood: null, pendingImport: null,
+  sheetFood: null, pendingImport: null, prepView: 'timeline',
 });
 
 /** The screen named in ?open=… (from a tapped reminder), once; the address is then tidied. */
@@ -364,6 +366,19 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
       toast(added ? `Added ${added} side${added > 1 ? 's' : ''}. Remove any you don’t want.` : 'Nothing more fits your foods');
     },
     openRecipe: (id: string) => patchUi({ recipeId: id, recipeBack: ui.screen === 'recipe' ? ui.recipeBack : ui.screen, screen: 'recipe', sheet: null }),
+
+    /* ---------- prep day ---------- */
+    setPrepView: (prepView: UiState['prepView']) => patchUi({ prepView }),
+    /** Tick a prep step off (or back on). Progress belongs to the current week. */
+    markStep: (id: string, done: boolean) =>
+      setPlanState((s) => {
+        const cur = s.prepDone.week === s.weekStartedAt ? s.prepDone.done : {};
+        const next = { ...cur };
+        if (done) next[id] = true;
+        else delete next[id];
+        return { ...s, prepDone: { week: s.weekStartedAt, done: next } };
+      }),
+    resetPrep: () => setPlanState((s) => ({ ...s, prepDone: { week: s.weekStartedAt, done: {} } })),
 
     /* ---------- groceries ---------- */
     groceryEdit: (fn: (g: PlanState['groceries']) => PlanState['groceries']) => setPlanState((s) => ({ ...s, groceries: fn(s.groceries) })),

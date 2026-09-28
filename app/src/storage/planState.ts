@@ -2,6 +2,7 @@ import { emptyCheckin, type CheckinDraft, type LearnedItem, type Noticed, type P
 import { emptyGroceryEdits, type GroceryEdits } from '../planning/grocery';
 import { defaultNutrition, type NutritionSettings } from '../planning/nutrition';
 import type { Recipe, Variety, WeekPlan } from '../planning/types';
+import { migrateRecipe } from '../planning/units';
 import { defaultReminderSettings, type ReminderSettings } from '../reminders/reminders';
 
 /** Everything about the current week and what Remy has learned, apart from the interview. */
@@ -40,6 +41,10 @@ export interface PlanState {
   aiConsent: boolean;
   /** Which reminders to send, and when. */
   reminders: ReminderSettings;
+  /** Cook-mode steps ticked off, for the week planned at `week` (a new week starts fresh). */
+  prepDone: { week: number; done: Record<string, true> };
+  /** Set once saved AI recipes are in metric units; missing on data from earlier versions. */
+  units?: 'metric';
 }
 
 export const emptyPlanState = (): PlanState => ({
@@ -62,7 +67,15 @@ export const emptyPlanState = (): PlanState => ({
   aiRecipes: {},
   aiConsent: false,
   reminders: defaultReminderSettings(),
+  prepDone: { week: 0, done: {} },
 });
 
-/** Fill in fields added since a copy was saved (older devices, the cloud, backups). */
-export const normalizePlanState = (p: Partial<PlanState> | null | undefined): PlanState => ({ ...emptyPlanState(), ...p });
+/**
+ * Fill in fields added since a copy was saved (older devices, the cloud, backups),
+ * and convert AI recipes saved in US units before Remy went metric.
+ */
+export function normalizePlanState(p: Partial<PlanState> | null | undefined): PlanState {
+  const s: PlanState = { ...emptyPlanState(), ...p };
+  if (s.units === 'metric') return s;
+  return { ...s, units: 'metric', aiRecipes: Object.fromEntries(Object.entries(s.aiRecipes).map(([id, r]) => [id, migrateRecipe(r)])) };
+}

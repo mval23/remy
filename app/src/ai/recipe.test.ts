@@ -27,14 +27,14 @@ const good = (patch: Record<string, unknown> = {}) => ({
     { key: 'honeymustard', qty: 0.5 },
   ],
   preparations: [{ food: 'broccoli', way: 'Roasted until crispy' }],
-  steps: ['Roast chicken and broccoli at 425°F / 220°C for 25 minutes.', 'Portion with rice and drizzle with sauce.'],
-  reheat: 'Microwave 2 minutes until steaming, 165°F / 74°C.',
+  steps: ['Roast chicken and broccoli at 220°C for 25 minutes.', 'Portion with rice and drizzle with sauce.'],
+  reheat: 'Microwave 2 minutes until steaming, 74°C inside.',
   thaw: '',
   fridge_days: 4,
   freezer_months: 0,
   tasks: [
     { text: 'Cut chicken and broccoli', lane: 'hands', minutes: 10 },
-    { text: 'Roast chicken and broccoli', lane: 'oven', minutes: 25, oven_temp_f: 425 },
+    { text: 'Roast chicken and broccoli', lane: 'oven', minutes: 25, oven_temp_c: 220 },
   ],
   kcal: 560,
   protein_g: 38,
@@ -73,7 +73,7 @@ describe('checking AI recipes', () => {
     if (r.ok) {
       expect(r.recipe.foods).toEqual({ chicken: 1, rice: 1, broccoli: 'Roasted until crispy' });
       expect(r.recipe.slot).toBe('Lunch');
-      expect(r.recipe.tasks[1]).toMatchObject({ l: 'oven', temp: 425 });
+      expect(r.recipe.tasks[1]).toMatchObject({ l: 'oven', temp: 220 });
     }
   });
 

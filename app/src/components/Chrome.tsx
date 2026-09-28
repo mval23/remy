@@ -25,7 +25,7 @@ const TABS: { id: Screen; icon: IconName; label: string; also: Screen[] }[] = [
   { id: 'home', icon: 'home', label: 'Home', also: ['checkin'] },
   { id: 'planner', icon: 'cal', label: 'Plan', also: ['nutrition', 'recipe'] },
   { id: 'grocery', icon: 'cart', label: 'Grocery', also: [] },
-  { id: 'prep', icon: 'clock', label: 'Prep', also: [] },
+  { id: 'prep', icon: 'clock', label: 'Prep', also: ['cook'] },
   { id: 'prefs', icon: 'user', label: 'Profile', also: ['summary', 'account', 'privacy', 'reminders'] },
 ];
 

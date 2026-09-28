@@ -307,8 +307,9 @@ describe('grocery list', () => {
   it('formats quantities in kitchen fractions', () => {
     expect(fraction(1.5)).toBe('1½');
     expect(fraction(0.33)).toBe('⅓');
-    expect(quantityText(2, 'cup')).toBe('2 cups');
-    expect(quantityText(1, 'crown')).toBe('1 crown');
+    expect(quantityText(2, 'head')).toBe('2 heads');
+    expect(quantityText(1, 'head')).toBe('1 head');
+    expect(quantityText(450, 'g')).toBe('450 g');
   });
 });
 
@@ -333,7 +334,7 @@ describe('prep-day schedule', () => {
   });
 
   it('cooks shared rice once for several recipes', () => {
-    const rice = sc.tasks.filter((t) => t.t.startsWith('Cook rice'));
+    const rice = sc.tasks.filter((t) => t.id === 'key:rice');
     expect(rice).toHaveLength(1);
     expect(rice[0].for.length).toBeGreaterThan(1);
   });

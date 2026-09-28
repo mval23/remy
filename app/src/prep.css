@@ -1,0 +1,37 @@
+/* ---------- prep day steps and cook mode ---------- */
+
+/* A step you can tick off: checkbox, then an expandable title with its instructions. */
+.task.step { grid-template-columns: 44px 1fr; align-items: start; }
+.task.step .cb {
+  width: 44px; height: 44px; margin: -6px 0 0 -8px; border: 0; background: none; padding: 0; display: grid; place-items: center; color: var(--on-basil);
+}
+.task.step .cb::before {
+  content: ''; grid-area: 1 / 1; width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--line-2); background: var(--surface);
+}
+.task.step .cb .ic { grid-area: 1 / 1; position: relative; }
+.task.step .cb[aria-pressed='true']::before { background: var(--basil); border-color: var(--basil); }
+.task.step.done .tt { text-decoration: line-through; color: var(--ink-3); }
+.task.step details > summary { list-style: none; cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; min-height: 32px; }
+.task.step details > summary::-webkit-details-marker { display: none; }
+.task.step details > summary .tt { flex: 1 1 60%; }
+.task.step details > summary .meta { flex-basis: 100%; margin-top: 0; }
+.task.step details[open] > summary .tt { color: var(--ink); }
+
+/* Numbered instructions, amounts in bold. */
+.how { margin: 10px 0 4px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; line-height: 1.45; }
+.how b { font-weight: 700; color: var(--ink); }
+.how-big { font-size: 18px; gap: 14px; line-height: 1.5; margin-top: 16px; }
+
+.ing-list { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+
+/* Cook mode */
+.cook-progress { height: 4px; background: var(--surface-2); flex: none; }
+.cook-progress > span { display: block; height: 100%; background: var(--basil); transition: width 0.3s; }
+.cook-title { font-size: 24px; font-weight: 700; line-height: 1.25; margin-top: 10px; }
+.timer { display: flex; align-items: center; gap: 12px; margin-top: 18px; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); }
+.timer-clock { font-size: 28px; font-weight: 700; flex: 1; }
+.timer-done { background: var(--citrus-soft); }
+.timer-done .timer-clock { color: var(--citrus-ink); }
+.method-step { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.method-step:last-child { border-bottom: 0; }
+.method-step .how { margin-top: 8px; }

@@ -172,15 +172,9 @@ export function Checkin() {
                       placeholder="Skip if you like"
                       aria-label="Weekly weight"
                       value={c.weight}
-                      onChange={(e) => edit({ weight: e.target.value })}
+                      onChange={(e) => edit({ weight: e.target.value, unit: 'kg' })}
                     />
-                    <div className="seg narrow" role="group" aria-label="Unit">
-                      {(['lb', 'kg'] as const).map((u) => (
-                        <button key={u} type="button" aria-pressed={c.unit === u} onClick={() => edit({ unit: u })}>
-                          {u}
-                        </button>
-                      ))}
-                    </div>
+                    <span className="strong">kg</span>
                   </div>
                   <p className="hint gap-top">Shown only as a trend over several weeks. Single weigh-ins jump around, so Remy doesn’t react to them.</p>
                 </div>
