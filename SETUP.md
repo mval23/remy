@@ -96,6 +96,36 @@ Free Supabase projects pause after about a week with no activity, and sync stops
 
 GitHub pauses scheduled actions in repositories with no commits for 60 days and emails you first. If that happens, click **Enable workflow** on that action’s page.
 
+## 10. (Optional) Turn on phone reminders
+
+Remy can send notifications for prep day, thawing and the weekly check-in, even when the app is closed. It's free: your Supabase project stores the week's reminders and sends them. (Without this, **Profile → Reminders → Add this week to my calendar** still works on any phone.)
+
+The private values you need were created on your computer in a file called **`reminder-keys.local`**, in the main project folder. Git never uploads it. Open it with Notepad; the steps below say which value goes where.
+
+**Database**
+
+1. In Supabase, open **SQL Editor → New query**, paste all of [`supabase/reminders.sql`](supabase/reminders.sql), and click **Run**. If it complains about `pg_cron`, open **Integrations → Cron**, enable it, and run the file again.
+2. New query again: paste the `select cron.schedule(…)` block from section 3 of `reminder-keys.local` and click **Run**. This checks for due reminders every 10 minutes.
+
+**Server function**
+
+1. Open **Edge Functions → Deploy a new function → Via Editor**, name it exactly `remy-push`, delete the example code, paste all of [`supabase/functions/remy-push/index.ts`](supabase/functions/remy-push/index.ts), and click **Deploy function**.
+2. In the function's settings, turn **Enforce JWT verification** (Verify JWT) **off**. The scheduled job has no sign-in token; the function checks the secret from the file, or the person's sign-in, itself.
+3. Open **Edge Functions → Secrets** and add the three secrets from section 2 of the file: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `CRON_SECRET`.
+
+**The published app**
+
+1. On GitHub, open **Settings → Secrets and variables → Actions → Variables** and add `VAPID_PUBLIC_KEY` with the value from section 1 of the file.
+2. Open **Actions → Deploy to GitHub Pages → Run workflow**, so the app is rebuilt with it.
+
+**On each phone or computer**
+
+1. iPhone or iPad: install Remy first (Safari → **Share → Add to Home Screen**) and open it from the home screen. Apple only allows notifications for installed apps.
+2. Sign in, then open **Profile → Reminders → Turn on notifications** and allow them.
+3. Tap **Send a test**. A notification should arrive within a few seconds.
+
+Reminders come from the week you have planned. After each weekly check-in, the next week's reminders are saved automatically.
+
 ## Good to know about the free plan
 
 - **Pausing:** free projects pause after about a week with no activity; step 9 prevents that. If it ever happens, your data is kept, Remy keeps working on each device, and sync resumes after you click **Restore** in the Supabase dashboard.

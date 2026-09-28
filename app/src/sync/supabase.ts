@@ -92,4 +92,7 @@ export async function deleteRow(userId: string) {
   const sb = (await supabase())!;
   const { error } = await sb.from(TABLE).delete().eq('user_id', userId);
   if (error) throw error;
+  // Reminders and notification sign-ups (supabase/reminders.sql). Those tables may not exist if reminders were never set up.
+  await sb.from('reminders').delete().eq('user_id', userId);
+  await sb.from('push_subscriptions').delete().eq('user_id', userId);
 }

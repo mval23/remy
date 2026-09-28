@@ -18,6 +18,7 @@ It's designed for picky eaters and people who want to eat in a more balanced way
 | `app/` Phase 3 | Done: installable app that works offline, hosted on GitHub Pages; optional sign-in and sync (see [SETUP.md](SETUP.md)) |
 | `app/` Phase 4 | Done: weekly check-in that plans the next week, learned preferences you can inspect and delete, backup file download and restore |
 | `app/` Phase 5 | Done: free AI recipe ideas (Google Gemini free tier), checked against your safety rules before you see them (see [SETUP.md](SETUP.md) step 8) |
+| Reminders | Done: prep-day, thaw and check-in reminders as phone notifications (free, via Supabase; see [SETUP.md](SETUP.md) step 10) or a calendar file |
 
 ## Run the app
 

@@ -6,9 +6,11 @@ import { R } from '../planning/data/recipes';
 import { costEstimate, groceryList } from '../planning/grocery';
 import { balanceOn, dayNutrition } from '../planning/nutrition';
 import { approvalCounts } from '../planning/planner';
-import { storage, weekDays } from '../planning/rules';
+import { dayIndexOn } from '../planning/calendar';
+import { storage } from '../planning/rules';
 import { duration, packingCounts, schedule } from '../planning/schedule';
 import { DAY_FULL, DAYS, SLOT_SHORT, SLOTS, type Day } from '../planning/types';
+import { thawFor, upcomingReminders } from '../reminders/reminders';
 import { useRemy } from '../store';
 
 export function Home() {
@@ -18,21 +20,16 @@ export function Home() {
   const A = ctx.A;
 
   const today = DAYS[(new Date().getDay() + 6) % 7];
-  const ti = Math.max(0, weekDays(A).indexOf(today));
+  // Which day of the planned week today is: below 0 when a new week is planned but not started yet.
+  const idx = dayIndexOn(A, planState.weekStartedAt);
+  const upcoming = idx < 0;
+  const ti = Math.min(6, Math.max(0, idx));
   const day = plan[ti];
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
   // Frozen meals for tomorrow that should thaw overnight.
-  const tomorrow = plan[ti + 1];
-  const thaw: string[] = [];
-  if (tomorrow)
-    for (const slot of SLOTS) {
-      const m = tomorrow.meals[slot];
-      if (!m?.r) continue;
-      const r = R[m.r];
-      if (storage(r, ti + 2).k === 'freezer' && r.thaw?.includes('night before')) thaw.push(r.short.toLowerCase());
-    }
+  const thaw = idx + 1 >= 1 && idx + 1 <= 6 ? thawFor(plan, idx + 1) : [];
 
   const sc = schedule(plan, A);
   const packs = packingCounts(plan, A);
@@ -44,13 +41,14 @@ export function Home() {
   const balancedDays = plan.filter((d) => dayNutrition(d, ctx.hungry).ok).length;
   const prepDayKey = (str(A.prepday) || 'Sun') as Day;
   const prepDay = DAY_FULL[prepDayKey];
-  // The last day of the week is also the next prep day; today's meals are still this week's.
   const isPrepDay = today === prepDayKey;
+  const heading = isPrepDay ? 'Prep day today' : upcoming ? `Prep day is ${prepDay}` : idx > 6 ? 'Time to plan next week' : `Day ${ti + 1} after prep`;
   const notice = noticeSuggestion(A, planState.noticed);
   const toRate = mealsToRate(plan);
   const ratedCount = toRate.filter((m) => planState.checkin.rated[m.id]).length;
   // The check-in matters most on the last day of the week, before the next prep day.
   const due = checkinDue(A, planState.weekStartedAt);
+  const nextReminder = upcomingReminders(plan, A, planState.weekStartedAt, planState.reminders)[0];
 
   return (
     <>
@@ -70,8 +68,8 @@ export function Home() {
       />
       <main className="body">
         <div className="hero">
-          <p className="eyebrow">Today · {DAY_FULL[day.d]}</p>
-          <h2>{isPrepDay ? 'Prep day today' : `Day ${ti + 1} after prep`}</h2>
+          <p className="eyebrow">{upcoming ? `Your new week starts ${DAY_FULL[day.d]}` : `Today · ${DAY_FULL[day.d]}`}</p>
+          <h2>{heading}</h2>
           {isPrepDay && (
             <button type="button" className="btn sm hero-btn" onClick={() => actions.go('prep')}>
               <Icon name="clock" size={16} /> Open the prep timeline
@@ -177,6 +175,13 @@ export function Home() {
               onClick={() => actions.go('grocery')}
             />
             <RowButton icon="cal" tone="c-blue" title="Meal plan" sub={`${approvals.ok} of ${approvals.total} meals approved`} onClick={() => actions.go('planner')} />
+            <RowButton
+              icon="clock"
+              tone="c-citrus"
+              title="Reminders"
+              sub={nextReminder ? `Next: ${nextReminder.title.toLowerCase()}, ${new Date(nextReminder.at).toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' })}` : 'Thawing, check-in and prep day'}
+              onClick={() => actions.go('reminders')}
+            />
             {balanceOn(A) && (
               <RowButton icon="heart" tone="c-berry" title="Balance" sub={`${balancedDays} of 7 days have protein at every meal and 3+ fruit and veg`} onClick={() => actions.go('nutrition')} />
             )}

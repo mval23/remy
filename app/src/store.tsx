@@ -20,6 +20,8 @@ import {
 } from './planning/planner';
 import { context, defaultVariety, type PlanContext } from './planning/rules';
 import type { Recipe, Slot, Variety, WeekPlan } from './planning/types';
+import { disablePush, refreshSubscription, saveReminders } from './reminders/push';
+import { OPENABLE, upcomingReminders, type ReminderSettings } from './reminders/reminders';
 import { backupFileName, makeBackup, readBackup, type Backup } from './storage/backup';
 import {
   deleteEverything,
@@ -34,7 +36,7 @@ import { useSync } from './sync/useSync';
 
 export type Screen =
   | 'welcome' | 'interview' | 'resume' | 'summary' | 'home' | 'planner' | 'nutrition' | 'recipe' | 'grocery' | 'prep'
-  | 'account' | 'checkin' | 'prefs' | 'privacy';
+  | 'account' | 'checkin' | 'prefs' | 'privacy' | 'reminders';
 export type SheetName = 'map' | 'options' | 'confirmRestart' | 'replace' | 'move' | 'side' | 'food' | 'confirmForget' | 'confirmImport';
 export interface SheetArg {
   d: number;
@@ -73,6 +75,17 @@ const initialUi = (screen: Screen = 'welcome'): UiState => ({
   sheetFood: null, pendingImport: null,
 });
 
+/** The screen named in ?open=… (from a tapped reminder), once; the address is then tidied. */
+function openedFromReminder(): Screen | null {
+  const params = new URLSearchParams(window.location.search);
+  const screen = params.get('open');
+  if (!screen) return null;
+  params.delete('open');
+  const rest = params.toString();
+  window.history.replaceState(null, '', window.location.pathname + (rest ? `?${rest}` : '') + window.location.hash);
+  return OPENABLE.includes(screen) ? (screen as Screen) : null;
+}
+
 const planContext = (s: InterviewState, p: PlanState): PlanContext => context(activeAnswers(s), p.adj, p.hungry, p.recent);
 
 function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
@@ -80,7 +93,7 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
   const [planState, setPlanState] = useState<PlanState>(initial.plan);
   // Saved AI recipes must be in the library before anything below (or any screen) looks them up.
   registerAiRecipes(planState.aiRecipes);
-  const [ui, setUi] = useState<UiState>(() => initialUi(initial.plan.plan ? 'home' : 'welcome'));
+  const [ui, setUi] = useState<UiState>(() => initialUi(initial.plan.plan ? openedFromReminder() ?? 'home' : 'welcome'));
   const toastTimer = useRef<number | undefined>(undefined);
   /** Change time to save with the next update. Set when applying the cloud copy, so it isn't re-uploaded as “new”. */
   const stampNext = useRef<{ interview?: number; plan?: number }>({});
@@ -104,6 +117,39 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
   useEffect(() => {
     if (sync.recovery) setUi((u) => ({ ...u, screen: 'account', sheet: null }));
   }, [sync.recovery]);
+
+  // A reminder tapped while Remy is already open: the service worker asks this window to show that screen.
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+    const onMessage = (e: MessageEvent) => {
+      const screen = (e.data as { type?: string; screen?: string } | null)?.type === 'remy-open' ? e.data.screen : null;
+      if (OPENABLE.includes(screen)) setUi((u) => ({ ...u, screen: screen as Screen, sheet: null }));
+    };
+    navigator.serviceWorker.addEventListener('message', onMessage);
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage);
+  }, []);
+
+  // Keep the account's phone reminders in step with the week and the settings (all devices compute the same list).
+  const reminderKey = useRef('');
+  useEffect(() => {
+    if (!sync.signedIn || !planState.reminders.push || !planState.plan) return;
+    const list = upcomingReminders(planState.plan, activeAnswers(interview), planState.weekStartedAt, planState.reminders);
+    const key = JSON.stringify(list);
+    if (key === reminderKey.current) return;
+    const t = window.setTimeout(() => {
+      void saveReminders(list)
+        .then(() => {
+          reminderKey.current = key;
+        })
+        .catch(() => {
+          /* Offline or not set up yet: tried again on the next change or visit. */
+        });
+    }, 2000);
+    return () => window.clearTimeout(t);
+  }, [sync.signedIn, planState.plan, planState.reminders, planState.weekStartedAt, interview]);
+  useEffect(() => {
+    if (sync.signedIn && planState.reminders.push) void refreshSubscription().catch(() => {});
+  }, [sync.signedIn]);
 
   // Save after every change (not the values just loaded), then schedule an upload for local changes.
   useEffect(() => {
@@ -226,7 +272,8 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
       const s = { ...interview, confirmed: true, updatedAt: Date.now() };
       const variety = defaultVariety(activeAnswers(s));
       setInterview(s);
-      setPlanState((p) => ({ ...p, variety, day: 0, plan: buildPlan(variety, planContext(s, p)).plan }));
+      // The first week is cooked on the next prep day; reminders and “today” follow that date.
+      setPlanState((p) => ({ ...p, variety, day: 0, weekStartedAt: Date.now(), plan: buildPlan(variety, planContext(s, p)).plan }));
       patchUi({ screen: 'planner' });
       toast('Your week is ready. Review each meal.');
     },
@@ -238,6 +285,8 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
         toast('Couldn’t reach the cloud copy. Try again when you’re online.');
         return;
       }
+      // Stop notifications on this device too.
+      await disablePush().catch(() => {});
       await deleteEverything();
       // Change time 0 means “nothing here”, so the empty state isn't uploaded as new data.
       stampNext.current = { interview: 0, plan: 0 };
@@ -361,6 +410,9 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
       refreshPlan(s);
       toast(msg);
     },
+
+    /* ---------- reminders ---------- */
+    setReminders: (patch: Partial<ReminderSettings>) => setPlanState((s) => ({ ...s, reminders: { ...s.reminders, ...patch } })),
 
     /* ---------- AI ---------- */
     setAiConsent: (on: boolean) => {
