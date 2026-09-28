@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BottomNav, Header, StoragePill } from '../components/Chrome';
-import { Lead, MacroLine, Mast, SecHead } from '../components/Dish';
+import { Lead, Mast, SecHead } from '../components/Dish';
 import { Icon } from '../components/Icon';
 import { LaneTag, StepLines } from '../components/Steps';
 import { allRatings } from '../interview/helpers';
@@ -11,7 +11,7 @@ import { fraction, quantityText } from '../planning/grocery';
 import { isDetailed, taskLines } from '../planning/method';
 import { estimatesOn, proteinTarget } from '../planning/nutrition';
 import { eachMeal, portions, portionSizes } from '../planning/planner';
-import { check, matches, storage } from '../planning/rules';
+import { check, matchReasons, storage } from '../planning/rules';
 import { duration } from '../planning/schedule';
 import { DAY_FULL, type Day, type StorageInfo } from '../planning/types';
 import { useRemy } from '../store';
@@ -36,7 +36,7 @@ export function Recipe() {
   const handsOn = r.tasks.filter((t) => t.l === 'hands').reduce((s, t) => s + t.m, 0);
   const nums = estimatesOn(planState.nutrition, A);
   const target = proteinTarget(r.slot, ctx.hungry);
-  const found = matches(r, A);
+  const found = matchReasons(r, A).filter((x) => !r.why.slice(1).some((w) => w.toLowerCase().startsWith(x.name.toLowerCase())));
 
   const days: { d: Day; st: StorageInfo }[] = [];
   eachMeal(plan, (m, _slot, i, day) => {
@@ -70,16 +70,18 @@ export function Recipe() {
 
   return (
     <>
-      <Header title="Recipe" sub={r.slot} back={ui.recipeBack} />
+      <Header title="Recipe" back={ui.recipeBack} />
       <main className="body wide" tabIndex={0}>
         <div className="cols">
           <div>
-            <Mast kicker={`${r.slot} · makes ${r.serves}`} title={r.short} sub={r.name !== r.short ? r.name : undefined}>
+            <Mast icon={null} kicker={`${r.e} ${r.slot} · makes ${r.serves}${count ? ` · ${count} this week` : ''}`} title={r.short} sub={r.name !== r.short ? r.name : undefined}>
               {nums && (
-                <>
-                  <p className="mast-kcal">{r.kcal.toLocaleString('en-US')} kcal</p>
-                  <MacroLine n={r} note="per portion" />
-                </>
+                <div className="macro-tiles" role="group" aria-label="Per portion">
+                  <div><b>{r.kcal.toLocaleString('en-US')}</b><span>kcal</span></div>
+                  <div><b>{r.pro} g</b><span>protein</span></div>
+                  <div><b>{r.carb} g</b><span>carbs</span></div>
+                  <div><b>{r.fat} g</b><span>fat</span></div>
+                </div>
               )}
               <div className="chips tight">
                 <span className="pill p-muted">{r.store ? 'Store-bought' : `${handsOn} min hands-on`}</span>
@@ -88,17 +90,7 @@ export function Recipe() {
               </div>
             </Mast>
 
-            {why && (
-              <div className="why-quote">
-                <p>{why}</p>
-                <ul>
-                  {moreWhy.map((w) => (
-                    <li key={w}>{w}</li>
-                  ))}
-                  {found.length > 0 && <li>Matches your profile: {found.join(', ')}</li>}
-                </ul>
-              </div>
-            )}
+            {why && <p className="why-line">“{why}”</p>}
             {r.note && (
               <div className="warnline">
                 <Icon name="info" size={16} />
@@ -140,7 +132,7 @@ export function Recipe() {
           <div>
             {isDetailed(r) ? (
               <section className="msec">
-                <SecHead title="Method" aside={r.store ? undefined : `${handsOn} min hands-on`} />
+                <SecHead title="Preparation" aside={r.store ? undefined : `${handsOn} min hands-on`} />
                 {r.tasks.map((t, i) => (
                   <div className="mstep" key={i}>
                     <div className="dish-line">
@@ -166,6 +158,22 @@ export function Recipe() {
                   </ol>
                 </section>
               )
+            )}
+
+            {(moreWhy.length > 0 || found.length > 0) && (
+              <section className="msec">
+                <SecHead title="Why Remy picked it" />
+                {moreWhy.length > 0 && (
+                  <ul className="note-list">
+                    {moreWhy.map((w) => (
+                      <li key={w}>{w}</li>
+                    ))}
+                  </ul>
+                )}
+                {found.map((x) => (
+                  <Lead key={x.name} k={x.name} v={x.why} />
+                ))}
+              </section>
             )}
 
             <section className="msec">

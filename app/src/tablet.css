@@ -68,11 +68,8 @@
 
   .masonry.aisles { columns: 3; }
 
-  /* Plan: variety choice and the week summary share one line; the day's courses sit in two columns, like a printed menu. */
-  .planner-top { display: flex; gap: 20px; align-items: center; margin-top: 14px; }
-  .planner-top .seg { flex: 0 1 460px; }
-  .planner-top .row { flex: 1; min-width: 0; }
-  .planner-top .summary-line { margin: 0; }
+  /* Plan: the day's meals sit in two columns, like a printed menu. */
   .courses { columns: 2; column-gap: 48px; }
   .courses > .course { break-inside: avoid; }
+  .course + .course { border-top: 0; }
 }

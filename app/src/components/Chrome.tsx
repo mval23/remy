@@ -46,6 +46,24 @@ export function BottomNav() {
   );
 }
 
+/** Sync state in the top bar, in words when something needs attention; opens Sync & install. */
+export function SyncButton() {
+  const { sync, actions } = useRemy();
+  const ok = sync.signedIn && (sync.status === 'synced' || sync.status === 'syncing');
+  const label = ok ? null : sync.signedIn ? (sync.status === 'offline' ? 'Offline' : 'Sync problem') : 'Not synced';
+  if (!label)
+    return (
+      <button type="button" className="iconbtn" aria-label="Synced. Sync and install" onClick={() => actions.go('account')}>
+        <Icon name="cloud" size={22} />
+      </button>
+    );
+  return (
+    <button type="button" className="sync-chip" aria-label={`${label}. Sync and install`} onClick={() => actions.go('account')}>
+      <Icon name="cloudOff" size={16} /> {label}
+    </button>
+  );
+}
+
 export function StoragePill({ st }: { st: StorageInfo }) {
   if (st.k === 'fridge') return <span className="pill p-fridge"><Icon name="fridge" size={13} /> {st.l}</span>;
   if (st.k === 'freezer') return <span className="pill p-freeze"><Icon name="snow" size={13} /> {st.l}</span>;

@@ -29,8 +29,11 @@ export function MacroLine({ n, note }: { n: Macros; note?: string }) {
   );
 }
 
-/** Name ........ 550 kcal. The name opens the recipe when `onOpen` is given; with estimates off (no kcal) there are no dots. */
-export function DishLine({ name, kcal, onOpen }: { name: string; kcal?: number | null; onOpen?: () => void }) {
+/**
+ * Name ........ 550 kcal. The name opens the recipe when `onOpen` is given. With estimates off (no kcal) the dots end in
+ * `value` instead ("3 min", "cold"), or there are no dots.
+ */
+export function DishLine({ name, kcal, value, onOpen }: { name: string; kcal?: number | null; value?: ReactNode; onOpen?: () => void }) {
   return (
     <div className="dish-line">
       {onOpen ? (
@@ -40,11 +43,18 @@ export function DishLine({ name, kcal, onOpen }: { name: string; kcal?: number |
       ) : (
         <span className="dish-name">{name}</span>
       )}
-      {kcal != null && (
+      {kcal != null ? (
         <>
           <Leader />
           <span className="dish-kcal">{kcal.toLocaleString('en-US')} kcal</span>
         </>
+      ) : (
+        value != null && (
+          <>
+            <Leader />
+            <span className="dish-kcal alt">{value}</span>
+          </>
+        )
       )}
     </div>
   );
@@ -86,13 +96,13 @@ export function ChefNote({ kicker, icon = 'spark', children }: { kicker: string;
 }
 
 /** A screen's masthead: small kicker, big headline, a line under it, then anything else. */
-export function Mast({ kicker, icon = 'toque', title, sub, children }: { kicker: ReactNode; icon?: IconName; title: string; sub?: ReactNode; children?: ReactNode }) {
+export function Mast({ kicker, icon = 'toque', title, sub, compact, children }: { kicker: ReactNode; icon?: IconName | null; title: string; sub?: ReactNode; compact?: boolean; children?: ReactNode }) {
   return (
     <div className="mast">
       <span className="mast-kicker">
-        <Icon name={icon} size={16} /> {kicker}
+        {icon && <Icon name={icon} size={16} />} {kicker}
       </span>
-      <h2 className={title.length > 13 ? 'long' : undefined}>{title}</h2>
+      <h2 className={compact || title.length > 13 ? 'long' : undefined}>{title}</h2>
       {sub && <p className="mast-sub">{sub}</p>}
       {children}
     </div>

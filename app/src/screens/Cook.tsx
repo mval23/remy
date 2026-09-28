@@ -4,8 +4,8 @@ import { Leader, Mast } from '../components/Dish';
 import { Icon } from '../components/Icon';
 import { LaneTag, StepLines } from '../components/Steps';
 import { listText } from '../interview/helpers';
-import { recipeSteps, scaledIngredients, timelineSteps, type CookStep } from '../planning/method';
-import { clockTime, duration, schedule } from '../planning/schedule';
+import { gearList, recipeSteps, scaledIngredients, setupLines, timelineSteps, type CookStep } from '../planning/method';
+import { clockTime, duration, packingCounts, schedule } from '../planning/schedule';
 import { useRemy } from '../store';
 
 /** Keep the screen on while cooking (where the browser allows it). */
@@ -116,7 +116,7 @@ export function Cook() {
   useWakeLock();
   const plan = planState.plan;
   const sc = plan ? schedule(plan, ctx.A) : null;
-  const steps: CookStep[] = !plan || !sc ? [] : ui.prepView === 'timeline' ? timelineSteps(sc) : recipeSteps(plan, sc).flatMap((f) => f.steps.filter((s) => !s.alreadyDone));
+  const steps: CookStep[] = !plan || !sc ? [] : ui.prepView === 'timeline' ? timelineSteps(sc, setupLines(sc, gearList(plan, sc), packingCounts(plan, ctx.A))) : recipeSteps(plan, sc).flatMap((f) => f.steps.filter((s) => !s.alreadyDone));
   const done = planState.prepDone.week === planState.weekStartedAt ? planState.prepDone.done : {};
   const [i, setI] = useState(() => Math.max(0, steps.findIndex((s) => !done[s.id])));
   if (!plan || !sc) return null;
@@ -127,6 +127,7 @@ export function Cook() {
     ui.prepView === 'timeline' && step.lane === 'hands' && step.start !== undefined
       ? steps.filter((o) => o.lane !== 'hands' && o.start! < step.start! + step.minutes && o.start! + o.minutes > step.start!).map((o) => o.title.toLowerCase())
       : [];
+  const upNext = steps.slice(i + 1).find((s) => !done[s.id]);
   const next = () => {
     actions.markStep(step.id, true);
     if (i < steps.length - 1) setI(i + 1);
@@ -134,7 +135,15 @@ export function Cook() {
 
   return (
     <>
-      <Header title="Cook mode" sub={`Step ${Math.min(i, steps.length - 1) + 1} of ${steps.length} · ${ui.prepView === 'timeline' ? 'timeline order' : 'recipe by recipe'}`} back="prep" />
+      <Header
+        title="Cook mode"
+        back="prep"
+        right={
+          <span className="step-count" aria-label={`Step ${Math.min(i, steps.length - 1) + 1} of ${steps.length}`}>
+            {Math.min(i, steps.length - 1) + 1} / {steps.length}
+          </span>
+        }
+      />
       <div className="cook-progress" aria-hidden="true">
         <span style={{ width: `${(100 * steps.filter((s) => done[s.id]).length) / Math.max(1, steps.length)}%` }} />
       </div>
@@ -196,6 +205,17 @@ export function Cook() {
             {step.lane !== 'hands' && step.minutes > 1 && <Timer key={step.id} id={`${planState.weekStartedAt}:${step.id}`} minutes={step.minutes} label={step.title} />}
 
             {meanwhile.length > 0 && <p className="meanwhile">Meanwhile: {listText(meanwhile.slice(0, 3))}</p>}
+
+            {upNext && (
+              <div className="up-next">
+                <span className="slot-label">Up next{upNext.start !== undefined ? ` · ${clockTime(upNext.start)}` : ''}</span>
+                <b>{upNext.title}</b>
+                <span className="hint">
+                  {upNext.for.length > 0 && `${listText(upNext.for)} · `}
+                  {duration(upNext.minutes)}
+                </span>
+              </div>
+            )}
           </>
         )}
       </main>

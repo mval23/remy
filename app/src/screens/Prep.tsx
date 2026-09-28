@@ -5,7 +5,8 @@ import { LaneTag, StepLines } from '../components/Steps';
 import { listText, str } from '../interview/helpers';
 import { R } from '../planning/data/recipes';
 import { WEEKS } from '../planning/data/weeks';
-import { gearList, isDetailed, recipeSteps, recipesToPrep, scaledIngredients, timelineSteps, type CookStep } from '../planning/method';
+import { gearGroups, gearList, isDetailed, recipeSteps, recipesToPrep, scaledIngredients, setupLines, timelineSteps, type CookStep } from '../planning/method';
+import { menuCountText } from '../planning/planner';
 import { windowMinutes } from '../planning/rules';
 import { clockTime, duration, packingCounts, packPlan, schedule } from '../planning/schedule';
 import { DAY_FULL, type Day, type Lane } from '../planning/types';
@@ -32,7 +33,7 @@ function StepRow({ step, done, onToggle, onRecipe, time }: { step: CookStep; don
             <Leader />
             <span className="min">{duration(step.minutes)}</span>
           </span>
-          <LaneTag lane={step.lane} temp={step.temp} />
+          {step.lane !== 'hands' && <LaneTag lane={step.lane} temp={step.temp} />}
         </summary>
         {step.alreadyDone ? (
           <p className="hint gap-top">Same step as for {step.alreadyDone} above: once covers both.</p>
@@ -69,11 +70,11 @@ export function Prep() {
   const lighter = variety === 'variety' ? 'balanced' : 'favorites';
 
   const done = planState.prepDone.week === planState.weekStartedAt ? planState.prepDone.done : {};
-  const timeline = timelineSteps(sc);
+  const gear = gearList(plan, sc);
+  const timeline = timelineSteps(sc, setupLines(sc, gear, packs));
   const flows = recipeSteps(plan, sc);
   const doneCount = timeline.filter((s) => done[s.id]).length;
   const toPrep = recipesToPrep(plan, sc);
-  const gear = gearList(plan, sc);
   const firstOven = sc.tasks.find((t) => t.l === 'oven');
   const view = ui.prepView;
   const toggle = (id: string) => actions.markStep(id, !done[id]);
@@ -83,7 +84,7 @@ export function Prep() {
   // Sideways on an iPad the overview sits on the left and the steps on the right; otherwise one column in this order.
   const overview = (
     <>
-      <Mast kicker={`${prepDay} · ${sc.recipes} recipes`} icon="clock" title={duration(sc.total)} sub={`1:00 PM to about ${clockTime(sc.total)}`}>
+      <Mast kicker={`${prepDay} · ${menuCountText(plan)}`} icon="clock" title={duration(sc.total)} sub={`1:00 PM to about ${clockTime(sc.total)}`}>
         {over <= 0 && (
           <div className="chips tight">
             <span className="pill p-ok"><Icon name="check" size={13} /> Fits {str(A.preptime) || 'your window'}</span>
@@ -126,11 +127,22 @@ export function Prep() {
         {firstOven && <Lead k="Preheat the oven" v={`${firstOven.temp}°C`} />}
         <Lead k="Containers" v={packs.containers} />
         {packs.bags + packs.foil > 0 && <Lead k="Bags and foil" v={packs.bags + packs.foil} />}
-        {gear.length > 0 && (
-          <p className="lead-note">
-            <b>Equipment:</b> {listText(gear)}.
-          </p>
-        )}
+        {gearGroups(gear).map((g) => (
+          <div className="gear-group" key={g.name}>
+            <span className="slot-label">{g.name}</span>
+            {g.items.map((item) => {
+              const id = `gear:${item}`;
+              return (
+                <button type="button" key={item} className={`gear-line${done[id] ? ' done' : ''}`} aria-pressed={!!done[id]} onClick={() => toggle(id)}>
+                  <span className="box" aria-hidden="true">
+                    <Icon name="check" size={14} />
+                  </span>
+                  {item.charAt(0).toUpperCase() + item.slice(1)}
+                </button>
+              );
+            })}
+          </div>
+        ))}
         <details>
           <summary className="linkbtn">Ingredients to set out, by recipe</summary>
           {toPrep.map(({ r, batches, scale }) => (
@@ -199,7 +211,7 @@ export function Prep() {
           </section>
 
           <section className="msec">
-            <SecHead title="Timeline" aside={`${doneCount} of ${timeline.length} done`} />
+            <SecHead title="Order of service" aside={`fastest order · ${doneCount} of ${timeline.length} done`} />
             <div className="steps-flat">
               {timeline.map((step) => (
                 <StepRow
@@ -301,7 +313,7 @@ export function Prep() {
 
   return (
     <>
-      <Header title="Prep day" sub={`${prepDay} · 1:00 PM start`} />
+      <Header title="Prep day" />
       <main className="body wide" tabIndex={0}>
         {wide ? (
           <div className="cols">

@@ -1,5 +1,5 @@
-import { BottomNav, Header, StoragePill } from '../components/Chrome';
-import { ChefNote, DishLine, LeadLink, MacroLine, Mast, SecHead } from '../components/Dish';
+import { BottomNav, Header, StoragePill, SyncButton } from '../components/Chrome';
+import { ChefNote, DishLine, Lead, LeadLink, MacroLine, Mast, SecHead } from '../components/Dish';
 import { Icon } from '../components/Icon';
 import { listText, str } from '../interview/helpers';
 import { checkinDue, mealsToRate, noticeSuggestion } from '../learning/learning';
@@ -7,16 +7,16 @@ import { R } from '../planning/data/recipes';
 import { costEstimate, groceryList } from '../planning/grocery';
 import { buysMonthly } from '../planning/month';
 import { balanceOn, dayNutrition, estimatesOn, mealNutrition } from '../planning/nutrition';
-import { approvalCounts } from '../planning/planner';
+import { approvalCounts, menuCountText } from '../planning/planner';
 import { dayIndexOn } from '../planning/calendar';
 import { storage } from '../planning/rules';
-import { duration, packingCounts, schedule } from '../planning/schedule';
+import { clockTime, duration, packingCounts, schedule } from '../planning/schedule';
 import { DAY_FULL, DAYS, SLOT_SHORT, SLOTS, type Day } from '../planning/types';
 import { thawFor, upcomingReminders } from '../reminders/reminders';
 import { useRemy } from '../store';
 
 export function Home() {
-  const { planState, ctx, actions, sync } = useRemy();
+  const { planState, ctx, actions } = useRemy();
   const plan = planState.plan;
   if (!plan) return null;
   const A = ctx.A;
@@ -54,59 +54,73 @@ export function Home() {
   const nextReminder = upcomingReminders(plan, A, planState.weekStartedAt, planState.reminders)[0];
 
   const dn = dayNutrition(day, ctx.hungry);
+  // Storage is said once when every meal comes from the fridge; otherwise only the exceptions get a label.
+  const allFridge = SLOTS.every((s) => {
+    const m = day.meals[s];
+    return !m?.r || storage(R[m.r], ti + 1).k === 'fridge';
+  });
   const title = isPrepDay ? 'Prep day' : upcoming ? `${DAY_FULL[day.d]}’s menu` : 'Today’s menu';
   const sub = isPrepDay ? `Cooking today · about ${duration(sc.total)}` : idx > 6 ? 'Time to plan next week' : upcoming ? `Prep day is ${prepDay}` : `Day ${ti + 1} after prep`;
 
   return (
     <>
-      <Header
-        title={greeting}
-        sub="Here’s your day"
-        right={
-          <>
-            <button type="button" className="iconbtn" aria-label="Sync and install" onClick={() => actions.go('account')}>
-              <Icon name={sync.signedIn && sync.status !== 'offline' ? 'cloud' : 'cloudOff'} size={22} />
-            </button>
-          </>
-        }
-      />
+      <Header title={greeting} right={<SyncButton />} />
       <main className="body wide">
         <div className="cols">
           <div>
-            <Mast kicker={upcoming ? `Your new week starts ${DAY_FULL[day.d]}` : `Today · ${DAY_FULL[day.d]}`} title={title} sub={sub}>
+            {upcoming && !isPrepDay && (
+              <ChefNote kicker={`Next up · ${prepDay}`} icon="clock">
+                <h2 className="next-title">Prep day</h2>
+                <div className="lead-note">
+                  {duration(sc.total)} of cooking, 1:00 to about {clockTime(sc.total)} · {menuCountText(plan)}
+                </div>
+                <Lead k="1. Shop" v={checked ? `${checked} of ${toBuy.length} checked` : `${toBuy.length} items`} />
+                <Lead k="2. Cook" v={duration(sc.total)} />
+                <div className="row">
+                  <button type="button" className="btn grow" onClick={() => actions.go('grocery')}>
+                    <Icon name="cart" size={17} /> Grocery list
+                  </button>
+                  <button type="button" className="btn soft grow" onClick={() => actions.go('prep')}>
+                    Prep plan
+                  </button>
+                </div>
+              </ChefNote>
+            )}
+            <Mast kicker={upcoming ? `Then, from ${DAY_FULL[day.d]}` : `Today · ${DAY_FULL[day.d]}`} title={title} sub={upcoming && !isPrepDay ? undefined : sub} compact={upcoming && !isPrepDay}>
               {isPrepDay && (
                 <button type="button" className="btn wide" onClick={() => actions.go('prep')}>
                   <Icon name="clock" size={17} /> Open the prep timeline
                 </button>
               )}
             </Mast>
-            <div className="home-menu">
+            {/* The day's food set like the menu card on a restaurant table: course, dish, how to eat it. */}
+            <div className="menu-card">
+              <p className="menu-card-note">{allFridge ? 'Everything from the fridge' : 'From the fridge unless marked'}</p>
               {SLOTS.map((slot) => {
                 const m = day.meals[slot];
                 if (!m || m.skip) return null;
                 if (m.out || !m.r)
                   return (
-                    <div className="dish" key={slot}>
-                      <span className="dish-emoji" aria-hidden="true">{m.out ? '🍽️' : '❔'}</span>
-                      <div className="dish-body">
-                        <span className="slot-label">{SLOT_SHORT[slot]}</span>
-                        <DishLine name={m.out ? 'Eating out' : 'Needs a choice'} />
-                      </div>
+                    <div className="menu-course" key={slot}>
+                      <span className="slot-label">{SLOT_SHORT[slot]}</span>
+                      <span className="menu-dish">{m.out ? 'Eating out' : 'Needs a choice'}</span>
                     </div>
                   );
                 const r = R[m.r];
                 const mn = mealNutrition(m);
+                const st = storage(r, ti + 1);
                 return (
-                  <div className="dish" key={slot}>
-                    <span className="dish-emoji" aria-hidden="true">{r.e}</span>
-                    <div className="dish-body">
-                      <span className="slot-label">{SLOT_SHORT[slot]}</span>
-                      <DishLine name={r.short} kcal={nums && mn ? mn.kcal : null} onOpen={() => actions.openRecipe(r.id)} />
-                      {m.side && <p className="dish-desc">+ {R[m.side].short}</p>}
-                      <div className="dish-meta">
-                        <StoragePill st={storage(r, ti + 1)} />
-                      </div>
-                    </div>
+                  <div className="menu-course" key={slot}>
+                    <span className="slot-label">{SLOT_SHORT[slot]}</span>
+                    <button type="button" className="menu-dish" onClick={() => actions.openRecipe(r.id)}>
+                      <span aria-hidden="true">{r.e}</span> {r.short}
+                    </button>
+                    {m.side && <span className="menu-how">with {R[m.side].short.toLowerCase()}</span>}
+                    <span className="menu-how">
+                      {(st.k === 'freezer' && r.thaw ? r.thaw : r.reheat).split(/[.,;:]/)[0]}
+                      {nums && mn ? ` · ${mn.kcal.toLocaleString('en-US')} kcal` : ''}
+                    </span>
+                    {st.k !== 'fridge' && <StoragePill st={st} />}
                   </div>
                 );
               })}

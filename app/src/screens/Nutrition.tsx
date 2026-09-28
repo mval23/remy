@@ -107,7 +107,7 @@ export function Nutrition() {
 
   return (
     <>
-      <Header title="Nutrition balance" sub="General guidance, built on foods you accept" back="planner" />
+      <Header title="Nutrition balance" back="planner" />
       <main className="body wide">
         <Mast kicker="This week" icon="heart" title={`${balanced} of 7`} sub="days have protein at every main meal and at least 3 servings of fruit or vegetables">
           {balanced < 7 && (

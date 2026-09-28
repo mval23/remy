@@ -3,9 +3,9 @@ import { activeAnswers, fillWithSamples } from '../interview/engine';
 import { emptyInterview } from '../interview/types';
 import { ING } from './data/ingredients';
 import { R } from './data/recipes';
-import { batchesFor, gearList, ingredientName, isDetailed, partsText, placeholders, recipeSteps, renderLine, scaledIngredients, timelineSteps } from './method';
-import { buildPlan, replaceMeal } from './planner';
-import { context } from './rules';
+import { batchesFor, gearGroups, gearList, heatShort, ingredientName, isDetailed, partsText, placeholders, recipeSteps, renderLine, scaledIngredients, setupLines, timelineSteps } from './method';
+import { buildPlan, dayApproved, handsOnMinutes, menuCount, menuCountText, replaceMeal, sortOptions } from './planner';
+import { context, matches, matchReasons } from './rules';
 import { schedule } from './schedule';
 import { migrateRecipe, quantityText } from './units';
 
@@ -122,5 +122,77 @@ describe('prep day views', () => {
     expect(gear).toContain('20 cm square baking pan');
     expect(gear).not.toContain('containers');
     expect(new Set(gear).size).toBe(gear.length);
+  });
+});
+
+describe('screen summaries', () => {
+  const sc = schedule(plan, A);
+  const gear = gearList(plan, sc);
+
+  it('groups the equipment into pans, bowls and tools, keeping every item', () => {
+    const groups = gearGroups(['sheet pan ×2', 'mixing bowl', 'whisk', 'large pot', '20 cm square baking pan', 'baking paper', 'shallow bowl ×3']);
+    expect(groups).toEqual([
+      { name: 'Pans and pots', items: ['sheet pan ×2', 'large pot', '20 cm square baking pan'] },
+      { name: 'Bowls', items: ['mixing bowl', 'shallow bowl ×3'] },
+      { name: 'Tools', items: ['whisk', 'baking paper'] },
+    ]);
+    expect(gearGroups(gear).flatMap((g) => g.items).sort()).toEqual([...gear].sort());
+  });
+
+  it('gives the setting-up step real instructions: oven, equipment and what to pack into', () => {
+    const lines = setupLines(sc, gear, { containers: 14, bags: 2, foil: 0 }).map(partsText);
+    const oven = sc.tasks.find((t) => t.l === 'oven' && t.temp);
+    if (oven) expect(lines).toContain(`Turn the oven on to ${oven.temp}°C`);
+    expect(lines).toContain('Have ready 14 containers and 2 freezer bags');
+    expect(timelineSteps(sc, setupLines(sc, gear, { containers: 1, bags: 0, foil: 0 }))[0].lines.length).toBeGreaterThan(1);
+    expect(timelineSteps(sc)[0].lines).toEqual([]);
+  });
+
+  it('counts dishes and sides the same way everywhere, without store-bought items', () => {
+    const { dishes, sides } = menuCount(plan);
+    expect(dishes).toBeGreaterThan(0);
+    expect(menuCountText(plan)).toBe(`${dishes} dishes${sides ? ` + ${sides} side${sides === 1 ? '' : 's'}` : ''}`);
+  });
+
+  it('marks a day approved only when every planned meal is', () => {
+    expect(dayApproved(plan[0])).toBe(false);
+    const day = { ...plan[0], meals: Object.fromEntries(Object.entries(plan[0].meals).map(([k, m]) => [k, m && { ...m, ok: true }])) };
+    expect(dayApproved(day)).toBe(true);
+  });
+
+  it('explains a match as food and reason, the way the recipe page lists it', () => {
+    const reasons = matchReasons(R.oats, A);
+    expect(reasons.length).toBe(matches(R.oats, A).length);
+    for (const x of reasons) expect(x.name.charAt(0)).toBe(x.name.charAt(0).toUpperCase());
+  });
+});
+
+describe('how to eat it, in a word', () => {
+  it('turns reheating instructions into a short value for the dotted line', () => {
+    expect(heatShort('Eat cold, straight from the fridge. If you want it warm, microwave 60–90 seconds.')).toBe('cold');
+    expect(heatShort('Microwave 3–4 minutes, stirring halfway, until steaming (74°C).')).toBe('3–4 min');
+    expect(heatShort('Microwave 30–45 seconds, or eat cold.')).toBe('30–45 s');
+    expect(heatShort('From frozen: remove foil, microwave 1½ minutes, flip.')).toBe('1½ min');
+    expect(heatShort('Eat as is, or 10 seconds in the microwave.')).toBe('as is');
+    expect(heatShort('Eat at room temperature, or microwave 15 seconds.')).toBe('as is');
+    expect(heatShort('Straight from the freezer; let them sit 2 minutes.')).toBe('frozen');
+    expect(heatShort('On the night: boil the spaghetti.')).toBe('fresh');
+  });
+
+  it('gives every library recipe a short value', () => {
+    for (const r of Object.values(R)) expect(heatShort(r.reheat).length, r.id).toBeLessThanOrEqual(10);
+  });
+});
+
+describe('ordering replacement options', () => {
+  it('sorts by lightest, most protein and quickest, keeping Remy’s order for ties and for best match', () => {
+    const list = [R.oats, R.pancakes, R.burritos];
+    expect(sortOptions(list, 'match')).toEqual(list);
+    const light = sortOptions(list, 'light');
+    for (let i = 1; i < light.length; i++) expect(light[i].kcal).toBeGreaterThanOrEqual(light[i - 1].kcal);
+    const pro = sortOptions(list, 'protein');
+    for (let i = 1; i < pro.length; i++) expect(pro[i].pro).toBeLessThanOrEqual(pro[i - 1].pro);
+    const quick = sortOptions(list, 'quick');
+    for (let i = 1; i < quick.length; i++) expect(handsOnMinutes(quick[i])).toBeGreaterThanOrEqual(handsOnMinutes(quick[i - 1]));
   });
 });

@@ -4,28 +4,27 @@
 
 /* Masthead: the one bold moment on a screen. */
 .mast { text-align: center; padding: 10px 0 18px; border-bottom: 1px solid var(--line-2); }
-.mast-kicker { display: inline-flex; align-items: center; gap: 6px; color: var(--basil); font-weight: 700; font-size: 14px; }
-.mast h2 { font-size: 52px; font-weight: 800; letter-spacing: -0.035em; line-height: 0.95; margin-top: 4px; overflow-wrap: anywhere; }
-.mast h2.long { font-size: 38px; letter-spacing: -0.03em; line-height: 1.02; }
-.mast-sub { color: var(--ink-2); font-size: 14.5px; margin-top: 8px; }
+.mast-kicker { display: inline-flex; align-items: center; gap: 6px; color: var(--basil); font-weight: 700; font-size: var(--fs-m); }
+.mast h2 { font-size: var(--fs-4xl); font-weight: 800; letter-spacing: -0.035em; line-height: 0.95; margin-top: 4px; overflow-wrap: anywhere; }
+.mast h2.long { font-size: var(--fs-3xl); letter-spacing: -0.03em; line-height: 1.02; }
+.mast-sub { color: var(--ink-2); font-size: var(--fs-m); margin-top: 8px; }
 .mast .chips { justify-content: center; margin-top: 12px; }
-.mast-kcal { font-family: var(--f-display); font-weight: 800; font-size: 24px; color: var(--basil-ink); margin-top: 12px; font-variant-numeric: tabular-nums; }
 .mast .macro-line { margin-top: 2px; }
 .mast-acts { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; margin-top: 10px; }
 .sheet .mast { padding: 4px 36px 14px; }
-.sheet .mast h2 { font-size: 34px; letter-spacing: -0.03em; line-height: 1; }
+.sheet .mast h2 { font-size: var(--fs-3xl); letter-spacing: -0.03em; line-height: 1; }
 
 /* Name ........ value */
 .leader { flex: 1; min-width: 14px; border-bottom: 2px dotted var(--line-2); transform: translateY(-4px); }
 .dish-line { display: flex; align-items: baseline; gap: 8px; }
-.dish-name { font-family: var(--f-display); font-size: 18.5px; font-weight: 700; line-height: 1.25; color: var(--ink); }
+.dish-name { font-family: var(--f-display); font-size: var(--fs-xl); font-weight: 700; line-height: 1.25; color: var(--ink); }
 button.dish-name { border: 0; background: none; padding: 12px 0; margin: -12px 0; text-align: left; }
-.dish-kcal { font-family: var(--f-display); font-weight: 700; font-size: 16px; white-space: nowrap; color: var(--basil-ink); font-variant-numeric: tabular-nums; }
-.dish-desc { color: var(--ink-2); font-size: 14px; line-height: 1.45; }
-.macro-line { font-size: 13.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.dish-kcal { font-family: var(--f-display); font-weight: 700; font-size: var(--fs-body); white-space: nowrap; color: var(--basil-ink); font-variant-numeric: tabular-nums; }
+.dish-desc { color: var(--ink-2); font-size: var(--fs-m); line-height: 1.45; }
+.macro-line { font-size: var(--fs-s); color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .macro-line b { color: var(--ink); font-weight: 700; }
-.dish-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-3); }
-.dish-fit { color: var(--basil-ink); font-size: 13px; font-weight: 600; display: flex; align-items: flex-start; gap: 4px; }
+.dish-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: var(--fs-s); color: var(--ink-3); }
+.dish-fit { color: var(--basil-ink); font-size: var(--fs-s); font-weight: 600; display: flex; align-items: flex-start; gap: 4px; }
 .dish-fit .ic { flex: none; margin-top: 2px; }
 
 /* One dish: emoji, then the text; actions span the full width below. */
@@ -36,76 +35,69 @@ button.dish-name { border: 0; background: none; padding: 12px 0; margin: -12px 0
 .dish-body > .btn { align-self: flex-start; margin-top: 4px; }
 .dish.struck .dish-name { text-decoration: line-through; color: var(--ink-3); }
 
-/* The dish's five actions: one even row, icon above label, no boxes. */
-.dish-acts { flex-basis: 100%; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-.dish-acts button { border: 0; background: none; border-radius: 12px; min-height: 52px; padding: 4px 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; font-weight: 600; line-height: 1.15; color: var(--ink-2); }
-.dish-acts button:hover { background: var(--surface-2); }
-.dish-acts button.yes { background: var(--basil-soft); color: var(--basil-ink); }
-.dish-acts button.yes[aria-pressed='true'] { background: var(--basil); color: var(--on-basil); }
-.dish-acts.single { display: flex; }
-.dish-acts.single button { flex-direction: row; gap: 6px; padding: 0 12px; min-height: 44px; font-size: 13.5px; background: var(--basil-soft); color: var(--basil-ink); }
-
-/* A side under its meal: + Guacamole ........ 130 kcal  × */
-.side-line { display: flex; align-items: center; gap: 8px; font-size: 14.5px; }
+/* A side under its meal: + Guacamole ........ 130 kcal */
+.side-line { display: flex; align-items: center; gap: 8px; font-size: var(--fs-m); }
 .side-line .n { font-weight: 600; }
 .side-line .leader { transform: none; align-self: center; }
-.side-line .dish-kcal { font-size: 14px; }
+.side-line .dish-kcal { font-size: var(--fs-m); }
 
-/* Courses: Breakfast, Lunch, … as menu sections. */
-.course { padding-top: 20px; }
-.course-head { display: flex; align-items: baseline; gap: 10px; }
-.course-head h3 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
-.course-head .aside { margin-left: auto; display: inline-flex; gap: 6px; align-items: center; }
-.stamp { display: inline-flex; align-items: center; gap: 4px; color: var(--basil-ink); font-weight: 700; font-size: 13px; }
+/* Plan: the day's checks as one quiet line under the headline. */
+.mast-checks { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 12px; margin-top: 8px; color: var(--ink-2); font-size: var(--fs-s); }
+.mast-checks b { color: var(--basil-ink); }
+
+/* Courses, as on the menu page: a big heading with how to eat it beside it, then the dish. */
+.course { padding-top: 22px; }
+.course-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+.course-head h3 { font-size: var(--fs-2xl); font-weight: 800; letter-spacing: -0.02em; }
+.course-note { color: var(--ink-3); font-size: var(--fs-s); }
+.course .dish { border-bottom: 0; padding-bottom: 14px; }
+.course + .course { border-top: 1px solid var(--line); }
+/* Two labeled buttons, like Preparation and Delete on the menu page. */
+.dish-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.dish-kcal.alt { color: var(--ink-2); font-weight: 600; }
+.opt.opt-danger { color: var(--danger); }
 
 /* Days as a menu's tabs: the chosen one underlined. */
 .daytabs { display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--line); position: sticky; top: -4px; background: var(--bg); z-index: 2; margin: 0 -4px; }
-.daytabs button { border: 0; background: none; min-height: 52px; padding: 0; font-weight: 700; font-size: 14px; color: var(--ink-2); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
-.daytabs button small { font-size: 11px; font-weight: 600; color: var(--ink-3); }
+.daytabs button { border: 0; background: none; min-height: 52px; padding: 0; font-weight: 700; font-size: var(--fs-m); color: var(--ink-2); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
+.daytabs button small { font-size: var(--fs-xs); font-weight: 600; color: var(--ink-3); }
 .daytabs button[aria-pressed='true'] { color: var(--ink); }
-.daytabs button[aria-pressed='true']::after { content: ''; position: absolute; left: 20%; right: 20%; bottom: -1px; height: 3px; border-radius: 3px; background: var(--basil); }
+.daytabs button[aria-pressed='true']::after { content: ''; position: absolute; left: 20%; right: 20%; bottom: -1px; height: 3px; border-radius: var(--r-pill); background: var(--basil); }
 
-.menu-tools { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
-.menu-tools .seg { flex: 1; min-width: 0; }
-.menu-tools .seg button { font-size: 12.5px; padding: 0 4px; }
-.menu-tools .btn { flex: none; }
 .center-hint { text-align: center; margin-top: 8px; }
 
 /* The bill: a total with its leader, closing the menu. */
 .bill { margin-top: 26px; border-top: 2px solid var(--ink); padding-top: 12px; }
-.bill .dish-name { font-size: 20px; font-weight: 800; }
-.bill .dish-kcal { font-size: 20px; font-weight: 800; color: var(--ink); }
+.bill .dish-name { font-size: var(--fs-xl); font-weight: 800; }
+.bill .dish-kcal { font-size: var(--fs-xl); font-weight: 800; color: var(--ink); }
 .bill .macro-line { margin-top: 4px; }
-.bill-note { color: var(--ink-3); font-size: 12.5px; margin-top: 6px; }
+.bill-note { color: var(--ink-3); font-size: var(--fs-s); margin-top: 6px; }
 
 /* Section headings on menu screens: big, with a rule under them. */
 .msec { margin-top: 28px; }
 .msec-head { display: flex; align-items: baseline; gap: 10px; border-bottom: 1px solid var(--line-2); padding-bottom: 6px; margin-bottom: 4px; }
-.msec-head h3 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
-.msec-head .aside { margin-left: auto; color: var(--ink-3); font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+.msec-head h3 { font-size: var(--fs-2xl); font-weight: 800; letter-spacing: -0.02em; }
+.msec-head .aside { margin-left: auto; color: var(--ink-3); font-size: var(--fs-s); font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
 .msec > .seg { margin: 8px 0 4px; }
 
 /* Label ........ value */
-.lead { display: flex; align-items: baseline; gap: 8px; padding: 8px 0; font-size: 15px; }
+.lead { display: flex; align-items: baseline; gap: 8px; padding: 8px 0; font-size: var(--fs-body); }
 .lead .k { font-weight: 600; }
-.lead .v { font-family: var(--f-display); font-weight: 700; font-size: 14.5px; white-space: nowrap; color: var(--ink); font-variant-numeric: tabular-nums; }
+.lead .v { font-family: var(--f-display); font-weight: 700; font-size: var(--fs-m); white-space: nowrap; color: var(--ink); font-variant-numeric: tabular-nums; }
 .lead .v.wrap { white-space: normal; text-align: right; }
-.lead-note { color: var(--ink-2); font-size: 14px; margin: 0 0 8px; }
+.lead-note { color: var(--ink-2); font-size: var(--fs-m); margin: 0 0 8px; }
 .lead-note b { color: var(--ink); }
 
-/* Why Remy picked it, as a quote. */
-.why-quote { text-align: center; margin: 20px 8px 0; }
-.why-quote p { font-family: var(--f-display); font-size: 17px; font-weight: 600; line-height: 1.35; }
-.why-quote p::before { content: '“'; color: var(--basil); }
-.why-quote p::after { content: '”'; color: var(--basil); }
-.why-quote ul { list-style: none; margin: 8px 0 0; padding: 0; color: var(--ink-3); font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
+/* Why Remy picked it: a chef's note with one line per food. */
+.note-list { list-style: none; margin: 8px 0 4px; padding: 0; color: var(--ink-2); font-size: var(--fs-m); display: flex; flex-direction: column; gap: 4px; }
+.chef-note .lead .v { font-family: var(--f-body); font-weight: 600; font-size: var(--fs-m); color: var(--basil-ink); }
 
 /* Method: numbered steps, minutes at the end of the line. */
 .mstep { padding: 12px 0 14px; border-bottom: 1px solid var(--line); }
 .mstep:last-child { border-bottom: 0; }
-.mstep .num { font-family: var(--f-display); font-weight: 800; color: var(--basil); font-size: 17px; width: 20px; flex: none; }
-.mstep .dish-name { font-size: 16.5px; }
-.mstep .min { font-family: var(--f-display); font-weight: 700; font-size: 14px; color: var(--ink-2); white-space: nowrap; }
+.mstep .num { font-family: var(--f-display); font-weight: 800; color: var(--basil); font-size: var(--fs-l); width: 20px; flex: none; }
+.mstep .dish-name { font-size: var(--fs-l); }
+.mstep .min { font-family: var(--f-display); font-weight: 700; font-size: var(--fs-m); color: var(--ink-2); white-space: nowrap; }
 .mstep .lane-tag, .mstep .how { margin-left: 28px; }
 .mstep .lane-tag { display: inline-block; margin-top: 4px; }
 .msteps-simple { margin: 8px 0 0; padding-left: 24px; display: flex; flex-direction: column; gap: 10px; }
@@ -114,18 +106,18 @@ button.dish-name { border: 0; background: none; padding: 12px 0; margin: -12px 0
 /* Grocery: item ........ amount */
 .gline { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--line); min-height: 56px; }
 .gline .cb { width: 44px; height: 44px; margin: 0 -6px 0 -8px; border: 0; background: none; display: grid; place-items: center; flex: none; padding: 0; color: var(--on-basil); }
-.gline .cb > span { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--line-2); background: var(--surface); display: grid; place-items: center; }
+.gline .cb > span { width: 26px; height: 26px; border-radius: var(--r-s); border: 2px solid var(--line-2); background: var(--surface); display: grid; place-items: center; }
 .gline .cb[aria-pressed='true'] > span { background: var(--basil); border-color: var(--basil); }
 .gline-main { flex: 1; min-width: 0; border: 0; background: none; text-align: left; padding: 8px 0; min-height: 44px; }
 .gline-main .dish-line { gap: 6px; }
-.gline .nm { font-weight: 600; font-size: 15.5px; color: var(--ink); }
-.gline .qty { font-family: var(--f-display); font-weight: 700; font-size: 14.5px; white-space: nowrap; color: var(--ink); font-variant-numeric: tabular-nums; }
-.gline .from { display: block; font-size: 12.5px; color: var(--ink-3); margin-top: 1px; }
+.gline .nm { font-weight: 600; font-size: var(--fs-body); color: var(--ink); }
+.gline .qty { font-family: var(--f-display); font-weight: 700; font-size: var(--fs-m); white-space: nowrap; color: var(--ink); font-variant-numeric: tabular-nums; }
+.gline .from { display: block; font-size: var(--fs-s); color: var(--ink-3); margin-top: 1px; }
 .gline-main > .nm { display: block; }
-.gline .price { font-family: var(--f-display); font-weight: 600; font-size: 13px; color: var(--ink-3); min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
+.gline .price { font-family: var(--f-display); font-weight: 600; font-size: var(--fs-s); color: var(--ink-3); min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
 .gline.done .nm { text-decoration: line-through; color: var(--ink-3); }
 .gline.done .qty { color: var(--ink-3); }
-.gline-edit { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; margin: 6px 0; background: var(--surface-2); border-radius: 14px; }
+.gline-edit { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; margin: 6px 0; background: var(--surface-2); border-radius: var(--r-m); }
 .aisle { margin-top: 26px; }
 .aisle .msec-head { margin-bottom: 0; }
 .progress-line { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
@@ -134,9 +126,7 @@ button.dish-name { border: 0; background: none; padding: 12px 0; margin: -12px 0
 @media (max-width: 360px) {
   .mast h2 { font-size: 44px; }
   .mast h2.long { font-size: 32px; }
-  .course-head h3 { font-size: 23px; }
 }
-.planner-top { margin-top: 14px; }
 
 /* ---------- The rest of the app in the menu look: Home, Prep, Nutrition, Profile, Check-in, Cook ---------- */
 
@@ -146,52 +136,50 @@ button.dish-name { border: 0; background: none; padding: 12px 0; margin: -12px 0
 .lead-link:hover .k { text-decoration: underline; text-decoration-color: var(--line-2); }
 
 /* A framed note, its kicker set into the frame. */
-.chef-note { position: relative; margin-top: 28px; border: 1.5px solid var(--line-2); border-radius: 18px; padding: 18px 16px 14px; }
-.chef-note-kicker { position: absolute; top: -11px; left: 14px; padding: 0 6px; background: var(--bg); color: var(--basil); font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; }
-.chef-note > p { font-family: var(--f-display); font-size: 16.5px; font-weight: 600; line-height: 1.4; }
+.chef-note { position: relative; margin-top: 28px; border: 1.5px solid var(--line-2); border-radius: var(--r-m); padding: 18px 16px 14px; }
+.chef-note-kicker { position: absolute; top: -11px; left: 14px; padding: 0 6px; background: var(--bg); color: var(--basil); font-weight: 700; font-size: var(--fs-s); display: inline-flex; align-items: center; gap: 5px; }
+.chef-note > p { font-family: var(--f-display); font-size: var(--fs-l); font-weight: 600; line-height: 1.4; }
 .chef-note .row { margin-top: 12px; }
 
 /* Home: today's meals as a short menu. */
-.slot-label { font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
-.home-menu .dish { padding: 12px 0; }
-.home-menu .dish-body { gap: 3px; }
+.slot-label { font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
 .mast > .btn { margin-top: 14px; }
 
 /* Prep: steps as timed lines. */
 .steps-flat .task.step { padding: 10px 0; }
 .task.step details > summary .dish-line { flex-basis: 100%; gap: 8px; }
-.task.step .tm { font-family: var(--f-display); font-weight: 700; font-size: 14px; color: var(--ink-3); flex: none; min-width: 36px; font-variant-numeric: tabular-nums; }
-.task.step .tt { font-family: var(--f-display); font-weight: 700; font-size: 15.5px; line-height: 1.3; color: var(--ink); }
+.task.step .tm { font-family: var(--f-display); font-weight: 700; font-size: var(--fs-m); color: var(--ink-3); flex: none; min-width: 36px; font-variant-numeric: tabular-nums; }
+.task.step .tt { font-family: var(--f-display); font-weight: 700; font-size: var(--fs-body); line-height: 1.3; color: var(--ink); }
 .task.step.bg .tt { font-weight: 700; color: var(--ink-2); }
-.task.step .min { font-family: var(--f-display); font-weight: 700; font-size: 13.5px; color: var(--ink-2); white-space: nowrap; }
+.task.step .min { font-family: var(--f-display); font-weight: 700; font-size: var(--fs-s); color: var(--ink-2); white-space: nowrap; }
 .task.step .lane-tag { margin-top: 2px; }
 .msec .gantt { border: 0; background: none; padding: 10px 0 0; }
-.dish-count { font-family: var(--f-display); font-weight: 700; font-size: 15px; color: var(--ink); white-space: nowrap; }
-.msec .ing-list { font-size: 14.5px; }
+.dish-count { font-family: var(--f-display); font-weight: 700; font-size: var(--fs-body); color: var(--ink); white-space: nowrap; }
+.msec .ing-list { font-size: var(--fs-m); }
 .prep-set { margin-top: 12px; }
-.prep-set .dish-name { font-size: 16px; }
+.prep-set .dish-name { font-size: var(--fs-body); }
 
 /* Nutrition: goals typed on the dotted line. */
-.lead .goal-field { width: 110px; min-height: 44px; text-align: right; font-family: var(--f-display); font-weight: 700; font-size: 15px; flex: none; }
+.lead .goal-field { width: 110px; min-height: 44px; text-align: right; font-family: var(--f-display); font-weight: 700; font-size: var(--fs-body); flex: none; }
 .lead .seg.narrow { flex: none; }
 .lead.tall { align-items: center; }
 .lead.tall .leader { transform: none; }
-.day-note { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: -6px 0 8px; font-size: 13.5px; color: var(--ink-2); }
+.day-note { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: -6px 0 8px; font-size: var(--fs-s); color: var(--ink-2); }
 .plate-leads { flex: 1; min-width: 150px; }
 .plate-leads .lead { padding: 4px 0; }
 
 /* Profile */
-.lock-box { margin-top: 18px; border: 1.5px solid var(--danger); border-radius: 16px; padding: 10px 14px 6px; }
+.lock-box { margin-top: 18px; border: 1.5px solid var(--danger); border-radius: var(--r-m); padding: 10px 14px 6px; }
 .lock-box .dish-line { align-items: baseline; }
-.lock-box .dish-name { font-size: 16px; color: var(--danger); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-.lock-box .v { font-family: var(--f-display); font-weight: 700; font-size: 15px; text-align: right; }
+.lock-box .dish-name { font-size: var(--fs-body); color: var(--danger); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.lock-box .v { font-family: var(--f-display); font-weight: 700; font-size: var(--fs-body); text-align: right; }
 .food-list { display: flex; flex-wrap: wrap; column-gap: 14px; margin: 2px 0 0; }
-.food-link { border: 0; background: none; padding: 0; min-height: 44px; display: inline-flex; align-items: center; gap: 5px; font-size: 15px; color: var(--ink); }
+.food-link { border: 0; background: none; padding: 0; min-height: 44px; display: inline-flex; align-items: center; gap: 5px; font-size: var(--fs-body); color: var(--ink); }
 .food-link .n { border-bottom: 1.5px dotted var(--line-2); }
 .food-link:hover .n { border-bottom-color: var(--basil); }
 .learned-line { display: flex; gap: 6px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .learned-line:last-child { border-bottom: 0; }
-.learned-line .t { font-weight: 600; font-size: 15px; }
+.learned-line .t { font-weight: 600; font-size: var(--fs-body); }
 .learned-line .conf { background: none; padding: 0; margin: 0; }
 .learned-line .conf.high { color: var(--basil-ink); }
 .learned-line .conf.medium { color: var(--citrus-ink); }
@@ -200,23 +188,65 @@ button.dish-name { border: 0; background: none; padding: 12px 0; margin: -12px 0
 
 /* Check-in */
 .rate-dish { padding: 12px 0 14px; border-bottom: 1px solid var(--line); }
-.rate-dish .dish-name { font-size: 17px; }
-.rate-dish .times { font-family: var(--f-display); font-weight: 700; font-size: 14px; color: var(--ink-2); white-space: nowrap; }
+.rate-dish .dish-name { font-size: var(--fs-l); }
+.rate-dish .times { font-family: var(--f-display); font-weight: 700; font-size: var(--fs-m); color: var(--ink-2); white-space: nowrap; }
 .rate-dish .rate-row { display: flex; gap: 6px; margin-top: 8px; padding: 0; border: 0; }
-.rate-why { margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: var(--surface-2); }
+.rate-why { margin-top: 10px; padding: 10px 12px; border-radius: var(--r-m); background: var(--surface-2); }
 .qline { padding: 12px 0 14px; border-bottom: 1px solid var(--line); }
 .qline:last-child { border-bottom: 0; }
-.qline > .strong { font-family: var(--f-display); font-size: 16.5px; font-weight: 700; }
-.bill-list { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; color: var(--ink-2); font-size: 14.5px; }
+.qline > .strong { font-family: var(--f-display); font-size: var(--fs-l); font-weight: 700; }
+.bill-list { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; color: var(--ink-2); font-size: var(--fs-m); }
 
 /* Cook mode: the step as a headline, the timer as a big number on a dotted line. */
 .cook-mast { text-align: center; padding-top: 14px; }
-.cook-mast .cook-title { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin-top: 6px; }
+.cook-mast .cook-title { font-size: var(--fs-3xl); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin-top: 6px; }
 .cook-mast .chips { justify-content: center; margin-top: 10px; }
 .cook-mast .hint { margin-top: 6px; }
 .timer { display: block; margin-top: 24px; padding: 12px 0 0; border-radius: 0; background: none; border-top: 2px solid var(--ink); }
 .timer .dish-line { align-items: baseline; }
-.timer .timer-clock { flex: none; font-family: var(--f-display); font-weight: 800; font-size: 40px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.timer .timer-clock { flex: none; font-family: var(--f-display); font-weight: 800; font-size: var(--fs-3xl); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .timer > .btn { width: 100%; margin-top: 10px; }
 .timer-done { background: none; }
 .timer-done .timer-clock { color: var(--citrus-ink); }
+
+/* Home: what to do next, before the menu. */
+.next-title { font-size: var(--fs-3xl); font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.chef-note > .next-title + .lead-note { margin: 6px 0 4px; font-size: var(--fs-m); }
+
+/* Sync state in words when it needs attention. */
+.sync-chip { border: 0; min-height: 44px; padding: 0 10px; border-radius: var(--r-pill); background: none; display: inline-flex; align-items: center; gap: 5px; font-size: var(--fs-s); font-weight: 700; color: var(--citrus-ink); flex: none; }
+.sync-chip:hover { background: var(--citrus-soft); }
+
+/* Prep: equipment as a checklist, grouped like a kitchen. */
+.gear-group { margin-top: 12px; }
+.gear-group .slot-label { display: block; margin-bottom: 2px; }
+.gear-line { width: 100%; min-height: 44px; border: 0; border-bottom: 1px solid var(--line); background: none; padding: 0; display: flex; align-items: center; gap: 10px; text-align: left; font-size: var(--fs-body); color: var(--ink); }
+.gear-line .box { width: 24px; height: 24px; border-radius: var(--r-s); border: 2px solid var(--line-2); display: grid; place-items: center; color: transparent; flex: none; background: var(--surface); }
+.gear-line.done { color: var(--ink-3); text-decoration: line-through; }
+.gear-line.done .box { background: var(--basil); border-color: var(--basil); color: var(--on-basil); }
+
+/* Cook mode: where you are and what comes next. */
+.step-count { font-family: var(--f-mono); font-size: var(--fs-m); color: var(--ink-2); padding: 0 8px; font-variant-numeric: tabular-nums; }
+.up-next { margin-top: 24px; background: var(--surface-2); border-radius: var(--r-m); padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+.up-next b { font-family: var(--f-display); font-size: var(--fs-l); line-height: 1.3; }
+
+/* Home: the day as a restaurant's menu card, centered, one course under another. */
+.menu-card { text-align: center; padding: 4px 0 8px; }
+.menu-card-note { color: var(--ink-3); font-size: var(--fs-s); padding-bottom: 6px; }
+.menu-card-note::after { content: '· · ·'; display: block; color: var(--line-2); letter-spacing: 6px; margin-top: 6px; }
+.menu-course { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 12px 0 2px; }
+.menu-dish { border: 0; background: none; padding: 4px 8px; min-height: 44px; font-family: var(--f-display); font-weight: 700; font-size: var(--fs-l); line-height: 1.25; color: var(--ink); border-radius: var(--r-s); }
+button.menu-dish:hover { background: var(--surface-2); }
+.menu-how { color: var(--ink-3); font-size: var(--fs-s); font-style: italic; max-width: 34ch; }
+.menu-course .pill { margin-top: 4px; }
+
+/* Replace: order chips at the top of the list, like the menu page's filters. */
+.filter-chips { position: sticky; top: -8px; z-index: 1; background: var(--surface); padding: 10px 0 8px; margin-top: 4px; border-bottom: 1px solid var(--line); }
+.filter-chips .chip { min-height: 40px; }
+
+/* Recipe: the Preparation dialog's macro tiles and a quoted reason. */
+.macro-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px auto 0; max-width: 420px; }
+.macro-tiles > div { background: var(--surface-2); border-radius: var(--r-m); padding: 8px 4px; display: flex; flex-direction: column; align-items: center; }
+.macro-tiles b { font-family: var(--f-display); font-size: var(--fs-l); font-weight: 800; font-variant-numeric: tabular-nums; }
+.macro-tiles span { color: var(--ink-3); font-size: var(--fs-xs); }
+.why-line { text-align: center; font-family: var(--f-display); font-weight: 600; font-size: var(--fs-l); line-height: 1.35; color: var(--ink-2); margin: 16px 8px 0; font-style: italic; }

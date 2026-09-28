@@ -2,11 +2,11 @@
 .li.wrap { flex-wrap: wrap; row-gap: 8px; }
 /* Meal name on the first line, the three rating buttons on a full-width line below. */
 .rate-row { flex-basis: 100%; gap: 6px; }
-.rate-chip { flex: 1; min-height: 44px; padding: 0 8px; font-size: 13px; justify-content: center; }
+.rate-chip { flex: 1; min-height: 44px; padding: 0 8px; font-size: var(--fs-s); justify-content: center; }
 
 .btn.danger-outline { color: var(--danger); border-color: var(--danger); }
 .file-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-.trend { font-size: 15px; font-weight: 600; }
+.trend { font-size: var(--fs-body); font-weight: 600; }
 .gap-bottom { margin-bottom: 10px; }
 .body a { color: var(--basil); font-weight: 600; }
 
