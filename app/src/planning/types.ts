@@ -40,7 +40,7 @@ export interface Task {
   l: Lane;
   /** Minutes. */
   m: number;
-  /** Oven temperature in °F. */
+  /** Oven temperature in °C. */
   temp?: number;
   /** Sheet pans used in the oven (default 1; the oven holds 2). */
   pans?: number;
@@ -48,6 +48,14 @@ export interface Task {
   key?: string;
   /** Packing-phase task, done after cooking. */
   end?: boolean;
+  /**
+   * Detailed instructions, one step per line. Amounts come from the recipe’s ingredients, scaled to the week:
+   * {k} = amount and name ("570 g boneless chicken thighs"), {k:q} = amount only ("570 g"),
+   * {k*0.5} or {k*0.5:q} = a share of it, {k*1.6:ml} = the amount in another unit (e.g. water for rice).
+   */
+  how?: string[];
+  /** Equipment this task needs, for the “before you start” list. */
+  gear?: string[];
 }
 
 export interface StorageInfo {

@@ -126,11 +126,11 @@ describe('weekly check-in', () => {
   });
 
   it('records body check-ins, and weight only when the user opted in', () => {
-    const c = { q: { hunger: 'Mostly fine', fit: 'Looser' }, weight: '170', unit: 'lb' as const };
+    const c = { q: { hunger: 'Mostly fine', fit: 'Looser' }, weight: '77', unit: 'kg' as const };
     const noWeight = applyCheckin(withCheckin(week(), c), with_({ progress: 'How I feel and how clothes fit' }), 10).next;
     expect(noWeight.progress[0]).toEqual({ at: 10, hunger: 'Mostly fine', fit: 'Looser' });
     const withWeight = applyCheckin(withCheckin(week(), c), with_({ progress: 'Add an optional weekly weight' }), 10).next;
-    expect(withWeight.progress[0].weight).toBe(170);
+    expect(withWeight.progress[0]).toMatchObject({ weight: 77, unit: 'kg' });
   });
 
   it('is due on the last two days of the week, but not right after a check-in', () => {
@@ -224,12 +224,12 @@ describe('learned preferences', () => {
 
 describe('weight trend', () => {
   it('needs at least 3 weigh-ins and compares the newest with the oldest of the last 4', () => {
-    expect(weightTrend([{ at: 2, weight: 170 }, { at: 1, weight: 172 }])).toBeNull();
-    const t = weightTrend([{ at: 5, weight: 168, unit: 'lb' }, { at: 4 }, { at: 3, weight: 170, unit: 'lb' }, { at: 2, weight: 171, unit: 'lb' }, { at: 1, weight: 172, unit: 'lb' }, { at: 0, weight: 190, unit: 'lb' }]);
-    expect(t).toEqual({ entries: 4, change: -4, unit: 'lb' });
+    expect(weightTrend([{ at: 2, weight: 77, unit: 'kg' }, { at: 1, weight: 78, unit: 'kg' }])).toBeNull();
+    const t = weightTrend([{ at: 5, weight: 76, unit: 'kg' }, { at: 4 }, { at: 3, weight: 77, unit: 'kg' }, { at: 2, weight: 77.5, unit: 'kg' }, { at: 1, weight: 78, unit: 'kg' }, { at: 0, weight: 86, unit: 'kg' }]);
+    expect(t).toEqual({ entries: 4, change: -2, unit: 'kg' });
   });
 
-  it('converts mixed units to the newest one', () => {
+  it('reports in kg, converting weigh-ins saved in lb by earlier versions', () => {
     const t = weightTrend([{ at: 3, weight: 77, unit: 'kg' }, { at: 2, weight: 172, unit: 'lb' }, { at: 1, weight: 174, unit: 'lb' }]);
     expect(t?.unit).toBe('kg');
     expect(t?.change).toBeCloseTo(77 - 174 * 0.45359237, 1);

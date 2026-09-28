@@ -361,18 +361,14 @@ export function forgetAllLearned(state: PlanState, A: Answers): PlanState {
 const KG_PER_LB = 0.45359237;
 
 /**
- * Weight change over the last 3–4 check-ins that include a weight, in the newest entry's unit.
+ * Weight change in kg over the last 3–4 check-ins that include a weight.
  * Null until there are at least 3, because single weeks jump around.
+ * Entries saved in lb by earlier versions are converted.
  */
-export function weightTrend(progress: ProgressEntry[]): { entries: number; change: number; unit: 'lb' | 'kg' } | null {
+export function weightTrend(progress: ProgressEntry[]): { entries: number; change: number; unit: 'kg' } | null {
   const w = progress.filter((p) => p.weight).slice(0, 4);
   if (w.length < 3) return null;
-  const unit = w[0].unit ?? 'lb';
-  const inUnit = (p: ProgressEntry) => {
-    const from = p.unit ?? 'lb';
-    if (from === unit) return p.weight!;
-    return unit === 'kg' ? p.weight! * KG_PER_LB : p.weight! / KG_PER_LB;
-  };
-  const change = Math.round((inUnit(w[0]) - inUnit(w[w.length - 1])) * 10) / 10;
-  return { entries: w.length, change, unit };
+  const kg = (p: ProgressEntry) => (p.unit === 'lb' ? p.weight! * KG_PER_LB : p.weight!);
+  const change = Math.round((kg(w[0]) - kg(w[w.length - 1])) * 10) / 10;
+  return { entries: w.length, change, unit: 'kg' };
 }

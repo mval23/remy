@@ -1,18 +1,54 @@
 import { BottomNav, Header } from '../components/Chrome';
 import { Icon } from '../components/Icon';
+import { StepLines, StepMeta } from '../components/Steps';
 import { listText, str } from '../interview/helpers';
 import { R } from '../planning/data/recipes';
 import { WEEKS } from '../planning/data/weeks';
+import { gearList, isDetailed, recipeSteps, recipesToPrep, scaledIngredients, timelineSteps, type CookStep } from '../planning/method';
 import { windowMinutes } from '../planning/rules';
-import { clockTime, duration, fahrenheitToCelsius, packingCounts, packPlan, schedule } from '../planning/schedule';
+import { clockTime, duration, packingCounts, packPlan, schedule } from '../planning/schedule';
 import { DAY_FULL, type Day, type Lane } from '../planning/types';
 import { useRemy } from '../store';
 
 const LANES: [Lane, string][] = [['hands', 'You'], ['oven', 'Oven'], ['stove', 'Stove'], ['chill', 'Chill']];
-const LANE_TAG: Record<Lane, string> = { hands: 'Hands-on', oven: 'Oven', stove: 'Stovetop', chill: 'Fridge/freezer' };
+
+/** A step you can tick off, with its instructions tucked into an expandable row. */
+function StepRow({ step, done, onToggle, onRecipe, time }: { step: CookStep; done: boolean; onToggle: () => void; onRecipe?: () => void; time?: string }) {
+  return (
+    <div className={`task step${done ? ' done' : ''}${step.lane !== 'hands' ? ' bg' : ''}`}>
+      <button type="button" className="cb" aria-pressed={done} aria-label={`${done ? 'Untick' : 'Tick off'}: ${step.title}`} onClick={onToggle}>
+        {done && <Icon name="check" size={16} />}
+      </button>
+      <details className="grow">
+        <summary>
+          {time && <span className="tm">{time}</span>}
+          <span className="tt">
+            {step.title}
+            {step.for.length > 1 && <span className="hint"> (for {listText(step.for)})</span>}
+          </span>
+          <StepMeta step={step} />
+        </summary>
+        {step.alreadyDone ? (
+          <p className="hint gap-top">Same step as for {step.alreadyDone} above: once covers both.</p>
+        ) : step.lines.length ? (
+          <StepLines lines={step.lines} />
+        ) : (
+          <p className="hint gap-top">
+            Detailed steps for this recipe are coming soon.{' '}
+            {onRecipe && (
+              <button type="button" className="linkbtn inline" onClick={onRecipe}>
+                See the recipe
+              </button>
+            )}
+          </p>
+        )}
+      </details>
+    </div>
+  );
+}
 
 export function Prep() {
-  const { planState, ctx, actions } = useRemy();
+  const { planState, ctx, ui, actions } = useRemy();
   const plan = planState.plan;
   if (!plan) return null;
   const A = ctx.A;
@@ -24,6 +60,16 @@ export function Prep() {
   const span = Math.max(sc.total, ...sc.tasks.map((t) => t.e));
   const variety = planState.variety ?? 'balanced';
   const lighter = variety === 'variety' ? 'balanced' : 'favorites';
+
+  const done = planState.prepDone.week === planState.weekStartedAt ? planState.prepDone.done : {};
+  const timeline = timelineSteps(sc);
+  const flows = recipeSteps(plan, sc);
+  const doneCount = timeline.filter((s) => done[s.id]).length;
+  const toPrep = recipesToPrep(plan, sc);
+  const gear = gearList(plan, sc);
+  const firstOven = sc.tasks.find((t) => t.l === 'oven');
+  const view = ui.prepView;
+  const toggle = (id: string) => actions.markStep(id, !done[id]);
 
   return (
     <>
@@ -57,78 +103,145 @@ export function Prep() {
           </div>
         )}
 
+        <div className="panel stack gap-top-lg">
+          <button type="button" className="btn wide" onClick={() => actions.go('cook')}>
+            <Icon name="clock" size={18} /> {doneCount ? 'Continue cooking' : 'Start cook mode'}
+          </button>
+          <div className="row">
+            <p className="hint grow">
+              {doneCount ? `${doneCount} of ${timeline.length} steps done` : 'One step at a time, with amounts, timers and the screen kept on.'}
+            </p>
+            {doneCount > 0 && (
+              <button type="button" className="linkbtn tight" onClick={actions.resetPrep}>
+                Start over
+              </button>
+            )}
+          </div>
+        </div>
+
         <section className="sec">
-          <h2>What runs at the same time</h2>
-          <div className="gantt" role="img" aria-label="Timeline of hands-on, oven, stove and chilling tasks">
-            {LANES.map(([lane, label]) => (
-              <div className="lane" key={lane}>
-                <b>{label}</b>
-                <div className="track">
-                  {sc.tasks.filter((t) => t.l === lane).map((t, i) => (
-                    <span key={i} className={`bar b-${lane}`} title={t.t} style={{ left: `${(100 * t.s) / span}%`, width: `${(100 * (t.e - t.s)) / span}%` }} />
+          <h2>Before you start</h2>
+          <div className="panel stack">
+            {firstOven && (
+              <p className="ink-2">
+                <b>Preheat the oven to {firstOven.temp}°C</b> at the start.
+              </p>
+            )}
+            {gear.length > 0 && (
+              <div>
+                <p className="hint strong">Equipment</p>
+                <div className="chips tight gap-top">
+                  {gear.map((g) => (
+                    <span className="pill p-muted" key={g}>{g}</span>
                   ))}
+                  <span className="pill p-muted">{packs.containers} containers</span>
+                  {packs.bags + packs.foil > 0 && <span className="pill p-muted">{packs.bags + packs.foil} bags and foil</span>}
                 </div>
               </div>
-            ))}
-            <div className="axis">
-              <span />
-              <div className="ticks">
-                {[0, 60, 120, 180, 240, 300, 360].filter((x) => x <= span).map((x) => (
-                  <span key={x} style={{ left: `${(100 * x) / span}%` }}>{x / 60}h</span>
+            )}
+            <details>
+              <summary className="linkbtn">Ingredients to set out, by recipe</summary>
+              <div className="stack gap-top">
+                {toPrep.map(({ r, batches }) => (
+                  <div key={r.id}>
+                    <p className="strong">
+                      {r.e} {r.short}
+                      {batches > 1 && <span className="pill p-warn"> ×{batches} batches</span>}
+                    </p>
+                    <ul className="ing-list">
+                      {scaledIngredients(r, batches).map((x) => (
+                        <li key={x.k}>
+                          <b>{x.amount}</b> {x.name}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
               </div>
-            </div>
+            </details>
           </div>
         </section>
 
-        <section className="sec">
-          <div className="panel stats3">
-            <div><div className="stat">{packs.containers}</div><p className="hint">containers</p></div>
-            <div><div className="stat">{packs.bags + packs.foil}</div><p className="hint">bags and foil</p></div>
-            <div><div className="stat">{packs.freezer}</div><p className="hint">freezer portions</p></div>
-          </div>
-          {packs.containers > packs.containerCap && (
-            <div className="warnline">
-              <Icon name="info" size={16} />
-              <span>You have about {packs.containerCap} containers. Use freezer bags for the {packs.containers - packs.containerCap} extra portions.</span>
-            </div>
-          )}
-          {packs.freezer > packs.freezerCap && (
-            <div className="warnline">
-              <Icon name="snow" size={16} />
-              <span>That’s more than your freezer holds. Move the last two days to a 20-minute mid-week top-up.</span>
-            </div>
-          )}
-        </section>
+        <div className="seg gap-top-lg" role="group" aria-label="How to show prep day">
+          <button type="button" aria-pressed={view === 'timeline'} onClick={() => actions.setPrepView('timeline')}>
+            Timeline
+          </button>
+          <button type="button" aria-pressed={view === 'recipe'} onClick={() => actions.setPrepView('recipe')}>
+            Recipe by recipe
+          </button>
+        </div>
+        <p className="hint gap-top">
+          {view === 'timeline'
+            ? 'The fastest order: hands-on work fills the gaps while things bake and simmer. Tap a step for instructions.'
+            : 'Each dish from start to finish. Simpler to follow, but takes longer than the timeline.'}
+        </p>
 
-        <section className="sec">
-          <h2>Timeline</h2>
-          <div className="panel tasks">
-            {sc.tasks.map((t, i) => {
-              const background = t.l !== 'hands';
-              const meanwhile = background ? [] : sc.tasks.filter((o) => o !== t && o.l !== 'hands' && o.s < t.e && o.e > t.s).map((o) => o.t.split(' (')[0].toLowerCase());
-              return (
-                <div className={`task${background ? ' bg' : ''}`} key={i}>
-                  <div className="tm">{clockTime(t.s).replace(/ (AM|PM)$/, '')}</div>
-                  <div>
-                    <div className="tt">
-                      {t.t}
-                      {t.for.length > 1 && <span className="hint"> (for {listText(t.for)})</span>}
+        {view === 'timeline' ? (
+          <>
+            <section className="sec">
+              <h2>What runs at the same time</h2>
+              <div className="gantt" role="img" aria-label="Timeline of hands-on, oven, stove and chilling tasks">
+                {LANES.map(([lane, label]) => (
+                  <div className="lane" key={lane}>
+                    <b>{label}</b>
+                    <div className="track">
+                      {sc.tasks.filter((t) => t.l === lane).map((t, i) => (
+                        <span key={i} className={`bar b-${lane}`} title={t.t} style={{ left: `${(100 * t.s) / span}%`, width: `${(100 * (t.e - t.s)) / span}%` }} />
+                      ))}
                     </div>
-                    <div className="meta">
-                      <span className={`lane-tag lt-${t.l}`}>{t.l === 'oven' ? `Oven ${t.temp}°F` : LANE_TAG[t.l]}</span>
-                      <span className="mono hint">{t.e - t.s} min</span>
-                      {background && <span className="hint">runs in the background</span>}
-                      {t.setTemp && t.temp && <span className="pill p-oven">set oven to {t.temp}°F / {fahrenheitToCelsius(t.temp)}°C</span>}
-                      {t.l === 'chill' && t.e > sc.total && <span className="hint">finishes after you’re done</span>}
-                    </div>
-                    {meanwhile.length > 0 && <p className="meanwhile">Meanwhile: {listText(meanwhile.slice(0, 3))}</p>}
+                  </div>
+                ))}
+                <div className="axis">
+                  <span />
+                  <div className="ticks">
+                    {[0, 60, 120, 180, 240, 300, 360].filter((x) => x <= span).map((x) => (
+                      <span key={x} style={{ left: `${(100 * x) / span}%` }}>{x / 60}h</span>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </section>
+              </div>
+            </section>
+
+            <section className="sec">
+              <h2>Timeline</h2>
+              <div className="panel tasks">
+                {timeline.map((step) => (
+                  <StepRow
+                    key={step.id}
+                    step={step}
+                    done={!!done[step.id]}
+                    onToggle={() => toggle(step.id)}
+                    time={clockTime(step.start ?? 0).replace(/ (AM|PM)$/, '')}
+                    onRecipe={sc.tasks.find((t) => t.id === step.id)?.refs[0] ? () => actions.openRecipe(sc.tasks.find((t) => t.id === step.id)!.refs[0].r.id) : undefined}
+                  />
+                ))}
+              </div>
+            </section>
+          </>
+        ) : (
+          flows.map(({ r, batches, steps }) => (
+            <section className="sec" key={r.id}>
+              <h2>
+                <span className="grow">
+                  {r.e} {r.short}
+                </span>
+                {batches > 1 && <span className="pill p-warn">×{batches} batches</span>}
+              </h2>
+              <div className="panel tasks">
+                {steps.map((step, i) => (
+                  <StepRow key={`${step.id}-${i}`} step={step} done={!!done[step.id]} onToggle={() => toggle(step.id)} onRecipe={() => actions.openRecipe(r.id)} />
+                ))}
+              </div>
+              {!isDetailed(r) && r.steps.length > 0 && (
+                <ol className="how gap-top">
+                  {r.steps.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ol>
+              )}
+            </section>
+          ))
+        )}
 
         <section className="sec">
           <h2>Pack and label</h2>
@@ -152,6 +265,18 @@ export function Prep() {
               );
             })}
           </div>
+          {packs.containers > packs.containerCap && (
+            <div className="warnline">
+              <Icon name="info" size={16} />
+              <span>You have about {packs.containerCap} containers. Use freezer bags for the {packs.containers - packs.containerCap} extra portions.</span>
+            </div>
+          )}
+          {packs.freezer > packs.freezerCap && (
+            <div className="warnline">
+              <Icon name="snow" size={16} />
+              <span>That’s more than your freezer holds. Move the last two days to a 20-minute mid-week top-up.</span>
+            </div>
+          )}
           <p className="hint gap-top">Label every container with the dish and the prep date.</p>
         </section>
 
@@ -160,10 +285,10 @@ export function Prep() {
           <div className="panel">
             <ul className="rules">
               <li>Cool food in shallow containers and refrigerate within 2 hours of cooking. Cool rice quickly and refrigerate it within about an hour.</li>
-              <li>Fridge at 40°F / 4°C or colder. Cooked meals are eaten within 3–4 days; anything later goes in the freezer on prep day.</li>
-              <li>Freezer at 0°F / −18°C. Frozen food stays safe; quality is best within 2–3 months.</li>
+              <li>Fridge at 4°C or colder. Cooked meals are eaten within 3–4 days; anything later goes in the freezer on prep day.</li>
+              <li>Freezer at −18°C. Frozen food stays safe; quality is best within 2–3 months.</li>
               <li>Thaw in the fridge, in cold water, or in the microwave. Never on the counter.</li>
-              <li>Reheat leftovers until steaming, 165°F / 74°C in the center.</li>
+              <li>Reheat leftovers until steaming, 74°C in the center.</li>
             </ul>
           </div>
         </section>
@@ -173,7 +298,7 @@ export function Prep() {
             <h2>Less cleanup</h2>
             <div className="panel">
               <ul className="rules">
-                <li>Line every sheet pan with parchment.</li>
+                <li>Line every sheet pan with baking paper.</li>
                 <li>Rinse mixing bowls while things roast, so the sink never piles up.</li>
                 <li>The blender goes straight into the dishwasher after the sauce.</li>
               </ul>

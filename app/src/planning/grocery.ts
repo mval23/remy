@@ -3,6 +3,7 @@ import type { Answers } from '../interview/types';
 import { ING } from './data/ingredients';
 import { R } from './data/recipes';
 import { portions } from './planner';
+import { quantityText } from './units';
 import type { WeekPlan } from './types';
 
 /** The user's edits to the generated list. */
@@ -26,7 +27,7 @@ export interface GroceryItem {
   sec: string;
   /** Estimated cost in USD, or null when unknown. */
   cost: number | null;
-  /** e.g. "2 × 8 oz bag" */
+  /** e.g. "2 × 225 g bag" */
   packs: string;
   /** Recipes (short names) that use it. */
   from: string[];
@@ -70,24 +71,7 @@ export function groceryList(plan: WeekPlan, A: Answers, edits: GroceryEdits): Gr
   return items.filter((x) => !edits.deleted[x.k]);
 }
 
-/** 1.5 → "1½", 0.333 → "⅓" */
-export function fraction(q: number): string {
-  const whole = Math.floor(q + 1e-9);
-  const f = q - whole;
-  const marks: [number, string][] = [[0, ''], [0.125, '⅛'], [0.25, '¼'], [0.333, '⅓'], [0.5, '½'], [0.667, '⅔'], [0.75, '¾'], [1, '']];
-  let best = marks[0];
-  for (const m of marks) if (Math.abs(f - m[0]) < Math.abs(f - best[0])) best = m;
-  const w = best[0] === 1 ? whole + 1 : whole;
-  return (w ? String(w) : '') + best[1] || '0';
-}
-
-const PLURAL: Record<string, string> = { cup: 'cups', 'cup dry': 'cups dry', crown: 'crowns', box: 'boxes', bag: 'bags', jar: 'jars', can: 'cans', clove: 'cloves' };
-
-export function quantityText(q: number, u: string): string {
-  const n = fraction(q);
-  if (!u) return n;
-  return `${n} ${(q > 1.01 && PLURAL[u]) || u}`;
-}
+export { fraction, quantityText } from './units';
 
 export type CostEstimate =
   | { show: false; why: string }

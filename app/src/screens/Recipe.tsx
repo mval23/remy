@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { BottomNav, Header, StoragePill } from '../components/Chrome';
 import { Icon } from '../components/Icon';
+import { StepLines, StepMeta } from '../components/Steps';
 import { allRatings } from '../interview/helpers';
 import { LEVELS } from '../interview/questions';
 import { ING } from '../planning/data/ingredients';
 import { R } from '../planning/data/recipes';
 import { fraction, quantityText } from '../planning/grocery';
+import { isDetailed, taskLines } from '../planning/method';
 import { estimatesOn, proteinTarget } from '../planning/nutrition';
 import { eachMeal, portions } from '../planning/planner';
 import { check, matches, storage } from '../planning/rules';
@@ -13,6 +16,8 @@ import { useRemy } from '../store';
 
 export function Recipe() {
   const { planState, ctx, ui } = useRemy();
+  // Amounts for this week’s batches, or for one batch.
+  const [oneBatch, setOneBatch] = useState(false);
   const r = ui.recipeId ? R[ui.recipeId] : null;
   if (!r || !planState.plan) return null;
   const A = ctx.A;
@@ -20,6 +25,7 @@ export function Recipe() {
   const plan = planState.plan;
   const count = portions(plan)[r.id] ?? 0;
   const batches = Math.max(1, Math.ceil(count / r.serves));
+  const scale = oneBatch ? 1 : batches;
   const handsOn = r.tasks.filter((t) => t.l === 'hands').reduce((s, t) => s + t.m, 0);
   const nums = estimatesOn(planState.nutrition, A);
   const target = proteinTarget(r.slot, ctx.hungry);
@@ -41,8 +47,8 @@ export function Recipe() {
     return [{ from, to, note: `you rated it ${levelName(lv)}` }];
   });
 
-  const fridgeText = r.store ? 'Keep frozen until eating.' : r.room ? `Airtight bag at room temperature, up to ${r.fridge} days.` : r.fridge ? `Up to ${r.fridge} day${r.fridge > 1 ? 's' : ''} after prep day, at 40°F / 4°C or colder.` : 'Not stored in the fridge. It goes straight to the freezer.';
-  const freezerText = r.freezer ? `Up to ${r.freezer} months for best quality, at 0°F / −18°C.` : 'Don’t freeze; the texture suffers.';
+  const fridgeText = r.store ? 'Keep frozen until eating.' : r.room ? `Airtight bag at room temperature, up to ${r.fridge} days.` : r.fridge ? `Up to ${r.fridge} day${r.fridge > 1 ? 's' : ''} after prep day, at 4°C or colder.` : 'Not stored in the fridge. It goes straight to the freezer.';
+  const freezerText = r.freezer ? `Up to ${r.freezer} months for best quality, at −18°C.` : 'Don’t freeze; the texture suffers.';
 
   return (
     <>
@@ -103,27 +109,55 @@ export function Recipe() {
         <section className="sec">
           <h2>
             <span className="grow">Ingredients</span>
-            {batches > 1 && <span className="pill p-warn">×{batches} batches this week</span>}
           </h2>
-          <div className="list">
+          {batches > 1 && (
+            <div className="seg" role="group" aria-label="Amounts for">
+              <button type="button" aria-pressed={!oneBatch} onClick={() => setOneBatch(false)}>
+                This week (×{batches})
+              </button>
+              <button type="button" aria-pressed={oneBatch} onClick={() => setOneBatch(true)}>
+                One batch ({r.serves})
+              </button>
+            </div>
+          )}
+          <div className={`list${batches > 1 ? ' gap-top' : ''}`}>
             {r.ing.map(([k, q]) => (
               <div className="li compact" key={k}>
                 <div className="grow">{ING[k].n}</div>
-                <span className="mono hint">{quantityText(q, ING[k].u)}</span>
+                <span className="mono hint">{quantityText(q * scale, ING[k].u)}</span>
               </div>
             ))}
           </div>
+          <p className="hint gap-top">Makes {r.serves * scale} portions. Tbsp and tsp are standard 15 ml and 5 ml spoons.</p>
         </section>
 
-        {r.steps.length > 0 && (
+        {isDetailed(r) ? (
           <section className="sec">
-            <h2>Steps</h2>
-            <ol className="panel steps">
-              {r.steps.map((s) => (
-                <li key={s}>{s}</li>
+            <h2>Method</h2>
+            <div className="panel tasks">
+              {r.tasks.map((t, i) => (
+                <div className="method-step" key={i}>
+                  <div className="row wrap">
+                    <span className="strong grow">{t.t}</span>
+                    <StepMeta step={{ lane: t.l, minutes: t.m, temp: t.temp }} />
+                  </div>
+                  <StepLines lines={taskLines(t, [{ r, batches: scale }])} />
+                </div>
               ))}
-            </ol>
+            </div>
+            {!r.store && <p className="hint gap-top">On prep day these steps run alongside your other recipes; the Prep screen shows the fastest order.</p>}
           </section>
+        ) : (
+          r.steps.length > 0 && (
+            <section className="sec">
+              <h2>Steps</h2>
+              <ol className="panel steps">
+                {r.steps.map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ol>
+            </section>
+          )
         )}
 
         <section className="sec">

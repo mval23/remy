@@ -78,7 +78,7 @@ export function recipeSchema() {
             text: { type: 'string' },
             lane: { type: 'string', enum: LANES },
             minutes: { type: 'integer', minimum: 1, maximum: 180 },
-            oven_temp_f: { type: 'integer', minimum: 250, maximum: 500 },
+            oven_temp_c: { type: 'integer', minimum: 120, maximum: 260 },
           },
           required: ['text', 'lane', 'minutes'],
         },
@@ -101,7 +101,7 @@ export const SYSTEM_PROMPT = [
   '- For foods they only eat certain ways, prepare them only in one of those ways, and list that in "preparations".',
   '- It is cooked on prep day and stored: keep fridge_days realistic (never more than 4) and use freezer_months 0 unless it truly freezes and reheats well.',
   '- Keep it simple for one home cook: few steps, sheet pans, air fryer or one pot where possible.',
-  '- Give temperatures in °F and °C for cooking and reheating. Cooked chicken and turkey reach 165°F / 74°C.',
+  '- Use metric only: grams, millilitres and °C (tbsp and tsp are fine for small amounts). Cooked chicken and turkey reach 74°C inside.',
   '- Estimates are rough; do not give medical or diet advice. No shame or guilt language.',
 ].join('\n');
 
@@ -207,7 +207,7 @@ export function toRecipe(raw: unknown, A: Answers, slot: Slot, id: string): AiRe
     for (const t of raw.tasks) {
       if (!isObj(t) || typeof t.lane !== 'string' || !LANES.includes(t.lane as Lane)) continue;
       const task: Task = { t: text(t.text, 90) || 'Prep', l: t.lane as Lane, m: Math.round(num(t.minutes, 1, 180, 10)) };
-      if (task.l === 'oven') task.temp = Math.round(num(t.oven_temp_f, 250, 500, 400));
+      if (task.l === 'oven') task.temp = Math.round(num(t.oven_temp_c, 120, 260, 200));
       tasks.push(task);
     }
   if (!tasks.length) return { ok: false, reason: 'Remy’s idea had no prep-day steps.' };

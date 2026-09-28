@@ -48,7 +48,7 @@ async function load<T>(id: string, empty: () => T): Promise<T> {
 }
 
 export const loadInterview = () => load<InterviewState>(INTERVIEW, emptyInterview);
-export const loadPlanState = () => load<PlanState>(PLAN, emptyPlanState);
+export const loadPlanState = () => load<PlanState>(PLAN, emptyPlanState).then(normalizePlanState);
 export const loadStamps = () => load<Stamps>(META, emptyStamps);
 
 /** Save a document and its change time together, so two saves at once can't overwrite each other's time. */

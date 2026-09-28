@@ -2,9 +2,11 @@ import type { Answers } from '../interview/types';
 import { R } from './data/recipes';
 import { eachMeal, portions } from './planner';
 import { storage } from './rules';
-import type { Lane, Recipe, WeekPlan } from './types';
+import type { Lane, Recipe, Task, WeekPlan } from './types';
 
 export interface ScheduledTask {
+  /** Stable id: the shared key, or recipe id and task number. */
+  id: string;
   t: string;
   l: Lane;
   /** Start and end, in minutes from the start of prep. */
@@ -14,6 +16,8 @@ export interface ScheduledTask {
   pans?: number;
   /** Recipes this task serves (short names). */
   for: string[];
+  /** The recipe tasks behind it, with batches, for instructions and amounts. A shared task has several. */
+  refs: { r: Recipe; batches: number; task: Task }[];
   /** The oven needs a new temperature for this task. */
   setTemp?: boolean;
 }
@@ -40,7 +44,7 @@ export function schedule(plan: WeekPlan, A: Answers): Schedule {
   // Low oven temperatures first (you raise the oven, not lower it), then the longest background work.
   recipes.sort((a, b) => minTemp(a) - minTemp(b) || passive(b) - passive(a));
 
-  const placed: ScheduledTask[] = [{ t: 'Clear counters, set out pans, parchment and containers; preheat oven', l: 'hands', s: 0, e: 10, for: [] }];
+  const placed: ScheduledTask[] = [{ id: 'start', t: 'Clear counters, set out pans, baking paper and containers; preheat the oven', l: 'hands', s: 0, e: 10, for: [], refs: [] }];
   const shared: Record<string, ScheduledTask> = {};
 
   const fits = (l: Lane, s: number, m: number, temp?: number, pans = 1) => {
@@ -59,18 +63,19 @@ export function schedule(plan: WeekPlan, A: Answers): Schedule {
     for (const r of recipes) {
       const batches = Math.ceil(pc[r.id] / r.serves);
       let ready = chainEnd[r.id] ?? 10;
-      for (const t of r.tasks) {
+      for (const [ti, t] of r.tasks.entries()) {
         if (!!t.end !== packingPhase) continue;
         if (t.key && shared[t.key]) {
           const o = shared[t.key];
           if (!o.for.includes(r.short)) o.for.push(r.short);
+          o.refs.push({ r, batches, task: t });
           ready = Math.max(ready, o.e);
           continue;
         }
         const m = t.l === 'hands' && batches > 1 ? Math.round(t.m * (1 + 0.5 * (batches - 1))) : t.m;
         const starts = [ready, ...placed.filter((p) => p.l === t.l).map((p) => p.e)].filter((x) => x >= ready).sort((a, b) => a - b);
         const s = starts.find((c) => fits(t.l, c, m, t.temp, t.pans)) ?? Math.max(ready, ...placed.map((p) => p.e));
-        const o: ScheduledTask = { t: t.t, l: t.l, s, e: s + m, temp: t.temp, pans: t.pans, for: [r.short] };
+        const o: ScheduledTask = { id: t.key ? `key:${t.key}` : `${r.id}:${ti}`, t: t.t, l: t.l, s, e: s + m, temp: t.temp, pans: t.pans, for: [r.short], refs: [{ r, batches, task: t }] };
         placed.push(o);
         if (t.key) shared[t.key] = o;
         if (t.l !== 'chill') ready = o.e;
@@ -81,7 +86,7 @@ export function schedule(plan: WeekPlan, A: Answers): Schedule {
 
   const lastWork = Math.max(...placed.filter((p) => p.l !== 'chill').map((p) => p.e));
   const cleanup = A.cleanup === 'As little as possible' ? 12 : 18;
-  placed.push({ t: 'Final cleanup: load the dishwasher, wipe down, take out trash', l: 'hands', s: lastWork, e: lastWork + cleanup, for: [] });
+  placed.push({ id: 'cleanup', t: 'Final cleanup: load the dishwasher, wipe down, take out trash', l: 'hands', s: lastWork, e: lastWork + cleanup, for: [], refs: [] });
   placed.sort((a, b) => a.s - b.s || (a.l === 'hands' ? -1 : 1));
   let lastTemp: number | undefined;
   for (const p of placed) {
@@ -105,8 +110,6 @@ export function duration(min: number): string {
   const m = min % 60;
   return [h ? `${h} h` : '', m ? `${m} min` : ''].filter(Boolean).join(' ') || '0 min';
 }
-
-export const fahrenheitToCelsius = (f: number) => Math.round(((f - 32) * 5) / 9 / 5) * 5;
 
 const BAGGED = new Set(['pancakes', 'tenders', 'popcorn', 'bark', 'brownies', 'quesadilla', 'cookies', 'pretzels']);
 
