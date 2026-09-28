@@ -35,6 +35,8 @@ export default defineConfig({
       workbox: {
         // The app itself works offline. Fonts are cached after the first visit.
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // Shows phone reminders (see public/push-sw.js).
+        importScripts: ['push-sw.js'],
         navigateFallback: `${base}index.html`,
         runtimeCaching: [
           {

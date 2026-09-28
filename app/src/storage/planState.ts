@@ -2,6 +2,7 @@ import { emptyCheckin, type CheckinDraft, type LearnedItem, type Noticed, type P
 import { emptyGroceryEdits, type GroceryEdits } from '../planning/grocery';
 import { defaultNutrition, type NutritionSettings } from '../planning/nutrition';
 import type { Recipe, Variety, WeekPlan } from '../planning/types';
+import { defaultReminderSettings, type ReminderSettings } from '../reminders/reminders';
 
 /** Everything about the current week and what Remy has learned, apart from the interview. */
 export interface PlanState {
@@ -37,6 +38,8 @@ export interface PlanState {
   aiRecipes: Record<string, Recipe>;
   /** The user read what the AI sends where, and turned it on. */
   aiConsent: boolean;
+  /** Which reminders to send, and when. */
+  reminders: ReminderSettings;
 }
 
 export const emptyPlanState = (): PlanState => ({
@@ -58,6 +61,7 @@ export const emptyPlanState = (): PlanState => ({
   progress: [],
   aiRecipes: {},
   aiConsent: false,
+  reminders: defaultReminderSettings(),
 });
 
 /** Fill in fields added since a copy was saved (older devices, the cloud, backups). */

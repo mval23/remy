@@ -7,8 +7,9 @@ import { emptyGroceryEdits } from '../planning/grocery';
 import { dayNutrition, sideOptions } from '../planning/nutrition';
 import { buildPlan, eachMeal } from '../planning/planner';
 import { duration, schedule } from '../planning/schedule';
-import { AVOID_AT, check, context, defaultVariety, storage, weekDays, type PlanContext } from '../planning/rules';
-import { DAYS, type PlanDay, type Slot, type Variety, type WeekPlan } from '../planning/types';
+import { dayIndexOn } from '../planning/calendar';
+import { AVOID_AT, check, context, defaultVariety, storage, type PlanContext } from '../planning/rules';
+import type { PlanDay, Slot, Variety, WeekPlan } from '../planning/types';
 import { inferences, type Confidence } from '../profile/profile';
 import type { PlanState } from '../storage/planState';
 import { emptyCheckin, type LearnedItem, type Noticed, type ProgressEntry } from './types';
@@ -94,20 +95,11 @@ export function answerSuggestion(state: PlanState, s: Suggestion, answer: Notice
 
 /* ---------- weekly check-in ---------- */
 
-/** Days into the week: 0 is the day after prep day, 6 is the next prep day. */
-export function weekDayIndex(A: Answers, date = new Date()): number {
-  const today = DAYS[(date.getDay() + 6) % 7];
-  return Math.max(0, weekDays(A).indexOf(today));
-}
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
 /**
- * The last two days of the week, when a check-in can shape the next one.
- * Not right after a check-in: that week was just planned.
+ * From the last two days of the week (or once it's over), when a check-in can shape the next one.
+ * Right after a check-in the new week hasn't started yet, so it isn't due.
  */
-export const checkinDue = (A: Answers, weekStartedAt: number, date = new Date()) =>
-  weekDayIndex(A, date) >= 5 && date.getTime() - weekStartedAt > 2 * DAY_MS;
+export const checkinDue = (A: Answers, weekStartedAt: number, date = new Date()) => dayIndexOn(A, weekStartedAt, date) >= 5;
 
 /** Meals from this week to rate (sides aren't rated), with how often each was planned. */
 export function mealsToRate(plan: WeekPlan): { id: string; times: number }[] {

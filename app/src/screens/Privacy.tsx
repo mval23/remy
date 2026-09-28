@@ -58,6 +58,17 @@ export function Privacy() {
         </section>
 
         <section className="sec">
+          <h2>If you turn on reminders</h2>
+          <div className="panel stack">
+            <p className="ink-2">
+              Your upcoming reminders (for example “Move the burritos to the fridge”) and your device’s notification address are saved with your account, so they can be sent
+              while Remy is closed. Notifications travel through your phone or browser maker’s push service (Apple, Google or Mozilla), like any app’s notifications.
+            </p>
+            <p className="hint">Turning notifications off on a device removes its address. The calendar option keeps everything on your device.</p>
+          </div>
+        </section>
+
+        <section className="sec">
           <h2>Other services the app uses</h2>
           <div className="panel stack">
             <p className="ink-2">

@@ -201,6 +201,7 @@ export function Preferences() {
             <RowButton icon="list" title="Full taste profile" sub="Every answer, with confidence levels" onClick={() => actions.go('summary')} />
             <RowButton icon="heart" title="Nutrition balance" sub="Balance checks, estimates, targets, progress" onClick={() => actions.go('nutrition')} />
             <RowButton icon="chat" title="Change an interview answer" sub="Jump to any question" onClick={() => actions.openSheet('map')} />
+            <RowButton icon="clock" title="Reminders" sub="Thawing, check-in and prep day" onClick={() => actions.go('reminders')} />
             <RowButton icon="cloud" title="Sync & install" sub={sync.signedIn ? `Signed in as ${sync.email}` : 'Use Remy on your phone and computer'} onClick={() => actions.go('account')} />
           </div>
         </section>
