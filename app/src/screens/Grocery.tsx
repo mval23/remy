@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { BottomNav, Header } from '../components/Chrome';
 import { Icon } from '../components/Icon';
-import { str } from '../interview/helpers';
-import { SECTION_ORDER } from '../planning/data/ingredients';
+import { arr, listText, str } from '../interview/helpers';
+import { ING, SECTION_ORDER } from '../planning/data/ingredients';
 import { costEstimate, groceryList, type GroceryItem } from '../planning/grocery';
 import { DAY_FULL, type Day } from '../planning/types';
 import { useRemy } from '../store';
@@ -21,6 +21,9 @@ export function Grocery() {
   const checked = buy.filter((x) => edits.checked[x.k]).length;
   const deletedCount = Object.keys(edits.deleted).length;
   const edit = actions.groceryEdit;
+  // From later check-in questions.
+  const brands = arr(A.brands);
+  const frozen = A.frozenveg === 'Fresh only' ? buy.filter((x) => x.sec === 'Frozen' && ING[x.k]?.f) : [];
 
   const add = () => {
     const n = newItem.trim();
@@ -82,6 +85,21 @@ export function Grocery() {
     <>
       <Header title="Grocery list" sub={`For ${DAY_FULL[(str(A.prepday) || 'Sun') as Day]} prep · ${buy.length} to buy`} />
       <main className="body">
+        {(brands.length > 0 || frozen.length > 0) && (
+          <div className="panel stack top-gap">
+            {brands.length > 0 && (
+              <p className="hint ink-2">
+                <b>Your brands:</b> {listText(brands)}
+              </p>
+            )}
+            {frozen.length > 0 && (
+              <p className="hint ink-2">
+                <b>You prefer fresh:</b> buy {listText(frozen.map((x) => x.n.replace(/^Frozen /, '').toLowerCase()))} fresh instead of frozen. Fresh produce keeps only a few days, so
+                use it early in the week.
+              </p>
+            )}
+          </div>
+        )}
         {cost.show ? (
           <div className="panel top-gap">
             <div className="row">

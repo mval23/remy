@@ -14,6 +14,7 @@ import {
   moveBlocker,
   replaceMeal,
   replacementOptions,
+  rotation,
   setApproved,
   swapMeals,
 } from './planner';
@@ -40,6 +41,10 @@ describe('data integrity', () => {
   it('every recipe ingredient exists and every template recipe exists', () => {
     for (const r of Object.values(R)) for (const [k] of r.ing) expect(ING[k], `${r.id} → ${k}`).toBeDefined();
     for (const w of Object.values(WEEKS)) for (const day of w.days) for (const id of day) expect(R[id], id).toBeDefined();
+  });
+
+  it('every recipe lists each rated food its ingredients contain, so Dislike and Never always apply', () => {
+    for (const r of Object.values(R)) for (const [k] of r.ing) if (ING[k].f) expect(r.foods, `${r.id} uses ${k}`).toHaveProperty(ING[k].f!);
   });
 
   it('every meal recipe has steps, reheating guidance and a portion note', () => {
@@ -177,6 +182,67 @@ describe('planner', () => {
     expect(moveBlocker(plan, 0, 1, 'Lunch')).toBeNull();
     const swapped = swapMeals(plan, 0, 3, 'Lunch');
     expect(swapped[0].meals.Lunch?.r).toBe(plan[3].meals.Lunch?.r);
+  });
+});
+
+describe('weekly rotation', () => {
+  const mealIds = (plan: WeekPlan) => {
+    const ids = new Set<string>();
+    eachMeal(plan, (m) => m.r && ids.add(m.r));
+    return [...ids];
+  };
+  const nextWeek = (v: Variety, A: Answers = SAMPLE, adj: Record<string, number> = {}) => {
+    const first = buildPlan(v, context(A, adj)).plan;
+    const ctx = context(A, adj, false, mealIds(first));
+    return { first, second: buildPlan(v, ctx).plan, ctx };
+  };
+
+  it('the first week follows the template; later weeks swap some recipes', () => {
+    expect(rotation('balanced', context(SAMPLE))).toEqual({});
+    const { first, second } = nextWeek('balanced');
+    const added = mealIds(second).filter((id) => !mealIds(first).includes(id));
+    expect(added.length).toBeGreaterThan(0);
+    expect(mealIds(second).length).toBeGreaterThan(4);
+  });
+
+  it('“Repeat favorites” keeps the same week', () => {
+    const { first, second } = nextWeek('favorites');
+    expect(mealIds(second).sort()).toEqual(mealIds(first).sort());
+  });
+
+  it('swaps at most one recipe per slot on Balanced, and never a Loved one', () => {
+    const { first, ctx } = nextWeek('balanced');
+    const swap = rotation('balanced', ctx);
+    const slots = Object.keys(swap).map((id) => R[id].slot);
+    expect(new Set(slots).size).toBe(slots.length);
+    const loved = Object.keys(swap)[0];
+    const kept = rotation('balanced', context(SAMPLE, { [loved]: 2 }, false, mealIds(first)));
+    expect(kept[loved]).toBeUndefined();
+  });
+
+  it('rotates in only safe, liked recipes that keep until their last day', () => {
+    for (const A of [SAMPLE, with_({ allergies: ['Milk / dairy'] }), with_({ diet: ['Vegetarian'] })]) {
+      const { second } = nextWeek('variety', A);
+      second.forEach((day, i) => {
+        for (const m of Object.values(day.meals)) {
+          if (!m?.r) continue;
+          expect(check(R[m.r], A).ok, m.r).toBe(true);
+          expect(storage(R[m.r], i + 1).k, `${m.r} day ${i + 1}`).not.toBe('unsafe');
+        }
+      });
+    }
+  });
+
+  it('keeps prep day about the same length', () => {
+    for (const v of ['balanced', 'variety'] as Variety[]) {
+      const { first, second } = nextWeek(v);
+      expect(schedule(second, SAMPLE).total).toBeLessThanOrEqual(schedule(first, SAMPLE).total + 20);
+    }
+  });
+
+  it('gives the same week when rebuilt, so edits mid-week don’t reshuffle it', () => {
+    const { first, ctx } = nextWeek('balanced');
+    expect(buildPlan('balanced', ctx, null).plan).toEqual(buildPlan('balanced', context(SAMPLE, {}, false, mealIds(first))).plan);
   });
 });
 

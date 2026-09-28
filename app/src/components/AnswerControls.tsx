@@ -155,7 +155,7 @@ function Chips({ q, draft, setDraft }: Pick<Props, 'q' | 'draft' | 'setDraft'>) 
           ))}
         </div>
       )}
-      <TextAdd placeholder={q.id === 'favorites' ? 'Type a meal, then Add' : 'Type a food, then Add'} onAdd={(t) => !list.includes(t) && toggle(t)} />
+      <TextAdd placeholder={q.placeholder ?? (q.id === 'favorites' ? 'Type a meal, then Add' : 'Type a food, then Add')} onAdd={(t) => !list.includes(t) && toggle(t)} />
       {suggestions.length > 0 && (
         <>
           <p className="hint">Quick picks</p>

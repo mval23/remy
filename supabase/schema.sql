@@ -33,3 +33,17 @@ create policy "Delete own data" on public.user_data
 -- Signed-in users may use the table (row-level security above still limits them to their own row).
 revoke all on public.user_data from anon;
 grant select, insert, update, delete on public.user_data to authenticated;
+
+-- Keep-alive: free Supabase projects pause after about a week without database activity.
+-- A scheduled GitHub Action (.github/workflows/keep-alive.yml) calls this every few days.
+-- It reads no data; it only answers "ok".
+create or replace function public.keep_alive()
+returns text
+language sql
+stable
+security invoker
+set search_path = ''
+as $$ select 'ok'::text $$;
+
+revoke all on function public.keep_alive() from public;
+grant execute on function public.keep_alive() to anon, authenticated;

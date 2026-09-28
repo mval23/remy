@@ -12,3 +12,4 @@
 .file-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .trend { font-size: 15px; font-weight: 600; }
 .gap-bottom { margin-bottom: 10px; }
+.body a { color: var(--basil); font-weight: 600; }

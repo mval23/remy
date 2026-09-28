@@ -1,4 +1,4 @@
-import { allRatings } from '../interview/helpers';
+import { allRatings, listText } from '../interview/helpers';
 import { FOOD_GROUP_A, FOODS } from '../interview/questions';
 import type { Answers } from '../interview/types';
 import { R } from '../planning/data/recipes';
@@ -282,10 +282,14 @@ export function applyCheckin(state: PlanState, A: Answers, at = Date.now()): Che
     changes.push('Add sides from your foods to any day that looks light. If low energy continues, check in with a doctor');
   }
 
-  const ctx = context(A, adj, hungry);
+  // This week's meals become "recent", so the new week rotates some of them out.
+  const recent = state.plan ? mealsToRate(state.plan).map((m) => m.id) : [];
+  const ctx = context(A, adj, hungry, recent);
   let plan = buildPlan(variety, ctx).plan;
   if (trial) plan = placeTrial(plan, trial);
   if (lowEnergy) plan = plan.map((day, i) => (dayNutrition(day, hungry).light ? fillLightDay(day, i, ctx) : day));
+  const fresh = mealsToRate(plan).filter((m) => !recent.includes(m.id)).map((m) => R[m.id].short);
+  if (recent.length && fresh.length) changes.push(`New next week: ${listText(fresh)}`);
   const before = state.plan ? schedule(state.plan, A).total : 0;
   const after = schedule(plan, A).total;
   changes.push(`Plan a new week (prep day about ${duration(after)}${before ? `, this week was ${duration(before)}` : ''}) and start a fresh grocery list`);
@@ -298,6 +302,7 @@ export function applyCheckin(state: PlanState, A: Answers, at = Date.now()): Che
       variety,
       day: 0,
       weekStartedAt: at,
+      recent,
       // Pantry answers carry over; everything else on the list belongs to the old week.
       groceries: { ...emptyGroceryEdits(), have: state.groceries.have },
       adj,
