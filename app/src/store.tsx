@@ -88,6 +88,11 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
     },
   });
 
+  // Opening a password-reset link lands on the Sync & install screen to choose a new password.
+  useEffect(() => {
+    if (sync.recovery) setUi((u) => ({ ...u, screen: 'account', sheet: null }));
+  }, [sync.recovery]);
+
   // Save after every change (not the values just loaded), then schedule an upload for local changes.
   useEffect(() => {
     if (interview === initial.interview) return;

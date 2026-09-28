@@ -3,6 +3,7 @@ import { BottomNav, Header } from '../components/Chrome';
 import { Icon } from '../components/Icon';
 import { useInstall } from '../pwa';
 import { useRemy } from '../store';
+import { friendlyAuthError } from '../sync/authErrors';
 
 function ago(t: number | null): string {
   if (!t) return '';
@@ -19,53 +20,193 @@ const STATUS: Record<string, string> = {
   error: 'Couldn’t sync right now. Your changes are safe on this device.',
 };
 
+const MIN_PASSWORD = 8;
+const looksLikeEmail = (e: string) => /^\S+@\S+\.\S+$/.test(e);
+
+function PasswordField({ id, label, value, onChange, autoComplete, onEnter }: { id: string; label: string; value: string; onChange: (v: string) => void; autoComplete: string; onEnter: () => void }) {
+  const [show, setShow] = useState(false);
+  return (
+    <>
+      <label className="hint" htmlFor={id}>{label}</label>
+      <div className="row">
+        <input
+          id={id}
+          className="field grow"
+          type={show ? 'text' : 'password'}
+          autoComplete={autoComplete}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && onEnter()}
+        />
+        <button type="button" className="btn sm ghost tall" aria-pressed={show} onClick={() => setShow(!show)}>
+          {show ? 'Hide' : 'Show'}
+        </button>
+      </div>
+    </>
+  );
+}
+
+/** Sign in, create an account, or reset a forgotten password. */
+function SignIn() {
+  const { sync, actions } = useRemy();
+  const [mode, setMode] = useState<'signin' | 'create' | 'forgot'>('signin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const run = async (fn: () => Promise<void>) => {
+    setProblem(null);
+    setNotice(null);
+    const e = email.trim();
+    if (!looksLikeEmail(e)) return setProblem('That doesn’t look like an email address.');
+    if (mode !== 'forgot' && password.length < (mode === 'create' ? MIN_PASSWORD : 1)) {
+      return setProblem(mode === 'create' ? `Choose a password with at least ${MIN_PASSWORD} characters.` : 'Enter your password.');
+    }
+    setBusy(true);
+    try {
+      await fn();
+    } catch (err) {
+      setProblem(friendlyAuthError(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submit = () =>
+    run(async () => {
+      const e = email.trim();
+      if (mode === 'signin') {
+        await sync.signIn(e, password);
+        actions.toast('Signed in. Syncing your data…');
+      } else if (mode === 'create') {
+        const session = await sync.createAccount(e, password);
+        if (session) actions.toast('Account created. Syncing your data…');
+        else {
+          setMode('signin');
+          setNotice(`Almost done: open the confirmation email sent to ${e} (check spam too), then sign in here with your password.`);
+        }
+      } else {
+        await sync.sendPasswordReset(e);
+        setNotice(`If ${e} has an account, a link to choose a new password is on its way. Open it, set the new password, then sign in here.`);
+      }
+    });
+
+  const tabs: [typeof mode, string][] = [['signin', 'Sign in'], ['create', 'Create account']];
+
+  return (
+    <div className="panel stack">
+      <p className="ink-2">Sign in on each device, and your profile, week, grocery list and check-offs stay the same everywhere.</p>
+      {mode !== 'forgot' && (
+        <div className="seg" role="group" aria-label="Account">
+          {tabs.map(([m, label]) => (
+            <button key={m} type="button" aria-pressed={mode === m} onClick={() => { setMode(m); setProblem(null); }}>
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+      {mode === 'forgot' && <p className="strong">Reset your password</p>}
+
+      <label className="hint" htmlFor="sync-email">Email</label>
+      <input
+        id="sync-email"
+        className="field"
+        type="email"
+        inputMode="email"
+        autoComplete="email"
+        placeholder="you@example.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && void submit()}
+      />
+      {mode !== 'forgot' && (
+        <PasswordField
+          id="sync-password"
+          label={mode === 'create' ? `Password (at least ${MIN_PASSWORD} characters)` : 'Password'}
+          value={password}
+          onChange={setPassword}
+          autoComplete={mode === 'create' ? 'new-password' : 'current-password'}
+          onEnter={() => void submit()}
+        />
+      )}
+      <button type="button" className="btn wide" disabled={busy} onClick={() => void submit()}>
+        {busy ? 'One moment…' : mode === 'signin' ? 'Sign in' : mode === 'create' ? 'Create account' : 'Email me a reset link'}
+      </button>
+
+      {mode === 'signin' && (
+        <button type="button" className="linkbtn self-start" onClick={() => { setMode('forgot'); setProblem(null); setNotice(null); }}>
+          Forgot your password?
+        </button>
+      )}
+      {mode === 'forgot' && (
+        <button type="button" className="linkbtn self-start" onClick={() => { setMode('signin'); setProblem(null); }}>
+          Back to sign in
+        </button>
+      )}
+      {mode === 'create' && <p className="hint">A password manager can create and remember a strong password for you.</p>}
+
+      {notice && (
+        <div className="warnline">
+          <Icon name="info" size={16} />
+          <span>{notice}</span>
+        </div>
+      )}
+      {problem && (
+        <div className="badline">
+          <Icon name="info" size={16} />
+          <span>{problem}</span>
+        </div>
+      )}
+      <p className="hint">When you sign in, the newest version of your data wins. A new device with nothing on it simply downloads your week.</p>
+    </div>
+  );
+}
+
+/** Shown after opening a password-reset link. */
+function NewPassword() {
+  const { sync, actions } = useRemy();
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const save = async () => {
+    if (password.length < MIN_PASSWORD) return setProblem(`Choose a password with at least ${MIN_PASSWORD} characters.`);
+    setBusy(true);
+    setProblem(null);
+    try {
+      await sync.setNewPassword(password);
+      actions.toast('New password saved. You’re signed in.');
+    } catch (err) {
+      setProblem(friendlyAuthError(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="panel stack">
+      <p className="strong">Choose a new password</p>
+      <PasswordField id="new-password" label={`New password (at least ${MIN_PASSWORD} characters)`} value={password} onChange={setPassword} autoComplete="new-password" onEnter={() => void save()} />
+      <button type="button" className="btn wide" disabled={busy} onClick={() => void save()}>
+        {busy ? 'Saving…' : 'Save new password'}
+      </button>
+      <button type="button" className="linkbtn self-start" onClick={sync.cancelRecovery}>
+        Cancel
+      </button>
+      {problem && (
+        <div className="badline">
+          <Icon name="info" size={16} />
+          <span>{problem}</span>
+        </div>
+      )}
+      <p className="hint">If you use Remy as an installed app, sign in there with this new password afterwards.</p>
+    </div>
+  );
+}
+
 export function Account() {
   const { interview, sync, actions } = useRemy();
   const install = useInstall();
-  const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [sentTo, setSentTo] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState<string | null>(null);
-
-  const send = async () => {
-    const e = email.trim();
-    if (!/^\S+@\S+\.\S+$/.test(e)) return setProblem('That doesn’t look like an email address.');
-    setBusy(true);
-    setProblem(null);
-    try {
-      await sync.sendCode(e);
-      setSentTo(e);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setProblem(
-        /fetch|network/i.test(msg)
-          ? 'Couldn’t reach the sync service. Check your internet connection and try again.'
-          : /rate|limit|seconds/i.test(msg)
-            ? 'Too many sign-in emails just now. Wait a minute and try again.'
-            : `Couldn’t send the email (${msg}).`,
-      );
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const verify = async () => {
-    if (!sentTo) return;
-    setBusy(true);
-    setProblem(null);
-    try {
-      await sync.verify(sentTo, code);
-      setSentTo(null);
-      setCode('');
-      actions.toast('Signed in. Syncing your data…');
-    } catch {
-      setProblem('That code didn’t work. Check the latest email, or send a new code.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const back = interview.confirmed ? 'summary' : 'welcome';
 
   return (
@@ -82,6 +223,8 @@ export function Account() {
               </div>
               <p className="hint">Setting it up takes a free Supabase account. The steps are in SETUP.md in the project.</p>
             </div>
+          ) : sync.recovery ? (
+            <NewPassword />
           ) : sync.signedIn ? (
             <div className="panel stack">
               <div className="row">
@@ -107,57 +250,7 @@ export function Account() {
               </div>
             </div>
           ) : (
-            <div className="panel stack">
-              <p className="ink-2">Sign in with your email on each device, and your profile, week, grocery list and check-offs stay the same everywhere. There’s no password: I’ll email you a code.</p>
-              {!sentTo ? (
-                <>
-                  <label className="hint" htmlFor="sync-email">Email</label>
-                  <input
-                    id="sync-email"
-                    className="field"
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && void send()}
-                  />
-                  <button type="button" className="btn wide" disabled={busy} onClick={() => void send()}>
-                    {busy ? 'Sending…' : 'Email me a sign-in code'}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <p className="strong">Check {sentTo} for a sign-in code.</p>
-                  <label className="hint" htmlFor="sync-code">Code from the email</label>
-                  <input
-                    id="sync-code"
-                    className="field mono"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    placeholder="123456"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    onKeyDown={(e) => e.key === 'Enter' && void verify()}
-                  />
-                  <button type="button" className="btn wide" disabled={busy || code.length < 6} onClick={() => void verify()}>
-                    {busy ? 'Checking…' : 'Sign in'}
-                  </button>
-                  <p className="hint">The email also has a link. It signs you in only if you open it in this same browser; in an installed app, use the code.</p>
-                  <button type="button" className="linkbtn" onClick={() => { setSentTo(null); setCode(''); }}>
-                    Use a different email or send a new code
-                  </button>
-                </>
-              )}
-              {problem && (
-                <div className="badline">
-                  <Icon name="info" size={16} />
-                  <span>{problem}</span>
-                </div>
-              )}
-              <p className="hint">When you sign in, the newest version of your data wins. A new device with nothing on it simply downloads your week.</p>
-            </div>
+            <SignIn />
           )}
         </section>
 

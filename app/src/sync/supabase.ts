@@ -28,22 +28,43 @@ export function supabase(): Promise<SupabaseClient> | null {
 
 const TABLE = 'user_data';
 
-/** Email a sign-in code (and link). The link returns to this app’s address. */
-export async function sendSignInEmail(email: string) {
+/**
+ * Email and password sign-in. It works inside an installed app (email links open in the browser instead)
+ * and needs no custom email templates. Supabase only emails a confirmation link when the account is
+ * created, and a reset link if the password is forgotten; both use its standard templates.
+ */
+const appAddress = () => window.location.origin + import.meta.env.BASE_URL;
+
+async function requireClient(): Promise<SupabaseClient> {
   const sb = await supabase();
   if (!sb) throw new Error('Sync isn’t set up');
-  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin + import.meta.env.BASE_URL, shouldCreateUser: true } });
+  return sb;
+}
+
+/** Create an account. Returns a session right away if email confirmation is off; otherwise null until confirmed. */
+export async function createAccount(email: string, password: string): Promise<Session | null> {
+  const { data, error } = await (await requireClient()).auth.signUp({ email, password, options: { emailRedirectTo: appAddress() } });
+  if (error) throw error;
+  // Supabase returns a user with no identities when the email already has an account.
+  if (data.user && data.user.identities?.length === 0) throw new Error('User already registered');
+  return data.session;
+}
+
+export async function signIn(email: string, password: string): Promise<Session> {
+  const { data, error } = await (await requireClient()).auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data.session;
+}
+
+/** Email a link to choose a new password. Opening it brings the person back to Remy to set one. */
+export async function sendPasswordReset(email: string) {
+  const { error } = await (await requireClient()).auth.resetPasswordForEmail(email, { redirectTo: appAddress() });
   if (error) throw error;
 }
 
-/** Sign in with the code from the email. Works inside an installed app, where email links open elsewhere. */
-export async function verifyCode(email: string, code: string): Promise<Session> {
-  const sb = await supabase();
-  if (!sb) throw new Error('Sync isn’t set up');
-  const { data, error } = await sb.auth.verifyOtp({ email, token: code.trim(), type: 'email' });
+export async function setNewPassword(password: string) {
+  const { error } = await (await requireClient()).auth.updateUser({ password });
   if (error) throw error;
-  if (!data.session) throw new Error('No session returned');
-  return data.session;
 }
 
 export async function signOut() {

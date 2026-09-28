@@ -21,21 +21,15 @@ It uses [Supabase](https://supabase.com), which has a free plan. You'll create t
 
 This creates one table where each person gets exactly one row, and security rules so each signed-in person can only read and change their own row.
 
-## 3. Let people sign in with a code
+## 3. Check the email sign-in setting
 
-Remy signs you in by email, with no password. Installed apps open email links in the browser instead of the app, so Remy asks for the code from the email.
+Remy signs you in with your email and a password. You don't need to change any email templates, and you don't need your own email domain.
 
-1. Go to **Authentication → Emails** (called *Email Templates* in some versions).
-2. Open the **Magic Link** template and replace its body with:
+1. Go to **Authentication → Sign In / Providers** (called *Providers* in some versions).
+2. Make sure **Email** is turned on. It is by default.
+3. Leave **Confirm email** turned on. When you create your Remy account, Supabase emails you one link to confirm the address. Open it once, on any device, then sign in to Remy with your email and password.
 
-   ```html
-   <h2>Your Remy sign-in code</h2>
-   <p>Enter this code in Remy: <strong>{{ .Token }}</strong></p>
-   <p>Or, on this same device and browser, <a href="{{ .ConfirmationURL }}">sign in with this link</a>.</p>
-   ```
-
-3. Do the same for the **Confirm signup** template, which is the one used the very first time you sign in.
-4. Save both.
+If you ever forget the password, Remy's **Forgot your password?** link emails you a reset link using Supabase's standard email.
 
 ## 4. Tell Supabase where Remy lives
 
@@ -68,5 +62,5 @@ In the `app` folder, copy `.env.example` to a new file named `.env.local` and fi
 ## Good to know about the free plan
 
 - **Pausing:** free projects pause after about a week with no activity. Your data is kept. Remy keeps working on each device, and sync resumes after you click **Restore** in the Supabase dashboard.
-- **Email limits:** Supabase's built-in email sender allows only a few sign-in emails per hour. That's plenty for one person. For more, connect your own email service under **Authentication → SMTP Settings**.
+- **Email limits:** Supabase's built-in email sender allows only a few emails per hour. Remy only emails you when you create the account or reset the password, so that's plenty.
 - **Deleting your data:** in Remy, **Delete everything** removes the cloud copy too. Deleting the Supabase project removes it all.
