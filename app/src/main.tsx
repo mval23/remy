@@ -7,6 +7,7 @@ import './planning.css';
 import './learning.css';
 import './ai.css';
 import './prep.css';
+import './tablet.css';
 
 listenForInstallPrompt();
 requestPersistentStorage();
