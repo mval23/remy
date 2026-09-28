@@ -1,11 +1,12 @@
 import { BottomNav, Header } from '../components/Chrome';
+import { Lead, Leader, LeadLink, Mast, SecHead } from '../components/Dish';
 import { Icon } from '../components/Icon';
 import { allRatings, listText } from '../interview/helpers';
 import { FOODS } from '../interview/questions';
 import { bodyCheckinOn, weightOn, weightTrend } from '../learning/learning';
 import { fraction } from '../planning/grocery';
 import { balanceOn, dayNutrition, estimatesOn, kcalRange, LIGHT_DAY_KCAL } from '../planning/nutrition';
-import { SLOT_SHORT } from '../planning/types';
+import { DAY_FULL, SLOT_SHORT } from '../planning/types';
 import { goalsOf, hasGoals } from '../planning/goals';
 import { useRemy } from '../store';
 
@@ -32,49 +33,45 @@ function Progress() {
   const A = ctx.A;
   if (!bodyCheckinOn(A))
     return (
-      <section className="sec">
-        <h2>Progress</h2>
-        <div className="panel">
-          <p className="hint">Tracking is off, as you asked. Remy still uses your meal ratings.</p>
-        </div>
+      <section className="msec">
+        <SecHead title="Progress" />
+        <p className="lead-note gap-top">Tracking is off, as you asked. Remy still uses your meal ratings.</p>
       </section>
     );
   const entries = planState.progress.slice(0, 4);
   const trend = weightOn(A) ? weightTrend(planState.progress) : null;
   const weighIns = planState.progress.filter((p) => p.weight).length;
   return (
-    <section className="sec">
-      <h2>Progress</h2>
+    <section className="msec">
+      <SecHead title="Progress" />
       {trend && (
-        <div className="panel gap-bottom">
-          <p className="trend">
-            {trend.change === 0 ? 'No change' : `${trend.change > 0 ? 'Up' : 'Down'} about ${Math.abs(trend.change)} ${trend.unit}`} over your last {trend.entries} weigh-ins
+        <>
+          <Lead k="Weight trend" v={trend.change === 0 ? 'No change' : `${trend.change > 0 ? 'Up' : 'Down'} about ${Math.abs(trend.change)} ${trend.unit}`} />
+          <p className="lead-note">
+            Over your last {trend.entries} weigh-ins. Remy looks at 3–4 week trends, not single weeks. Hunger, energy and how clothes fit matter just as much.
           </p>
-          <p className="hint gap-top">Remy looks at 3–4 week trends, not single weeks. Hunger, energy and how clothes fit matter just as much.</p>
-        </div>
+        </>
       )}
-      <div className="list">
-        {entries.length ? (
-          entries.map((p) => (
-            <div className="li" key={p.at}>
-              <div className="grow">
-                <div className="t">{dateText(p.at)}</div>
-                <div className="chips tight gap-top">
-                  {([['Hunger', p.hunger], ['Energy', p.energy], ['Fit', p.fit]] as const)
-                    .filter(([, v]) => v)
-                    .map(([k, v]) => (
-                      <span className="pill p-muted" key={k}>
-                        {k}: {v!.toLowerCase()}
-                      </span>
-                    ))}
-                </div>
-              </div>
+      {entries.length ? (
+        entries.map((p) => (
+          <div key={p.at}>
+            <div className="lead">
+              <span className="k">{dateText(p.at)}</span>
             </div>
-          ))
-        ) : (
-          <div className="empty">Your first check-in comes at the end of the week.</div>
-        )}
-      </div>
+            <div className="day-note">
+              {([['Hunger', p.hunger], ['Energy', p.energy], ['Fit', p.fit]] as const)
+                .filter(([, v]) => v)
+                .map(([k, v]) => (
+                  <span className="pill p-muted" key={k}>
+                    {k}: {v!.toLowerCase()}
+                  </span>
+                ))}
+            </div>
+          </div>
+        ))
+      ) : (
+        <p className="lead-note gap-top">Your first check-in comes at the end of the week.</p>
+      )}
       {weightOn(A) && !trend && (
         <p className="hint gap-top">
           Weight shows as a trend after 3 weekly weigh-ins{weighIns ? ` (${weighIns} so far)` : ''}. Single weigh-ins jump around, so Remy doesn’t show or react to them.
@@ -87,6 +84,7 @@ function Progress() {
   );
 }
 
+/** The week's balance as lines on a check: each day, then the daily average; goals typed on the dotted line. */
 export function Nutrition() {
   const { planState, ctx, actions } = useRemy();
   const plan = planState.plan;
@@ -105,17 +103,26 @@ export function Nutrition() {
   const avgKcal = counted.length ? Math.round(counted.reduce((s, x) => s + x.kcal, 0) / counted.length) : 0;
   const goals = goalsOf(n);
   const avgPro = counted.length ? Math.round(counted.reduce((s, x) => s + x.pro, 0) / counted.length) : 0;
+  const round10 = (x: number) => (Math.round(x / 10) * 10).toLocaleString('en-US');
 
   return (
     <>
       <Header title="Nutrition balance" sub="General guidance, built on foods you accept" back="planner" />
       <main className="body wide">
-        <div className="panel row top-gap align-start">
-          <Icon name="info" size={18} />
-          <p className="hint ink-2">
-            Remy isn’t a dietitian. These are general balance checks based on widely used guidance. For personal targets, a registered dietitian is the right person, and you can enter their numbers below.
-          </p>
-        </div>
+        <Mast kicker="This week" icon="heart" title={`${balanced} of 7`} sub="days have protein at every main meal and at least 3 servings of fruit or vegetables">
+          {balanced < 7 && (
+            <div className="mast-acts">
+              <button type="button" className="btn sm soft" onClick={() => actions.balance([0, 1, 2, 3, 4, 5, 6])}>
+                <Icon name="plus" size={16} /> Balance the whole week
+              </button>
+            </div>
+          )}
+        </Mast>
+        <p className="hint center-hint">
+          Remy isn’t a dietitian. These are general balance checks based on widely used guidance. For personal targets, a registered dietitian is the right person, and you can enter
+          their numbers below.
+        </p>
+        {balanced < 7 && <p className="hint center-hint">Balancing adds sides from foods you accept. Each one can be removed in the planner.</p>}
         {!on && (
           <div className="warnline">
             <Icon name="info" size={16} />
@@ -127,143 +134,113 @@ export function Nutrition() {
         )}
 
         <div className="masonry">
-          <section className="sec">
-            <h2>This week</h2>
-            <div className="panel">
-              <div className="stat">
-                {balanced} <span className="stat-sub">of 7 days</span>
-              </div>
-              <p className="hint">have protein at every main meal and at least 3 servings of fruit or vegetables</p>
-              {balanced < 7 && (
-                <>
-                  <button type="button" className="btn soft wide gap-top-lg" onClick={() => actions.balance([0, 1, 2, 3, 4, 5, 6])}>
-                    <Icon name="plus" size={17} /> Balance the whole week
-                  </button>
-                  <p className="hint gap-top">Adds sides from foods you accept. Each one can be removed in the planner.</p>
-                </>
-              )}
-            </div>
-            <div className="list gap-top-lg">
-              {days.map((x) => (
-                <button
-                  type="button"
-                  className="li li-btn"
-                  key={x.d}
+          <section className="msec">
+            <SecHead title="Day by day" aside="tap a day to open it" />
+            {days.map((x) => (
+              <div key={x.d}>
+                <LeadLink
+                  k={DAY_FULL[x.d]}
+                  v={nums ? `${round10(x.kcal)} kcal` : x.ok ? 'Balanced' : 'Needs balance'}
                   onClick={() => {
                     actions.selectDay(x.i);
                     actions.go('planner');
                   }}
-                >
-                  <div className="day-label">{x.d}</div>
-                  <div className="grow">
-                    <div className="chips tight">
-                      <span className={`pill ${x.proteinOk ? 'p-ok' : 'p-warn'}`}>{x.proteinOk ? 'Protein ✓' : `Protein: ${x.low.map((s) => SLOT_SHORT[s].toLowerCase()).join(', ')}`}</span>
-                      <span className={`pill ${x.produceOk ? 'p-ok' : 'p-warn'}`}>Fruit &amp; veg {fraction(x.prod)}</span>
-                      {x.light && <span className="pill p-bad">Light day</span>}
-                    </div>
-                    {nums && (
-                      <div className="mono hint gap-top">
-                        ≈{kcalRange(x.kcal)} kcal · {x.pro} g protein · {x.carb} g carbs · {x.fat} g fat{x.out ? ' · meal out not counted' : ''}
-                      </div>
-                    )}
-                  </div>
-                  <Icon name="right" size={18} />
-                </button>
-              ))}
-            </div>
+                />
+                <div className="day-note">
+                  <span>
+                    {nums ? `${x.pro} g protein · ` : ''}fruit &amp; veg {fraction(x.prod)}
+                    {x.produceOk ? ' ✓' : ''}
+                    {x.out ? ' · meal out not counted' : ''}
+                  </span>
+                  {!x.proteinOk && <span className="pill p-warn">Protein light: {x.low.map((s) => SLOT_SHORT[s].toLowerCase()).join(', ')}</span>}
+                  {!x.produceOk && <span className="pill p-warn">Under 3 fruit &amp; veg</span>}
+                  {x.light && <span className="pill p-bad">Light day</span>}
+                </div>
+              </div>
+            ))}
+            {nums && (
+              <div className="bill">
+                <div className="dish-line">
+                  <span className="dish-name">Daily average</span>
+                  <Leader />
+                  <span className="dish-kcal">≈{round10(avgKcal)} kcal</span>
+                </div>
+                <p className="bill-note">{avgPro} g protein a day, on days without a meal out. Rough estimates added up from the ingredients.</p>
+              </div>
+            )}
           </section>
 
-          <section className="sec">
-            <h2>Portion guide</h2>
-            <div className="panel">
-              <div className="row wrap plate-row">
-                <Plate />
-                <div className="grow plate-text">
-                  <p className="strong">A simple way to build a plate or container.</p>
-                  <p className="hint gap-top">Your prep-day containers already follow this where they can. You don’t need to measure.</p>
-                </div>
-              </div>
-              <div className="kv gap-top">
-                <div>
-                  <span className="c-carrot"><Icon name="spark" size={18} /></span>
-                  <div className="grow">
-                    <div className="k">Your protein foods</div>
-                    <div className="v">{proteins.length ? listText(proteins) : 'Not enough ratings yet'}</div>
-                    <div className="hint">Protein helps you stay full and keep muscle while losing fat.</div>
-                  </div>
-                </div>
-                <div>
-                  <span className="c-basil"><Icon name="heart" size={18} /></span>
-                  <div className="grow">
-                    <div className="k">Your fruit and vegetables</div>
-                    <div className="v">{produce.length ? listText(produce) : 'Not enough ratings yet'}</div>
-                    <div className="hint">
-                      Vegetables come roasted crispy or blended into sauces{A.visible === 'Hidden is fine if I can’t taste it' ? ', since hidden is fine for you' : ''}. Fruit counts too.
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <span className="c-berry"><Icon name="heart" size={18} /></span>
-                  <div className="grow">
-                    <div className="k">Sweets</div>
-                    <div className="v">Planned and pre-portioned, not earned</div>
-                    <div className="hint">A small, satisfying portion you look forward to makes the plan easier to keep.</div>
-                  </div>
-                </div>
+          <section className="msec">
+            <SecHead title="Estimates and goals" />
+            <div className="lead tall">
+              <span className="k">Show calories and macros</span>
+              <Leader />
+              <div className="seg narrow" role="group" aria-label="Show estimates">
+                <button type="button" aria-pressed={nums} onClick={() => actions.setEstimates(true)}>On</button>
+                <button type="button" aria-pressed={!nums} onClick={() => actions.setEstimates(false)}>Off</button>
               </div>
             </div>
-          </section>
-
-          <section className="sec">
-            <h2>Estimates and targets</h2>
-            <div className="panel stack">
-              <div className="row">
-                <div className="grow">
-                  <b>Show calories and macros</b>
-                  <p className="hint">
-                    Calories, protein, carbs and fat for every meal, added up from the ingredients. Rough estimates.
-                    {n.nums === null && ` Default: ${A.pace === 'Detailed' ? 'on (you chose detailed)' : 'off'}.`}
-                  </p>
-                </div>
-                <div className="seg narrow" role="group" aria-label="Show estimates">
-                  <button type="button" aria-pressed={nums} onClick={() => actions.setEstimates(true)}>On</button>
-                  <button type="button" aria-pressed={!nums} onClick={() => actions.setEstimates(false)}>Off</button>
-                </div>
-              </div>
-              <div>
-                <p className="strong">
-                  Your daily goals <span className="hint">(optional)</span>
+            <p className="lead-note">
+              Calories, protein, carbs and fat for every meal, added up from the ingredients. Rough estimates.
+              {n.nums === null && ` Default: ${A.pace === 'Detailed' ? 'on (you chose detailed)' : 'off'}.`}
+            </p>
+            <div className="lead tall">
+              <label className="k" htmlFor="goal-kcal">Calories a day</label>
+              <Leader />
+              <input id="goal-kcal" className="field goal-field" type="number" inputMode="numeric" placeholder="kcal" value={n.kcal} onChange={(e) => actions.setTargets(e.target.value, n.pro)} />
+            </div>
+            <div className="lead tall">
+              <label className="k" htmlFor="goal-pro">Protein a day</label>
+              <Leader />
+              <input id="goal-pro" className="field goal-field" type="number" inputMode="numeric" placeholder="g" value={n.pro} onChange={(e) => actions.setTargets(n.kcal, e.target.value)} />
+            </div>
+            {n.kcal || n.pro ? (
+              <>
+                <p className="lead-note gap-top">
+                  This week averages about {kcalRange(avgKcal)} kcal and {avgPro} g protein a day (days without a meal out).
                 </p>
-                <div className="row gap-top">
-                  <input className="field grow" type="number" inputMode="numeric" placeholder="kcal per day" aria-label="Daily calorie goal" value={n.kcal} onChange={(e) => actions.setTargets(e.target.value, n.pro)} />
-                  <input className="field grow" type="number" inputMode="numeric" placeholder="g protein" aria-label="Daily protein goal" value={n.pro} onChange={(e) => actions.setTargets(n.kcal, e.target.value)} />
-                </div>
-                {n.kcal || n.pro ? (
-                  <>
-                    <p className="hint ink-2 gap-top">
-                      This week averages about {kcalRange(avgKcal)} kcal and {avgPro} g protein a day (days without a meal out).
-                    </p>
-                    {hasGoals(goals) && (
-                      <button type="button" className="btn soft wide gap-top" onClick={actions.fitGoals}>
-                        <Icon name="spark" size={17} /> Fit my week to these goals
-                      </button>
-                    )}
-                    <p className="hint gap-top">
-                      Remy swaps meals you haven’t approved for lighter or heavier ones, adds protein sides, then adjusts main-meal portions by up to 20%. New weeks are fitted
-                      automatically. It never plans a day under about 1,200 kcal, and your sweet always stays.
-                    </p>
-                    {n.kcal && Number(n.kcal) < LIGHT_DAY_KCAL && (
-                      <div className="warnline">
-                        <Icon name="info" size={16} />
-                        <span>That’s below about 1,200 kcal, so Remy fits your week to about 1,200 instead. Go lower only with a professional’s guidance.</span>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <p className="hint gap-top">Optional. With goals, Remy fits your menu toward them. Remy never works out targets from your weight or body.</p>
+                {hasGoals(goals) && (
+                  <button type="button" className="btn soft wide gap-top" onClick={actions.fitGoals}>
+                    <Icon name="spark" size={17} /> Fit my week to these goals
+                  </button>
                 )}
+                <p className="hint gap-top">
+                  Remy swaps meals you haven’t approved for lighter or heavier ones, adds protein sides, then adjusts main-meal portions by up to 20%. New weeks are fitted
+                  automatically. It never plans a day under about 1,200 kcal, and your sweet always stays.
+                </p>
+                {n.kcal && Number(n.kcal) < LIGHT_DAY_KCAL && (
+                  <div className="warnline">
+                    <Icon name="info" size={16} />
+                    <span>That’s below about 1,200 kcal, so Remy fits your week to about 1,200 instead. Go lower only with a professional’s guidance.</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="hint gap-top">Optional. With goals, Remy fits your menu toward them. Remy never works out targets from your weight or body.</p>
+            )}
+          </section>
+
+          <section className="msec">
+            <SecHead title="Portion guide" />
+            <div className="row wrap plate-row gap-top">
+              <Plate />
+              <div className="plate-leads">
+                <Lead k="Fruit & veg" v="½" />
+                <Lead k="Protein" v="¼" />
+                <Lead k="Starch" v="¼" />
               </div>
             </div>
+            <p className="lead-note gap-top">A simple way to build a plate or container. Your prep-day containers already follow this where they can. You don’t need to measure.</p>
+            <p className="lead-note">
+              <b>Your protein foods:</b> {proteins.length ? listText(proteins) : 'not enough ratings yet'}. Protein helps you stay full and keep muscle while losing fat.
+            </p>
+            <p className="lead-note">
+              <b>Your fruit and vegetables:</b> {produce.length ? listText(produce) : 'not enough ratings yet'}. Vegetables come roasted crispy or blended into sauces
+              {A.visible === 'Hidden is fine if I can’t taste it' ? ', since hidden is fine for you' : ''}. Fruit counts too.
+            </p>
+            <p className="lead-note">
+              <b>Sweets:</b> planned and pre-portioned, not earned. A small, satisfying portion you look forward to makes the plan easier to keep.
+            </p>
           </section>
           <Progress />
         </div>

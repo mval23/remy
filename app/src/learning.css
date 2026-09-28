@@ -1,13 +1,9 @@
 /* ---------- weekly check-in, preferences, your data ---------- */
 .li.wrap { flex-wrap: wrap; row-gap: 8px; }
 /* Meal name on the first line, the three rating buttons on a full-width line below. */
-.rate-name { min-width: 0; }
 .rate-row { flex-basis: 100%; gap: 6px; }
 .rate-chip { flex: 1; min-height: 44px; padding: 0 8px; font-size: 13px; justify-content: center; }
-.sub-li { background: var(--surface-2); }
 
-.food-chip { min-height: 44px; }
-.stack-tight { display: flex; flex-direction: column; gap: 8px; }
 .btn.danger-outline { color: var(--danger); border-color: var(--danger); }
 .file-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .trend { font-size: 15px; font-weight: 600; }

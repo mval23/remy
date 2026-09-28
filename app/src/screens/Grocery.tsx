@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BottomNav, Header } from '../components/Chrome';
+import { Lead, Leader, Mast, SecHead } from '../components/Dish';
 import { Icon } from '../components/Icon';
 import { arr, listText, str } from '../interview/helpers';
 import { ING, SECTION_ORDER } from '../planning/data/ingredients';
@@ -12,6 +13,7 @@ import { useRemy } from '../store';
 
 type Edit = (fn: (g: GroceryEdits) => GroceryEdits) => void;
 
+/** The shopping list in the menu look: aisles as sections, item ........ amount, and the estimated total at the bottom like a bill. */
 export function Grocery() {
   const { planState, ctx, actions } = useRemy();
   const [tab, setTab] = useState<'week' | 'month'>('week');
@@ -35,27 +37,8 @@ export function Grocery() {
     <>
       <Header title="Grocery list" sub={view === 'month' ? `Staples for the next ${MONTH_WEEKS} weeks` : `For ${prepDay} prep · ${toBuy} to buy`} />
       <main className="body wide">
-        <div className="panel stack top-gap">
-          <div>
-            <p className="strong">How you shop</p>
-            <div className="seg gap-top" role="group" aria-label="How you shop">
-              <button type="button" aria-pressed={!monthly} onClick={() => actions.setShopping('weekly')}>
-                All weekly
-              </button>
-              <button type="button" aria-pressed={monthly} onClick={() => actions.setShopping('monthly')}>
-                Staples monthly
-              </button>
-            </div>
-          </div>
-          {monthly && (
-            <p className="hint">
-              Monthly: meat and fish, grains and pasta, pantry, hard cheese, frozen food and potatoes. Weekly: fresh fruit and vegetables, milk, yogurt, eggs, soft cheese and bread.
-            </p>
-          )}
-        </div>
-
         {monthly && (
-          <div className="seg gap-top-lg" role="group" aria-label="Which list">
+          <div className="seg top-gap" role="group" aria-label="Which list">
             <button type="button" aria-pressed={tab === 'week'} onClick={() => setTab('week')}>
               This week
             </button>
@@ -67,41 +50,37 @@ export function Grocery() {
 
         {view === 'week' ? (
           <>
+            <Mast kicker={`For ${prepDay} prep`} icon="cart" title="This week" sub={`${toBuy} to buy${monthly ? ', staples come from your monthly shop' : ''}`} />
             <ListView items={weekly} edits={planState.groceries} edit={actions.groceryEdit} cost={weekCost} monthlyShare={monthly && monthCost.show ? monthCost.low / MONTH_WEEKS : 0} />
             {staplesThisWeek.length > 0 && (
-              <section className="sec">
+              <section className="msec">
                 <details>
                   <summary className="row summary-toggle">
                     <Icon name="box" size={18} /> From your monthly shop ({staplesThisWeek.length})
                   </summary>
-                  <div className="panel stack gap-top">
-                    {staplesThisWeek.some((x) => freezeOnArrival(x.k)) && (
-                      <p className="hint ink-2">
-                        <b>The day before {prepDay}:</b> move{' '}
-                        {listText(staplesThisWeek.filter((x) => freezeOnArrival(x.k)).map((x) => `${x.qtyText} ${x.n.toLowerCase()}`))} from the freezer to the fridge to thaw.
-                      </p>
-                    )}
-                    <p className="hint">Already bought this month. This week uses:</p>
-                    <ul className="ing-list">
-                      {staplesThisWeek.map((x) => (
-                        <li key={x.k}>
-                          <b>{x.qtyText}</b> {x.n}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  {staplesThisWeek.some((x) => freezeOnArrival(x.k)) && (
+                    <p className="lead-note">
+                      <b>The day before {prepDay}:</b> move{' '}
+                      {listText(staplesThisWeek.filter((x) => freezeOnArrival(x.k)).map((x) => `${x.qtyText} ${x.n.toLowerCase()}`))} from the freezer to the fridge to thaw.
+                    </p>
+                  )}
+                  <p className="hint">Already bought this month. This week uses:</p>
+                  {staplesThisWeek.map((x) => (
+                    <Lead key={x.k} k={x.n} v={x.qtyText} />
+                  ))}
                 </details>
               </section>
             )}
           </>
         ) : (
           <>
-            <div className="panel stack top-gap">
-              <p className="hint ink-2">
-                An estimate from this week’s plan and how Remy rotates meals over the next {MONTH_WEEKS} weeks. Check-ins can change later weeks, so treat it as a guide; staples
-                keep, and anything left over carries into next month.
+            <Mast kicker={`Staples for ${MONTH_WEEKS} weeks`} icon="cart" title="This month" sub={`${month.filter((x) => !x.home).length} to buy in one go`} />
+            <div className="gap-top-lg">
+              <p className="lead-note">
+                An estimate from this week’s plan and how Remy rotates meals over the next {MONTH_WEEKS} weeks. Check-ins can change later weeks, so treat it as a guide; staples keep, and
+                anything left over carries into next month.
               </p>
-              <p className="hint ink-2">
+              <p className="lead-note">
                 <b>When you get home:</b> freeze meat and fish in weekly bags (label them with the date). Keep potatoes somewhere cool and dark, not in the fridge.
               </p>
             </div>
@@ -111,13 +90,30 @@ export function Grocery() {
             </button>
           </>
         )}
+
+        <section className="msec">
+          <SecHead title="How you shop" />
+          <div className="seg gap-top" role="group" aria-label="How you shop">
+            <button type="button" aria-pressed={!monthly} onClick={() => actions.setShopping('weekly')}>
+              All weekly
+            </button>
+            <button type="button" aria-pressed={monthly} onClick={() => actions.setShopping('monthly')}>
+              Staples monthly
+            </button>
+          </div>
+          {monthly && (
+            <p className="hint gap-top">
+              Monthly: meat and fish, grains and pasta, pantry, hard cheese, frozen food and potatoes. Weekly: fresh fruit and vegetables, milk, yogurt, eggs, soft cheese and bread.
+            </p>
+          )}
+        </section>
       </main>
       <BottomNav />
     </>
   );
 }
 
-/** One shopping list: cost, progress, add an item, aisles, “already at home” and removed items. */
+/** One shopping list: progress, add an item, aisles, “already at home”, removed items and the estimated total. */
 function ListView({
   items,
   edits,
@@ -157,22 +153,25 @@ function ListView({
     const done = !!edits.checked[x.k];
     return (
       <div key={x.k}>
-        <div className={`gi${done ? ' done' : ''}`}>
+        <div className={`gline${done ? ' done' : ''}`}>
           <button type="button" className="cb" aria-pressed={done} aria-label={`Check off ${x.n}`} onClick={() => edit((g) => ({ ...g, checked: { ...g.checked, [x.k]: !done } }))}>
             <span>{done && <Icon name="check" size={16} />}</span>
           </button>
-          <button type="button" className="gi-main" aria-expanded={open === x.k} onClick={() => setOpen(open === x.k ? null : x.k)}>
-            <div className="nm">{x.n}</div>
-            <div className="hint small">
+          <button type="button" className="gline-main" aria-expanded={open === x.k} onClick={() => setOpen(open === x.k ? null : x.k)}>
+            <span className="dish-line">
+              <span className="nm">{x.n}</span>
+              <Leader />
+              <span className="qty">{x.qtyText || '—'}</span>
+            </span>
+            <span className="from">
               {x.from.join(', ')}
               {x.packs && ` · ${x.packs}`}
-            </div>
+            </span>
           </button>
-          <span className="qty">{x.qtyText || '—'}</span>
           {cost.show && <span className="price">{x.cost !== null ? `$${x.cost.toFixed(2)}` : ''}</span>}
         </div>
         {open === x.k && (
-          <div className="gi gi-edit">
+          <div className="gline-edit">
             <label className="hint" htmlFor={`qty-${period}-${x.k}`}>
               Quantity
             </label>
@@ -203,55 +202,30 @@ function ListView({
 
   return (
     <>
-      {(brands.length > 0 || frozen.length > 0) && (
-        <div className="panel stack top-gap">
-          {brands.length > 0 && (
-            <p className="hint ink-2">
-              <b>Your brands:</b> {listText(brands)}
-            </p>
-          )}
-          {frozen.length > 0 && (
-            <p className="hint ink-2">
-              <b>You prefer fresh:</b> buy {listText(frozen.map((x) => x.n.replace(/^Frozen /, '').toLowerCase()))} fresh instead of frozen. Fresh produce keeps only a few days, so
-              use it early in the week.
-            </p>
-          )}
-        </div>
-      )}
-      {cost.show ? (
-        <div className="panel top-gap">
-          <div className="row">
-            <div className="grow">
-              <div className="stat">
-                ${cost.low}–{cost.high}
-              </div>
-              <p className="hint">
-                Rough estimate at a typical US supermarket{period === 'month' ? `, for ${MONTH_WEEKS} weeks` : ''}
-                {cost.unknown > 0 && ` · excludes ${cost.unknown} item${cost.unknown > 1 ? 's' : ''} you added`}
-              </p>
-            </div>
-            <span className={`pill ${status![0]}`}>
-              {status![1]} ${budget}
-            </span>
-          </div>
-          {monthlyShare > 0 && <p className="hint gap-top">Plus about ${Math.round(monthlyShare)} a week of staples from your monthly shop, counted in the budget check.</p>}
-          {period === 'week' && cost.carryOver > 3 && <p className="hint gap-top">About ${cost.carryOver} of that is sauce, butter and other staples left over for next week.</p>}
-        </div>
-      ) : (
-        <div className="panel row top-gap">
-          <Icon name="info" size={18} />
-          <span className="hint">{cost.why}</span>
-        </div>
-      )}
-
-      <div className="row gap-top-lg">
-        <div className="grow bar tall" role="progressbar" aria-valuenow={checked} aria-valuemax={buy.length} aria-label="Items checked off">
+      <div className="progress-line">
+        <div className="bar tall" role="progressbar" aria-valuenow={checked} aria-valuemax={buy.length} aria-label="Items checked off">
           <div style={{ width: `${buy.length ? Math.round((100 * checked) / buy.length) : 0}%` }} />
         </div>
         <span className="mono hint">
           {checked}/{buy.length}
         </span>
       </div>
+
+      {(brands.length > 0 || frozen.length > 0) && (
+        <div className="gap-top-lg">
+          {brands.length > 0 && (
+            <p className="lead-note">
+              <b>Your brands:</b> {listText(brands)}
+            </p>
+          )}
+          {frozen.length > 0 && (
+            <p className="lead-note">
+              <b>You prefer fresh:</b> buy {listText(frozen.map((x) => x.n.replace(/^Frozen /, '').toLowerCase()))} fresh instead of frozen. Fresh produce keeps only a few days, so
+              use it early in the week.
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="row gap-top-lg">
         <input className="field grow" placeholder="Add an item" aria-label={`Add an item to the ${period === 'month' ? 'monthly' : 'weekly'} list`} value={newItem} onChange={(e) => setNewItem(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()} />
@@ -265,36 +239,31 @@ function ListView({
           const list = buy.filter((x) => x.sec === sec);
           if (!list.length) return null;
           return (
-            <section className="sec" key={sec}>
-              <h2>
-                <span className="grow">{sec}</span>
-                <span className="mono">{list.length}</span>
-              </h2>
-              <div className="list">{list.map(row)}</div>
+            <section className="aisle" key={sec}>
+              <SecHead title={sec} aside={list.length} />
+              <div>{list.map(row)}</div>
             </section>
           );
         })}
       </div>
 
       {home.length > 0 && (
-        <section className="sec">
+        <section className="msec">
           <details>
             <summary className="row summary-toggle">
               <Icon name="home" size={18} /> Already at home ({home.length})
             </summary>
-            <div className="list gap-top">
-              {home.map((x) => (
-                <div className="gi" key={x.k}>
-                  <div className="grow">
-                    <div className="nm muted">{x.n}</div>
-                    <div className="hint small">From your pantry answer{x.qtyText && ` · need ${x.qtyText}`}</div>
-                  </div>
-                  <button type="button" className="btn sm ghost" onClick={() => edit((g) => ({ ...g, have: { ...g.have, [x.k]: false } }))}>
-                    Need to buy
-                  </button>
+            {home.map((x) => (
+              <div className="gline" key={x.k}>
+                <div className="gline-main">
+                  <span className="nm muted">{x.n}</span>
+                  <span className="from">From your pantry answer{x.qtyText && ` · need ${x.qtyText}`}</span>
                 </div>
-              ))}
-            </div>
+                <button type="button" className="btn sm ghost" onClick={() => edit((g) => ({ ...g, have: { ...g.have, [x.k]: false } }))}>
+                  Need to buy
+                </button>
+              </div>
+            ))}
           </details>
         </section>
       )}
@@ -306,6 +275,34 @@ function ListView({
             Restore
           </button>
         </p>
+      )}
+
+      {cost.show ? (
+        <div className="bill">
+          <div className="dish-line">
+            <span className="dish-name">Estimated total</span>
+            <Leader />
+            <span className="dish-kcal">
+              ${cost.low}–{cost.high}
+            </span>
+          </div>
+          <div className="row wrap gap-top">
+            <span className={`pill ${status![0]}`}>
+              {status![1]} ${budget}
+            </span>
+            <span className="bill-note grow">
+              Rough estimate at a typical US supermarket{period === 'month' ? `, for ${MONTH_WEEKS} weeks` : ''}
+              {cost.unknown > 0 && ` · excludes ${cost.unknown} item${cost.unknown > 1 ? 's' : ''} you added`}
+            </span>
+          </div>
+          {monthlyShare > 0 && <p className="bill-note">Plus about ${Math.round(monthlyShare)} a week of staples from your monthly shop, counted in the budget check.</p>}
+          {period === 'week' && cost.carryOver > 3 && <p className="bill-note">About ${cost.carryOver} of that is sauce, butter and other staples left over for next week.</p>}
+        </div>
+      ) : (
+        <div className="bill row">
+          <Icon name="info" size={18} />
+          <span className="hint">{cost.why}</span>
+        </div>
       )}
     </>
   );

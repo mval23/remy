@@ -29,12 +29,12 @@ export const FOODS: Record<string, { n: string; e: string; veg?: boolean }> = {
   spinach: { n: 'Spinach', e: '🥬', veg: true }, peppers: { n: 'Bell peppers', e: '🫑', veg: true },
   zucchini: { n: 'Zucchini', e: '🥒', veg: true }, tomatoes: { n: 'Tomatoes', e: '🍅', veg: true },
   onions: { n: 'Onions', e: '🧅', veg: true }, mushrooms: { n: 'Mushrooms', e: '🍄', veg: true },
-  greenbeans: { n: 'Green beans', e: '🫛', veg: true }, corn: { n: 'Corn', e: '🌽', veg: true },
+  greenbeans: { n: 'Green beans', e: '🫛', veg: true }, corn: { n: 'Corn', e: '🌽', veg: true }, avocado: { n: 'Avocado', e: '🥑' },
   berries: { n: 'Berries', e: '🍓' }, bananas: { n: 'Bananas', e: '🍌' }, apples: { n: 'Apples', e: '🍎' }, grapes: { n: 'Grapes', e: '🍇' },
 };
 export const FOOD_GROUP_A = ['chicken', 'beef', 'turkey', 'salmon', 'tuna', 'eggs', 'tofu', 'beans', 'rice', 'pasta', 'potatoes', 'oats', 'cheese', 'yogurt'];
-export const FOOD_GROUP_B = ['broccoli', 'carrots', 'spinach', 'peppers', 'zucchini', 'tomatoes', 'onions', 'mushrooms', 'greenbeans', 'corn', 'berries', 'bananas', 'apples', 'grapes'];
-export const WAYS = ['Roasted until crispy', 'Air-fried', 'Blended into a sauce', 'Finely chopped, cooked soft', 'Mashed', 'Baked into something', 'With cheese', 'Raw', 'Steamed', 'Scrambled', 'Hard-boiled', 'Sweetened or flavored'];
+export const FOOD_GROUP_B = ['broccoli', 'carrots', 'spinach', 'peppers', 'zucchini', 'tomatoes', 'onions', 'mushrooms', 'greenbeans', 'corn', 'avocado', 'berries', 'bananas', 'apples', 'grapes'];
+export const WAYS = ['Roasted until crispy', 'Air-fried', 'Blended into a sauce', 'Finely chopped, cooked soft', 'Mashed', 'Baked into something', 'With cheese', 'Raw', 'Steamed', 'Scrambled', 'Hard-boiled', 'Fried', 'Sweetened or flavored'];
 
 export const ALLERGY_OPTS = ['Peanuts', 'Tree nuts', 'Milk / dairy', 'Eggs', 'Wheat / gluten', 'Soy', 'Fish', 'Shellfish', 'Sesame'];
 export const CURRENCIES = ['USD', 'CAD', 'EUR', 'GBP', 'MXN', 'COP'];
@@ -189,7 +189,7 @@ const QUESTIONS: Omit<Question, 'i'>[] = [
     sample: { chicken: 'love', beef: 'like', turkey: 'okay', salmon: 'dislike', tuna: 'dislike', eggs: 'ways', tofu: 'dislike', beans: 'dislike', rice: 'love', pasta: 'love', potatoes: 'love', oats: 'like', cheese: 'love', yogurt: 'ways' } },
   { id: 'rateB', sec: 'taste', type: 'rate', foods: FOOD_GROUP_B, required: true,
     say: () => 'And these vegetables and fruits?',
-    sample: { broccoli: 'ways', carrots: 'like', spinach: 'ways', peppers: 'dislike', zucchini: 'dislike', tomatoes: 'ways', onions: 'ways', mushrooms: 'never', greenbeans: 'okay', corn: 'like', berries: 'love', bananas: 'like', apples: 'like', grapes: 'love' },
+    sample: { broccoli: 'ways', carrots: 'like', spinach: 'ways', peppers: 'dislike', zucchini: 'dislike', tomatoes: 'ways', onions: 'ways', mushrooms: 'never', greenbeans: 'okay', corn: 'like', avocado: 'okay', berries: 'love', bananas: 'like', apples: 'like', grapes: 'love' },
     ack: (_v, A) => {
       const l = ratedAs(A, 'love');
       return l.length ? 'I’ll build from what you love: ' + listText(l.slice(0, 4).map(foodName)) + '.' : null;

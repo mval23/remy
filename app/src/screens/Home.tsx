@@ -1,6 +1,6 @@
-import { BottomNav, Header, RowButton, StoragePill } from '../components/Chrome';
-import { Avatar, Icon } from '../components/Icon';
-import { macroText } from '../components/Macros';
+import { BottomNav, Header, StoragePill } from '../components/Chrome';
+import { ChefNote, DishLine, LeadLink, MacroLine, Mast, SecHead } from '../components/Dish';
+import { Icon } from '../components/Icon';
 import { listText, str } from '../interview/helpers';
 import { checkinDue, mealsToRate, noticeSuggestion } from '../learning/learning';
 import { R } from '../planning/data/recipes';
@@ -45,7 +45,6 @@ export function Home() {
   const prepDayKey = (str(A.prepday) || 'Sun') as Day;
   const prepDay = DAY_FULL[prepDayKey];
   const isPrepDay = today === prepDayKey;
-  const heading = isPrepDay ? 'Prep day today' : upcoming ? `Prep day is ${prepDay}` : idx > 6 ? 'Time to plan next week' : `Day ${ti + 1} after prep`;
   const notice = noticeSuggestion(A, planState.noticed);
   const toRate = mealsToRate(plan);
   const ratedCount = toRate.filter((m) => planState.checkin.rated[m.id]).length;
@@ -53,6 +52,10 @@ export function Home() {
   const due = checkinDue(A, planState.weekStartedAt);
   const nums = estimatesOn(planState.nutrition, A);
   const nextReminder = upcomingReminders(plan, A, planState.weekStartedAt, planState.reminders)[0];
+
+  const dn = dayNutrition(day, ctx.hungry);
+  const title = isPrepDay ? 'Prep day' : upcoming ? `${DAY_FULL[day.d]}’s menu` : 'Today’s menu';
+  const sub = isPrepDay ? `Cooking today · about ${duration(sc.total)}` : idx > 6 ? 'Time to plan next week' : upcoming ? `Prep day is ${prepDay}` : `Day ${ti + 1} after prep`;
 
   return (
     <>
@@ -70,45 +73,51 @@ export function Home() {
       <main className="body wide">
         <div className="cols">
           <div>
-            <div className="hero">
-              <p className="eyebrow">{upcoming ? `Your new week starts ${DAY_FULL[day.d]}` : `Today · ${DAY_FULL[day.d]}`}</p>
-              <h2>{heading}</h2>
+            <Mast kicker={upcoming ? `Your new week starts ${DAY_FULL[day.d]}` : `Today · ${DAY_FULL[day.d]}`} title={title} sub={sub}>
               {isPrepDay && (
-                <button type="button" className="btn sm hero-btn" onClick={() => actions.go('prep')}>
-                  <Icon name="clock" size={16} /> Open the prep timeline
+                <button type="button" className="btn wide" onClick={() => actions.go('prep')}>
+                  <Icon name="clock" size={17} /> Open the prep timeline
                 </button>
               )}
-            </div>
-            <div className="list hero-list">
+            </Mast>
+            <div className="home-menu">
               {SLOTS.map((slot) => {
                 const m = day.meals[slot];
                 if (!m || m.skip) return null;
                 if (m.out || !m.r)
                   return (
-                    <div className="li" key={slot}>
-                      <div className="grow">
-                        <div className="s">{SLOT_SHORT[slot]}</div>
-                        <div className="t">{m.out ? 'Eating out' : 'Needs a choice'}</div>
+                    <div className="dish" key={slot}>
+                      <span className="dish-emoji" aria-hidden="true">{m.out ? '🍽️' : '❔'}</span>
+                      <div className="dish-body">
+                        <span className="slot-label">{SLOT_SHORT[slot]}</span>
+                        <DishLine name={m.out ? 'Eating out' : 'Needs a choice'} />
                       </div>
                     </div>
                   );
                 const r = R[m.r];
+                const mn = mealNutrition(m);
                 return (
-                  <button type="button" className="li li-btn" key={slot} onClick={() => actions.openRecipe(r.id)}>
-                    <span className="em-lg" aria-hidden="true">{r.e}</span>
-                    <div className="grow">
-                      <div className="s">{SLOT_SHORT[slot]}</div>
-                      <div className="t">
-                        {r.short}
-                        {m.side && <span className="hint"> + {R[m.side].short.toLowerCase()}</span>}
+                  <div className="dish" key={slot}>
+                    <span className="dish-emoji" aria-hidden="true">{r.e}</span>
+                    <div className="dish-body">
+                      <span className="slot-label">{SLOT_SHORT[slot]}</span>
+                      <DishLine name={r.short} kcal={nums && mn ? mn.kcal : null} onOpen={() => actions.openRecipe(r.id)} />
+                      {m.side && <p className="dish-desc">+ {R[m.side].short}</p>}
+                      <div className="dish-meta">
+                        <StoragePill st={storage(r, ti + 1)} />
                       </div>
-                      {nums && <div className="s">≈{macroText(mealNutrition(m)!)}</div>}
                     </div>
-                    <StoragePill st={storage(r, ti + 1)} />
-                  </button>
+                  </div>
                 );
               })}
             </div>
+            {nums && (
+              <div className="bill">
+                <DishLine name={upcoming ? `${DAY_FULL[day.d]}’s total` : 'Today’s total'} kcal={Math.round(dn.kcal / 10) * 10} />
+                <MacroLine n={dn} />
+                {dn.out && <p className="bill-note">The meal out isn’t counted.</p>}
+              </div>
+            )}
             {thaw.length > 0 && (
               <div className="warnline">
                 <Icon name="snow" size={16} />
@@ -121,44 +130,31 @@ export function Home() {
 
           <div>
             {due && (
-              <section className="sec">
-                <h2>End of the week</h2>
-                <div className="panel stack">
-                  <div className="row align-start">
-                    <span className="c-berry"><Icon name="heart" size={22} /></span>
-                    <div className="grow">
-                      <b>Weekly check-in</b>
-                      <p className="hint">Rate this week’s meals, then Remy plans next week around what you liked. About 2 minutes.</p>
-                    </div>
-                  </div>
+              <ChefNote kicker="End of the week" icon="heart">
+                <p>Rate this week’s meals, then I’ll plan next week around what you liked. About 2 minutes.</p>
+                <div className="row">
                   <button type="button" className="btn wide" onClick={() => actions.go('checkin')}>
                     {ratedCount ? `Continue check-in (${ratedCount} of ${toRate.length} rated)` : 'Start the check-in'}
                   </button>
                 </div>
-              </section>
+              </ChefNote>
             )}
 
             {notice && (
-              <section className="sec">
-                <h2>Remy noticed</h2>
-                <div className="panel">
-                  <div className="msg">
-                    <Avatar />
-                    <div className="bubble">{notice.text}</div>
-                  </div>
-                  <div className="row wrap gap-top-lg">
-                    <button type="button" className="btn sm" onClick={() => actions.answerNotice('yes')}>
-                      Try it once
-                    </button>
-                    <button type="button" className="btn sm ghost" onClick={() => actions.answerNotice('no')}>
-                      No thanks
-                    </button>
-                    <button type="button" className="btn sm ghost" onClick={() => actions.answerNotice('stop')}>
-                      Stop asking
-                    </button>
-                  </div>
+              <ChefNote kicker="Remy noticed">
+                <p>{notice.text}</p>
+                <div className="row wrap">
+                  <button type="button" className="btn sm" onClick={() => actions.answerNotice('yes')}>
+                    Try it once
+                  </button>
+                  <button type="button" className="btn sm ghost" onClick={() => actions.answerNotice('no')}>
+                    No thanks
+                  </button>
+                  <button type="button" className="btn sm ghost" onClick={() => actions.answerNotice('stop')}>
+                    Stop asking
+                  </button>
                 </div>
-              </section>
+              </ChefNote>
             )}
             {planState.trial && !notice && (
               <div className="warnline">
@@ -169,38 +165,21 @@ export function Home() {
               </div>
             )}
 
-            <section className="sec">
-              <h2>This week</h2>
-              <div className="list">
-                <RowButton icon="clock" tone="c-carrot" title={`Prep day · ${prepDay}`} sub={`${duration(sc.total)} planned · ${packs.containers + packs.bags + packs.foil} containers and bags`} onClick={() => actions.go('prep')} />
-                <RowButton
-                  icon="cart"
-                  tone="c-basil"
-                  title="Groceries"
-                  sub={`${toBuy.length} to buy · ${checked} checked off${cost.show ? ` · about $${cost.low}–${cost.high}` : ''}`}
-                  onClick={() => actions.go('grocery')}
-                />
-                <RowButton icon="cal" tone="c-blue" title="Meal plan" sub={`${approvals.ok} of ${approvals.total} meals approved`} onClick={() => actions.go('planner')} />
-                <RowButton
-                  icon="bell"
-                  tone="c-citrus"
-                  title="Reminders"
-                  sub={nextReminder ? `Next: ${nextReminder.title.toLowerCase()}, ${new Date(nextReminder.at).toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' })}` : 'Thawing, check-in and prep day'}
-                  onClick={() => actions.go('reminders')}
-                />
-                {balanceOn(A) && (
-                  <RowButton icon="heart" tone="c-berry" title="Balance" sub={`${balancedDays} of 7 days have protein at every meal and 3+ fruit and veg`} onClick={() => actions.go('nutrition')} />
-                )}
-                {!due && (
-                  <RowButton
-                    icon="smile"
-                    tone="c-berry"
-                    title="Weekly check-in"
-                    sub={ratedCount ? `${ratedCount} of ${toRate.length} meals rated so far` : 'Rate meals as you eat them, or all at once at the end of the week'}
-                    onClick={() => actions.go('checkin')}
-                  />
-                )}
-              </div>
+            <section className="msec">
+              <SecHead title="This week" />
+              <LeadLink k={`Prep day · ${prepDay}`} v={duration(sc.total)} onClick={() => actions.go('prep')} />
+              <LeadLink k="Groceries" v={checked ? `${checked} of ${toBuy.length} checked` : `${toBuy.length} to buy`} onClick={() => actions.go('grocery')} />
+              <LeadLink k="Meal plan" v={`${approvals.ok} of ${approvals.total} approved`} onClick={() => actions.go('planner')} />
+              <LeadLink
+                k="Reminders"
+                v={nextReminder ? new Date(nextReminder.at).toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : undefined}
+                onClick={() => actions.go('reminders')}
+              />
+              {balanceOn(A) && <LeadLink k="Balance" v={`${balancedDays} of 7 days`} onClick={() => actions.go('nutrition')} />}
+              {!due && <LeadLink k="Weekly check-in" v={ratedCount ? `${ratedCount} of ${toRate.length} rated` : 'rate as you go'} onClick={() => actions.go('checkin')} />}
+              <p className="hint gap-top">
+                {packs.containers + packs.bags + packs.foil} containers and bags on prep day{cost.show ? ` · groceries about $${cost.low}–${cost.high}` : ''}.
+              </p>
             </section>
           </div>
         </div>

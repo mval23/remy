@@ -10,7 +10,7 @@ import { useRemy, type SheetArg } from '../store';
 import { AiIdea } from './AiIdea';
 import { StoragePill } from './Chrome';
 import { Icon } from './Icon';
-import { macroText } from './Macros';
+import { describe, DishLine, MacroLine, Mast, SecHead } from './Dish';
 
 const FOCUSABLE = 'button:not(:disabled), [href], input:not([type="hidden"]), select, textarea, summary, [tabindex]:not([tabindex="-1"])';
 
@@ -67,6 +67,7 @@ function ReplaceSheet({ arg }: { arg: SheetArg }) {
   const nums = estimatesOn(planState.nutrition, ctx.A);
   const reason = reject ? { why, food } : undefined;
   const title = `${reject ? 'Not this one' : current ? 'Replace' : 'Choose a meal'} · ${DAY_FULL[day.d]} ${SLOT_SHORT[slot].toLowerCase()}`;
+  const meal = SLOT_SHORT[slot].toLowerCase();
   const pick = () => {
     const id = autoReplacement(plan, d, slot, ctx);
     if (id) actions.replace(d, slot, id, reason);
@@ -75,11 +76,15 @@ function ReplaceSheet({ arg }: { arg: SheetArg }) {
 
   return (
     <SheetFrame label={title}>
-      <h2 className="sheet-title">{title}</h2>
-      {current && <p className="hint">Currently: {current.short}</p>}
+      <Mast
+        kicker={current ? `Instead of ${current.short}` : DAY_FULL[day.d]}
+        icon="swap"
+        title={reject ? 'Not this one' : current ? `Another ${meal}` : `Choose a ${meal}`}
+        sub={`${DAY_FULL[day.d]} · all fit your rules`}
+      />
       {reject && current && (
-        <section className="sec">
-          <h2>What’s wrong with it? (optional)</h2>
+        <section className="msec">
+          <SecHead title="What’s wrong with it?" aside="optional" />
           <div className="chips">
             {REJECT_REASONS.map((x) => (
               <button type="button" key={x} className="chip" aria-pressed={why === x} onClick={() => { setWhy(why === x ? null : x); setFood(null); }}>
@@ -101,45 +106,54 @@ function ReplaceSheet({ arg }: { arg: SheetArg }) {
           )}
         </section>
       )}
-      <section className="sec">
-        <AiIdea d={d} slot={slot} reason={reason} />
-      </section>
-      <section className="sec">
-        <h2>
-          <span className="grow">Suggestions</span>
-          <button type="button" className="linkbtn tight" onClick={pick}>
-            <Icon name="swap" size={15} /> Pick for me
-          </button>
-        </h2>
-        <div className="list">
+      <section className="msec">
+        <SecHead
+          title="Suggestions"
+          aside={
+            <button type="button" className="linkbtn tight" onClick={pick}>
+              <Icon name="swap" size={15} /> Pick for me
+            </button>
+          }
+        />
+        <div>
           {opts.allowed.map((r) => {
             const st = storage(r, d + 1);
             const fit = matches(r, ctx.A).slice(0, 3);
             return (
-              <div className="li" key={r.id}>
-                <span className="em-lg" aria-hidden="true">{r.e}</span>
-                <div className="grow">
-                  <div className="t">{r.short}</div>
-                  <div className="s">{fit.length ? `Uses ${fit.join(', ')}` : 'Fits your rules'}</div>
-                  {nums && <div className="s">≈{macroText(r)}</div>}
-                  <div className="gap-top"><StoragePill st={st} /></div>
+              <div className="dish" key={r.id}>
+                <span className="dish-emoji" aria-hidden="true">{r.e}</span>
+                <div className="dish-body">
+                  <DishLine name={r.short} kcal={nums ? r.kcal : null} />
+                  <p className="dish-desc">{describe(r)}</p>
+                  {nums && <MacroLine n={r} />}
+                  <span className="dish-fit">
+                    {fit.length > 0 && <Icon name="spark" size={13} />}
+                    {fit.length ? `Uses ${fit.join(', ')}` : 'Fits your rules'}
+                  </span>
+                  <div className="dish-meta">
+                    <StoragePill st={st} />
+                  </div>
+                  {st.k === 'unsafe' ? (
+                    <span className="hint">Not safe for day {d + 1}</span>
+                  ) : (
+                    <button type="button" className="btn sm soft" onClick={() => actions.replace(d, slot, r.id, reason)}>
+                      Use this
+                    </button>
+                  )}
                 </div>
-                {st.k === 'unsafe' ? (
-                  <span className="hint">Not safe for day {d + 1}</span>
-                ) : (
-                  <button type="button" className="btn sm" onClick={() => actions.replace(d, slot, r.id, reason)}>
-                    Use
-                  </button>
-                )}
               </div>
             );
           })}
           {opts.blocked.map((b) => (
-            <div className="li blocked" key={b.r.id}>
-              <span className="c-danger"><Icon name="lock" size={20} /></span>
-              <div className="grow">
-                <div className="t strike">{b.r.short}</div>
-                <div className="s c-danger">Blocked: {b.reason}.{b.allergy ? ' Allergy rule.' : ''}</div>
+            <div className="dish struck" key={b.r.id}>
+              <span className="dish-emoji c-danger" aria-hidden="true">
+                <Icon name="lock" size={22} />
+              </span>
+              <div className="dish-body">
+                <DishLine name={b.r.short} />
+                <p className="dish-desc c-danger">
+                  Blocked: {b.reason}.{b.allergy ? ' Allergy rule.' : ''}
+                </p>
               </div>
             </div>
           ))}
@@ -150,6 +164,9 @@ function ReplaceSheet({ arg }: { arg: SheetArg }) {
             {opts.hidden.length} more hidden by your preferences: {opts.hidden.map((h) => `${h.r.short} (${h.reason.toLowerCase()})`).join('; ')}.
           </p>
         )}
+      </section>
+      <section className="msec">
+        <AiIdea d={d} slot={slot} reason={reason} />
       </section>
     </SheetFrame>
   );
@@ -162,27 +179,34 @@ function MoveSheet({ arg }: { arg: SheetArg }) {
   const r = R[plan[d].meals[slot]!.r!];
   return (
     <SheetFrame label={`Move ${r.short}`}>
-      <h2 className="sheet-title">Move {r.short}</h2>
-      <p className="hint">Swap it with the {SLOT_SHORT[slot].toLowerCase()} on another day.</p>
-      <div className="list gap-top-lg">
+      <Mast kicker={`Move ${r.short}`} icon="move" title="Swap days" sub={`Swap it with the ${SLOT_SHORT[slot].toLowerCase()} on another day.`} />
+      <div>
         {plan.map((day, i) => {
           if (i === d) return null;
           const other = day.meals[slot];
           const why = moveBlocker(plan, d, i, slot);
           return (
-            <div className="li" key={day.d}>
-              <div className="grow">
-                <div className="t">
-                  {DAY_FULL[day.d]} <span className="hint">day {i + 1}</span>
+            <div className={`dish${why ? ' struck' : ''}`} key={day.d}>
+              <div className="dish-body">
+                <div className="dish-line">
+                  <span className="dish-name">{DAY_FULL[day.d]}</span>
+                  <span className="leader" aria-hidden="true" />
+                  <span className="hint">day {i + 1}</span>
                 </div>
-                <div className="s">{other?.out ? 'Eating out' : other?.skip ? 'No sweet planned' : other?.r ? `Now: ${R[other.r].short}` : 'Nothing planned'}</div>
-                {why ? <div className="s c-danger">{why}</div> : <div className="gap-top"><StoragePill st={storage(r, i + 1)} /></div>}
+                <p className="dish-desc">{other?.out ? 'Eating out' : other?.skip ? 'No sweet planned' : other?.r ? `Now: ${R[other.r].short}` : 'Nothing planned'}</p>
+                {why ? (
+                  <p className="dish-desc c-danger">{why}</p>
+                ) : (
+                  <>
+                    <div className="dish-meta">
+                      <StoragePill st={storage(r, i + 1)} />
+                    </div>
+                    <button type="button" className="btn sm soft" onClick={() => actions.move(d, i, slot)}>
+                      Swap with {day.d}
+                    </button>
+                  </>
+                )}
               </div>
-              {!why && (
-                <button type="button" className="btn sm" onClick={() => actions.move(d, i, slot)}>
-                  Swap
-                </button>
-              )}
             </div>
           );
         })}
@@ -203,8 +227,12 @@ function SideSheet({ arg }: { arg: SheetArg }) {
   const title = `Add a side · ${DAY_FULL[plan[d].d]} ${SLOT_SHORT[slot].toLowerCase()}`;
   return (
     <SheetFrame label={title}>
-      <h2 className="sheet-title">{title}</h2>
-      <p className="hint">With {r.short}. Only foods you accept, checked against your safety rules and storage days.</p>
+      <Mast
+        kicker={`With ${r.short}`}
+        icon="plus"
+        title="Add a side"
+        sub={`${DAY_FULL[plan[d].d]} ${SLOT_SHORT[slot].toLowerCase()}. Only foods you accept, checked against your safety rules and storage days.`}
+      />
       {m.side && (
         <div className="sideline gap-top-lg">
           <span aria-hidden="true">{R[m.side].e}</span>
@@ -216,23 +244,26 @@ function SideSheet({ arg }: { arg: SheetArg }) {
       )}
       {groups.map(({ kind, list }) =>
         list.length ? (
-          <section className="sec" key={kind}>
-            <h2>{kind === 'protein' ? 'More protein' : 'Fruit and vegetables'}</h2>
-            <div className="list">
+          <section className="msec" key={kind}>
+            <SecHead title={kind === 'protein' ? 'More protein' : 'Fruit and vegetables'} />
+            <div>
               {list.map((s) => {
                 const fit = matches(s, ctx.A);
-                const gain = kind === 'protein' ? (nums ? `+${s.pro} g protein, about ${s.kcal} kcal` : 'Adds protein') : `+1 serving of fruit or veg${nums ? `, about ${s.kcal} kcal` : ''}`;
+                const gain = kind === 'protein' ? (nums ? `+${s.pro} g protein` : 'Adds protein') : '+1 serving of fruit or veg';
                 return (
-                  <div className="li" key={s.id}>
-                    <span className="em-lg" aria-hidden="true">{s.e}</span>
-                    <div className="grow">
-                      <div className="t">{s.short}</div>
-                      <div className="s">{s.why[0] ?? (fit.length ? `You rated ${fit[0]}` : 'Fits your rules')} · {gain}</div>
-                      <div className="gap-top"><StoragePill st={storage(s, d + 1)} /></div>
+                  <div className="dish" key={s.id}>
+                    <span className="dish-emoji" aria-hidden="true">{s.e}</span>
+                    <div className="dish-body">
+                      <DishLine name={s.short} kcal={nums ? s.kcal : null} />
+                      <p className="dish-desc">{s.why[0] ?? (fit.length ? `You rated ${fit[0]}` : 'Fits your rules')}</p>
+                      <span className="dish-fit">{gain}</span>
+                      <div className="dish-meta">
+                        <StoragePill st={storage(s, d + 1)} />
+                      </div>
+                      <button type="button" className="btn sm soft" onClick={() => actions.setSide(d, slot, s.id)}>
+                        Add {s.short.toLowerCase()}
+                      </button>
                     </div>
-                    <button type="button" className="btn sm" onClick={() => actions.setSide(d, slot, s.id)}>
-                      Add
-                    </button>
                   </div>
                 );
               })}

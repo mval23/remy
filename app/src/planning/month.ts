@@ -15,7 +15,7 @@ export type ShopMode = 'weekly' | 'monthly';
 /** How many weeks the monthly shop covers. */
 export const MONTH_WEEKS = 4;
 
-const BREAD = new Set(['tortillas', 'corntortillas', 'englishmuffins', 'buns', 'pita']);
+const BREAD = new Set(['tortillas', 'corntortillas', 'englishmuffins', 'buns', 'pita', 'bread']);
 const KEEPING_DAIRY = new Set(['cheddar', 'cheeseblock', 'parmesan', 'mozzarella', 'stringcheese', 'butter']);
 /** Keep a month somewhere cool and dark (not the fridge). */
 const KEEPING_PRODUCE = new Set(['potatoes', 'sweetpotatoes']);

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Header } from '../components/Chrome';
+import { Leader, Mast } from '../components/Dish';
 import { Icon } from '../components/Icon';
-import { StepLines, StepMeta } from '../components/Steps';
+import { LaneTag, StepLines } from '../components/Steps';
 import { listText } from '../interview/helpers';
 import { recipeSteps, scaledIngredients, timelineSteps, type CookStep } from '../planning/method';
-import { clockTime, schedule } from '../planning/schedule';
+import { clockTime, duration, schedule } from '../planning/schedule';
 import { useRemy } from '../store';
 
 /** Keep the screen on while cooking (where the browser allows it). */
@@ -91,7 +92,11 @@ function Timer({ id, minutes, label }: { id: string; minutes: number; label: str
   const ss = String(left % 60).padStart(2, '0');
   return (
     <div className={`timer${endAt && left === 0 ? ' timer-done' : ''}`} role="timer" aria-label={`${label} timer`}>
-      <span className="timer-clock mono">{endAt && left === 0 ? 'Time’s up' : `${mm}:${ss}`}</span>
+      <div className="dish-line">
+        <span className="dish-name">Timer</span>
+        <Leader />
+        <span className="timer-clock">{endAt && left === 0 ? 'Time’s up' : `${mm}:${ss}`}</span>
+      </div>
       {endAt ? (
         <button type="button" className="btn sm ghost" onClick={() => set(null)}>
           {left === 0 ? 'Clear' : 'Stop'}
@@ -135,26 +140,29 @@ export function Cook() {
       </div>
       <main className="body cook" tabIndex={0}>
         {allDone ? (
-          <div className="panel stack top-gap">
-            <p className="cook-title">Prep day done 🎉</p>
-            <p className="ink-2">Label every container with the dish and today’s date. The Prep screen shows what goes in the fridge and what goes in the freezer.</p>
-            <button type="button" className="btn wide" onClick={() => actions.go('prep')}>
-              Back to prep day
-            </button>
-            <button type="button" className="btn ghost wide" onClick={() => setI(0)}>
-              Look through the steps again
-            </button>
-          </div>
+          <>
+            <Mast kicker="All steps done" icon="check" title="Prep day done 🎉" sub="Label every container with the dish and today’s date. The Prep screen shows what goes in the fridge and what goes in the freezer." />
+            <div className="stack gap-top-lg">
+              <button type="button" className="btn wide" onClick={() => actions.go('prep')}>
+                Back to prep day
+              </button>
+              <button type="button" className="btn ghost wide" onClick={() => setI(0)}>
+                Look through the steps again
+              </button>
+            </div>
+          </>
         ) : null}
         {!allDone && (
           <>
-            <div className="top-gap">
-              <div className="row wrap">
-                {step.start !== undefined && <span className="pill p-muted">{clockTime(step.start)}</span>}
-                <StepMeta step={step} />
+            <div className="cook-mast">
+              <span className="mast-kicker">
+                <Icon name="clock" size={16} /> {step.start !== undefined ? clockTime(step.start) : `Step ${Math.min(i, steps.length - 1) + 1}`} · {duration(step.minutes)}
+              </span>
+              <h2 className="cook-title">{step.title}</h2>
+              <div className="chips tight">
+                <LaneTag lane={step.lane} temp={step.temp} />
                 {done[step.id] && <span className="pill p-ok"><Icon name="check" size={13} /> Done</span>}
               </div>
-              <h2 className="cook-title">{step.title}</h2>
               {step.for.length > 0 && <p className="hint">For {listText(step.for)}</p>}
             </div>
 

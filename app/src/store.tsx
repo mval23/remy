@@ -15,6 +15,7 @@ import {
   approveAll,
   approveDay,
   buildPlan,
+  dropRemoved,
   openSlot,
   regenerate,
   replaceMeal,
@@ -557,6 +558,8 @@ export function RemyProvider({ children, fallback }: { children: ReactNode; fall
         const variety = defaultVariety(activeAnswers(interview));
         plan = { ...plan, variety, plan: buildPlan(variety, planContext(interview, plan)).plan };
       }
+      // Recipes deleted from the menu since the plan was made are swapped out.
+      if (plan.plan) plan = { ...plan, plan: dropRemoved(plan.plan, planContext(interview, plan)).plan };
       setInitial({ interview, plan });
     });
   }, []);

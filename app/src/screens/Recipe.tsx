@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { BottomNav, Header, StoragePill } from '../components/Chrome';
+import { Lead, MacroLine, Mast, SecHead } from '../components/Dish';
 import { Icon } from '../components/Icon';
-import { MacroRow } from '../components/Macros';
-import { StepLines, StepMeta } from '../components/Steps';
+import { LaneTag, StepLines } from '../components/Steps';
 import { allRatings } from '../interview/helpers';
 import { LEVELS } from '../interview/questions';
 import { ING } from '../planning/data/ingredients';
@@ -12,9 +12,13 @@ import { isDetailed, taskLines } from '../planning/method';
 import { estimatesOn, proteinTarget } from '../planning/nutrition';
 import { eachMeal, portions, portionSizes } from '../planning/planner';
 import { check, matches, storage } from '../planning/rules';
-import type { StorageInfo } from '../planning/types';
+import { duration } from '../planning/schedule';
+import { DAY_FULL, type Day, type StorageInfo } from '../planning/types';
 import { useRemy } from '../store';
 
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+/** One recipe, laid out like a dish on a menu: name, calories and macros up top, amounts on dotted lines. */
 export function Recipe() {
   const { planState, ctx, ui } = useRemy();
   // Amounts for this week’s batches, or for one batch.
@@ -34,7 +38,7 @@ export function Recipe() {
   const target = proteinTarget(r.slot, ctx.hungry);
   const found = matches(r, A);
 
-  const days: { d: string; st: StorageInfo }[] = [];
+  const days: { d: Day; st: StorageInfo }[] = [];
   eachMeal(plan, (m, _slot, i, day) => {
     if (m.r === r.id) days.push({ d: day.d, st: storage(r, i + 1) });
   });
@@ -47,50 +51,54 @@ export function Recipe() {
     if (!lv || lv === 'dislike' || lv === 'never') return [];
     const swapped = { ...r, foods: { [food]: 1 as const }, ing: [] };
     if (!check(swapped, A).ok) return [];
-    return [{ from, to, note: `you rated it ${levelName(lv)}` }];
+    return [{ from, to, note: levelName(lv) }];
   });
 
-  const fridgeText = r.store ? 'Keep frozen until eating.' : r.room ? `Airtight bag at room temperature, up to ${r.fridge} days.` : r.fridge ? `Up to ${r.fridge} day${r.fridge > 1 ? 's' : ''} after prep day, at 4°C or colder.` : 'Not stored in the fridge. It goes straight to the freezer.';
-  const freezerText = r.freezer ? `Up to ${r.freezer} months for best quality, at −18°C.` : 'Don’t freeze; the texture suffers.';
+  const fridge = r.store ? 'Keep frozen' : r.room ? `${plural(r.fridge, 'day')}, pantry` : r.fridge ? plural(r.fridge, 'day') : 'Straight to the freezer';
+  const freezer = r.freezer ? plural(r.freezer, 'month') : r.store ? 'Until eating' : 'Don’t freeze';
+  const keepNote = r.store
+    ? 'Keep frozen until eating.'
+    : `${r.room ? 'In an airtight bag at room temperature.' : r.fridge ? 'Days count from prep day, in the fridge at 4°C or colder.' : 'It goes straight to the freezer after prep.'}${r.freezer ? ' In the freezer at −18°C, best within that time.' : ' It doesn’t freeze well; the texture suffers.'}`;
+  // Days with the same storage share a line: "Mon, Tue, Wed ........ Fridge".
+  const byStorage: { days: Day[]; st: StorageInfo }[] = [];
+  for (const x of days) {
+    const g = byStorage.find((y) => y.st.l === x.st.l && y.st.k === x.st.k);
+    if (g) g.days.push(x.d);
+    else byStorage.push({ days: [x.d], st: x.st });
+  }
+  const [why, ...moreWhy] = r.why;
 
   return (
     <>
-      <Header title={r.short} sub={r.slot} back={ui.recipeBack} />
+      <Header title="Recipe" sub={r.slot} back={ui.recipeBack} />
       <main className="body wide" tabIndex={0}>
         <div className="cols">
           <div>
-            <div className="row recipe-top">
-              <div className="recipe-emoji" aria-hidden="true">{r.e}</div>
-              <div>
-                <h2 className="recipe-name">{r.name}</h2>
-                <div className="chips tight gap-top">
-                  <span className="pill p-muted">{r.slot}</span>
-                  <span className="pill p-muted">{r.store ? 'Store-bought' : `${handsOn} min hands-on`}</span>
-                  <span className="pill p-muted">Makes {r.serves}</span>
-                </div>
+            <Mast kicker={`${r.slot} · makes ${r.serves}`} title={r.short} sub={r.name !== r.short ? r.name : undefined}>
+              {nums && (
+                <>
+                  <p className="mast-kcal">{r.kcal.toLocaleString('en-US')} kcal</p>
+                  <MacroLine n={r} note="per portion" />
+                </>
+              )}
+              <div className="chips tight">
+                <span className="pill p-muted">{r.store ? 'Store-bought' : `${handsOn} min hands-on`}</span>
+                {!r.store && r.fridge > 0 && <span className="pill p-fridge">{r.room ? 'Pantry' : 'Fridge'} {plural(r.fridge, 'day')}</span>}
+                {r.freezer > 0 && <span className="pill p-fridge">Freezer {plural(r.freezer, 'month')}</span>}
               </div>
-            </div>
+            </Mast>
 
-            <section className="sec">
-              <h2>Why Remy picked this</h2>
-              <div className="list">
-                {r.why.map((w) => (
-                  <div className="li compact" key={w}>
-                    <span className="c-basil"><Icon name="check" size={18} /></span>
-                    <div className="grow">{w}</div>
-                  </div>
-                ))}
-                {found.length > 0 && (
-                  <div className="li compact">
-                    <span className="c-basil"><Icon name="spark" size={18} /></span>
-                    <div className="grow">
-                      <span className="hint">Matches your profile: </span>
-                      {found.join(', ')}
-                    </div>
-                  </div>
-                )}
+            {why && (
+              <div className="why-quote">
+                <p>{why}</p>
+                <ul>
+                  {moreWhy.map((w) => (
+                    <li key={w}>{w}</li>
+                  ))}
+                  {found.length > 0 && <li>Matches your profile: {found.join(', ')}</li>}
+                </ul>
               </div>
-            </section>
+            )}
             {r.note && (
               <div className="warnline">
                 <Icon name="info" size={16} />
@@ -99,22 +107,16 @@ export function Recipe() {
             )}
 
             {days.length > 0 && (
-              <section className="sec">
-                <h2>This week</h2>
-                <div className="chips">
-                  {days.map((x, i) => (
-                    <span className="chip static" key={i}>
-                      {x.d} <StoragePill st={x.st} />
-                    </span>
-                  ))}
-                </div>
+              <section className="msec">
+                <SecHead title="This week" aside={count > 1 ? `${count} portions` : undefined} />
+                {byStorage.map((g) => (
+                  <Lead key={g.days.join()} k={g.days.length === 1 ? DAY_FULL[g.days[0]] : g.days.join(', ')} v={<StoragePill st={g.st} />} />
+                ))}
               </section>
             )}
 
-            <section className="sec">
-              <h2>
-                <span className="grow">Ingredients</span>
-              </h2>
+            <section className="msec">
+              <SecHead title="Ingredients" aside={oneBatch || batches === 1 ? 'one batch' : 'for this week'} />
               {batches > 1 && (
                 <div className="seg" role="group" aria-label="Amounts for">
                   <button type="button" aria-pressed={!oneBatch} onClick={() => setOneBatch(false)}>
@@ -125,40 +127,39 @@ export function Recipe() {
                   </button>
                 </div>
               )}
-              <div className={`list${batches > 1 ? ' gap-top' : ''}`}>
-                {r.ing.map(([k, q]) => (
-                  <div className="li compact" key={k}>
-                    <div className="grow">{ING[k].n}</div>
-                    <span className="mono hint">{quantityText(q * scale, ING[k].u)}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="hint gap-top">Makes {r.serves * (oneBatch ? 1 : batches)} portions{!oneBatch && size !== 1 ? `, each ${Math.round(size * 100)}% of the usual size to fit your goals` : ''}. Tbsp and tsp are standard 15 ml and 5 ml spoons.</p>
+              {r.ing.map(([k, q]) => (
+                <Lead key={k} k={ING[k].n} v={quantityText(q * scale, ING[k].u)} />
+              ))}
+              <p className="hint gap-top">
+                Makes {r.serves * (oneBatch ? 1 : batches)} portions{!oneBatch && size !== 1 ? `, each ${Math.round(size * 100)}% of the usual size to fit your goals` : ''}. Tbsp and tsp are
+                standard 15 ml and 5 ml spoons.
+              </p>
             </section>
           </div>
 
           <div>
             {isDetailed(r) ? (
-              <section className="sec">
-                <h2>Method</h2>
-                <div className="panel tasks">
-                  {r.tasks.map((t, i) => (
-                    <div className="method-step" key={i}>
-                      <div className="row wrap">
-                        <span className="strong grow">{t.t}</span>
-                        <StepMeta step={{ lane: t.l, minutes: t.m, temp: t.temp }} />
-                      </div>
-                      <StepLines lines={taskLines(t, [{ r, batches: scale }])} />
+              <section className="msec">
+                <SecHead title="Method" aside={r.store ? undefined : `${handsOn} min hands-on`} />
+                {r.tasks.map((t, i) => (
+                  <div className="mstep" key={i}>
+                    <div className="dish-line">
+                      <span className="num">{i + 1}</span>
+                      <span className="dish-name">{t.t}</span>
+                      <span className="leader" aria-hidden="true" />
+                      <span className="min">{duration(t.m)}</span>
                     </div>
-                  ))}
-                </div>
+                    <LaneTag lane={t.l} temp={t.temp} />
+                    <StepLines lines={taskLines(t, [{ r, batches: scale }])} />
+                  </div>
+                ))}
                 {!r.store && <p className="hint gap-top">On prep day these steps run alongside your other recipes; the Prep screen shows the fastest order.</p>}
               </section>
             ) : (
               r.steps.length > 0 && (
-                <section className="sec">
-                  <h2>Steps</h2>
-                  <ol className="panel steps">
+                <section className="msec">
+                  <SecHead title="Steps" />
+                  <ol className="msteps-simple">
                     {r.steps.map((s) => (
                       <li key={s}>{s}</li>
                     ))}
@@ -167,94 +168,70 @@ export function Recipe() {
               )
             )}
 
-            <section className="sec">
-              <h2>Storage and reheating</h2>
-              <div className="panel kv">
-                <div>
-                  <span className="c-blue"><Icon name="fridge" size={18} /></span>
-                  <div className="grow"><div className="k">Fridge</div><div className="v">{fridgeText}</div></div>
-                </div>
-                <div>
-                  <span className="c-blue"><Icon name="snow" size={18} /></span>
-                  <div className="grow"><div className="k">Freezer</div><div className="v">{freezerText}</div></div>
-                </div>
-                {r.thaw && (
-                  <div>
-                    <span className="c-blue"><Icon name="clock" size={18} /></span>
-                    <div className="grow"><div className="k">Thawing</div><div className="v">{r.thaw}</div></div>
-                  </div>
-                )}
-                <div>
-                  <span className="c-carrot"><Icon name="therm" size={18} /></span>
-                  <div className="grow"><div className="k">Reheating</div><div className="v">{r.reheat}</div></div>
-                </div>
-              </div>
+            <section className="msec">
+              <SecHead title="Keeping it" />
+              <Lead k="Fridge" v={fridge} />
+              <Lead k="Freezer" v={freezer} />
+              <p className="lead-note">{keepNote}</p>
+              {r.thaw && (
+                <p className="lead-note">
+                  <b>Thawing:</b> {r.thaw}
+                </p>
+              )}
+              <p className="lead-note">
+                <b>Reheating:</b> {r.reheat}
+              </p>
             </section>
 
             {subs.length > 0 && (
-              <section className="sec">
-                <h2>Substitutions</h2>
-                <div className="list">
-                  {subs.map((s) => (
-                    <div className="li compact" key={s.from + s.to}>
-                      <Icon name="swap" size={17} />
-                      <div className="grow">
-                        {s.from} → <b>{s.to}</b>
-                        {s.note && <span className="hint"> ({s.note})</span>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <section className="msec">
+                <SecHead title="Substitutions" />
+                {subs.map((s) => (
+                  <div key={s.from + s.to}>
+                    <Lead k={s.from} v={s.to} wrap />
+                    {s.note && <p className="lead-note">You rated it {s.note}.</p>}
+                  </div>
+                ))}
                 <p className="hint gap-top">Only foods you rated Okay or better, and never anything that conflicts with your safety rules.</p>
               </section>
             )}
 
-            <section className="sec">
-              <h2>Nutrition</h2>
+            <section className="msec">
+              <SecHead title="Per portion" />
               {nums && (
                 <>
-                  <MacroRow n={r} note="per portion" />
-                  <p className="hint gap-top gap-bottom">
-                    Per portion as written. Rough estimates added up from the ingredients; brands and portions vary.
-                    {size !== 1 && ` This week your portions are ${Math.round(size * 100)}% of this, to fit your goals.`}
-                  </p>
+                  <Lead k="Calories" v={`${r.kcal.toLocaleString('en-US')} kcal`} />
+                  <Lead k="Protein" v={`${r.pro} g`} />
+                  <Lead k="Carbs" v={`${r.carb} g`} />
+                  <Lead k="Fat" v={`${r.fat} g`} />
                 </>
               )}
-              <div className="panel kv">
-                {r.plate && (
-                  <div>
-                    <span className="c-basil"><Icon name="box" size={18} /></span>
-                    <div className="grow">
-                      <div className="k">Portion</div>
-                      <div className="v">{r.plate}</div>
-                      {r.slot === 'Evening sweet' && planState.sweetPortion && (
-                        <div className="hint">
-                          {planState.sweetPortion === 'more'
-                            ? 'You said this portion felt small, so go a little bigger, about a quarter more. Satisfying beats strict.'
-                            : 'You said this portion felt like too much, so cut it a little smaller. Any extra keeps for another day.'}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                <div>
-                  <span className="c-carrot"><Icon name="spark" size={18} /></span>
-                  <div className="grow">
-                    <div className="k">Protein</div>
-                    <div className="v">
-                      {target ? (r.pro >= target ? `Good source for a ${r.slot.toLowerCase()}` : 'On the light side. Pair it with a protein side.') : r.pro >= 10 ? 'Some protein' : 'Not a focus for this slot'}
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <span className="c-basil"><Icon name="heart" size={18} /></span>
-                  <div className="grow">
-                    <div className="k">Fruit and vegetables</div>
-                    <div className="v">{r.prod ? `${fraction(r.prod)} serving${r.prod > 1 ? 's' : ''}` : 'None'}</div>
-                  </div>
-                </div>
-              </div>
-              {!nums && <p className="hint gap-top">Calories and macros are hidden. Turn on estimates in Nutrition balance to see calories, protein, carbs and fat.</p>}
+              <Lead k="Fruit and vegetables" v={r.prod ? `${fraction(r.prod)} serving${r.prod > 1 ? 's' : ''}` : 'None'} />
+              <p className="lead-note">
+                <b>Protein:</b>{' '}
+                {target ? (r.pro >= target ? `good source for a ${r.slot.toLowerCase()}.` : 'on the light side. Pair it with a protein side.') : r.pro >= 10 ? 'some protein.' : 'not a focus for this slot.'}
+              </p>
+              {r.plate && (
+                <p className="lead-note">
+                  <b>Portion:</b> {r.plate}
+                  {r.slot === 'Evening sweet' && planState.sweetPortion && (
+                    <>
+                      {' '}
+                      {planState.sweetPortion === 'more'
+                        ? 'You said this portion felt small, so go a little bigger, about a quarter more. Satisfying beats strict.'
+                        : 'You said this portion felt like too much, so cut it a little smaller. Any extra keeps for another day.'}
+                    </>
+                  )}
+                </p>
+              )}
+              {nums ? (
+                <p className="hint gap-top">
+                  Per portion as written. Rough estimates added up from the ingredients; brands and portions vary.
+                  {size !== 1 && ` This week your portions are ${Math.round(size * 100)}% of this, to fit your goals.`}
+                </p>
+              ) : (
+                <p className="hint gap-top">Calories and macros are hidden. Turn on estimates in Nutrition balance to see calories, protein, carbs and fat.</p>
+              )}
             </section>
           </div>
         </div>

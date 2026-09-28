@@ -1,4 +1,4 @@
-import { MEAL_IDS, R } from './data/recipes';
+import { MEAL_IDS, R, REMOVED } from './data/recipes';
 import { WEEKS } from './data/weeks';
 import { balanceDay } from './nutrition';
 import { activeSlots, avoided, check, isAway, KEEP_AT, score, storage, sweetDays, weekDays, type CheckResult, type PlanContext } from './rules';
@@ -13,7 +13,7 @@ import { SLOTS } from './types';
  */
 export function resolve(templateId: string, slot: Slot, day: number, used: Set<string>, ctx: PlanContext): string | null {
   const r = R[templateId];
-  if (r && check(r, ctx.A).ok && storage(r, day).k !== 'unsafe' && !avoided(r.id, ctx)) return templateId;
+  if (r && r.slot === slot && !REMOVED.has(templateId) && check(r, ctx.A).ok && storage(r, day).k !== 'unsafe' && !avoided(r.id, ctx)) return templateId;
   const fits = MEAL_IDS.map((id) => R[id]).filter((x) => x.slot === slot && check(x, ctx.A).ok && storage(x, day).k !== 'unsafe');
   const preferred = fits.filter((x) => !avoided(x.id, ctx));
   const candidates = preferred.length ? preferred : fits;
@@ -96,7 +96,7 @@ export function buildPlan(variety: Variety, ctx: PlanContext, previous?: WeekPla
         return;
       }
       const prev = previous?.[i]?.meals[slot];
-      if (prev?.ok && prev.r && check(R[prev.r], ctx.A).ok) {
+      if (prev?.ok && prev.r && !REMOVED.has(prev.r) && R[prev.r].slot === slot && check(R[prev.r], ctx.A).ok) {
         meals[slot] = prev;
         used.add(prev.r);
         return;
@@ -267,6 +267,31 @@ export function replacementOptions(plan: WeekPlan, d: number, slot: Slot, ctx: P
 }
 
 /** The best allowed, storage-safe alternative (“Pick for me”). */
+/**
+ * Take recipes deleted from the menu, or moved to another meal there, out of a plan: each meal that uses one
+ * gets the best allowed replacement (or needs a choice when nothing fits), and deleted sides are dropped.
+ * Other meals are untouched.
+ */
+export function dropRemoved(plan: WeekPlan, ctx: PlanContext): { plan: WeekPlan; changed: number } {
+  let next = plan;
+  let changed = 0;
+  plan.forEach((_day, d) => {
+    for (const slot of SLOTS) {
+      const m = next[d].meals[slot];
+      if (m?.side && REMOVED.has(m.side)) {
+        next = setSide(next, d, slot, null);
+        changed++;
+      }
+      if (m?.r && (REMOVED.has(m.r) || R[m.r].slot !== slot)) {
+        const id = autoReplacement(next, d, slot, ctx);
+        next = withMeal(next, d, slot, () => (id ? { r: id, ok: false } : { r: null, need: true, ok: false }));
+        changed++;
+      }
+    }
+  });
+  return { plan: next, changed };
+}
+
 export function autoReplacement(plan: WeekPlan, d: number, slot: Slot, ctx: PlanContext): string | null {
   return replacementOptions(plan, d, slot, ctx).allowed.find((r) => storage(r, d + 1).k !== 'unsafe')?.id ?? null;
 }

@@ -1,7 +1,7 @@
 import { allRatings, listText } from '../interview/helpers';
 import { FOOD_GROUP_A, FOODS } from '../interview/questions';
 import type { Answers } from '../interview/types';
-import { R } from '../planning/data/recipes';
+import { R, SIDE_IDS } from '../planning/data/recipes';
 import { WEEKS } from '../planning/data/weeks';
 import { emptyGroceryEdits } from '../planning/grocery';
 import { dayNutrition, sideOptions } from '../planning/nutrition';
@@ -66,7 +66,7 @@ export function noticeSuggestion(A: Answers, noticed: Record<string, Noticed>): 
   const rat = allRatings(A);
   const crispy = inferences(A).some((x) => x.id === 'crispy');
   for (const [food, side] of Object.entries(TRIALS)) {
-    if (rat[food] !== 'dislike' || noticed[food]) continue;
+    if (rat[food] !== 'dislike' || noticed[food] || !SIDE_IDS.includes(side)) continue;
     if (!check(R[side], withFoodOkay(A, food)).ok) continue;
     const idea = R[side].name.toLowerCase();
     const lead = crispy ? 'You like crispy food and rated' : 'You rated';
