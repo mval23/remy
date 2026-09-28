@@ -17,6 +17,10 @@ export interface PlanContext {
 
 export const context = (A: Answers, adj: Record<string, number> = {}, hungry = false): PlanContext => ({ A, adj, hungry });
 
+/** Score adjustment at or below which a recipe is left out of new plans (“Not again”, or rejected twice with a reason). */
+export const AVOID_AT = -4;
+export const avoided = (id: string, ctx: PlanContext) => (ctx.adj[id] ?? 0) <= AVOID_AT;
+
 /* ---------- hard restrictions ---------- */
 
 const ALLERGY_TAG: Record<string, string> = {

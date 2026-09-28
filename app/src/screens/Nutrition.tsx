@@ -2,6 +2,7 @@ import { BottomNav, Header } from '../components/Chrome';
 import { Icon } from '../components/Icon';
 import { allRatings, listText } from '../interview/helpers';
 import { FOODS } from '../interview/questions';
+import { bodyCheckinOn, weightOn, weightTrend } from '../learning/learning';
 import { fraction } from '../planning/grocery';
 import { balanceOn, dayNutrition, estimatesOn, kcalRange, LIGHT_DAY_KCAL } from '../planning/nutrition';
 import { SLOT_SHORT } from '../planning/types';
@@ -19,6 +20,69 @@ function Plate() {
       <text x="52" y="62" textAnchor="middle" className="plate-t t-protein">¼ protein</text>
       <text x="52" y="116" textAnchor="middle" className="plate-t t-starch">¼ starch</text>
     </svg>
+  );
+}
+
+const dateText = (at: number) => new Date(at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+/** Progress without a scale: hunger, energy and fit from check-ins. Weight only as a multi-week trend. */
+function Progress() {
+  const { planState, ctx, actions } = useRemy();
+  const A = ctx.A;
+  if (!bodyCheckinOn(A))
+    return (
+      <section className="sec">
+        <h2>Progress</h2>
+        <div className="panel">
+          <p className="hint">Tracking is off, as you asked. Remy still uses your meal ratings.</p>
+        </div>
+      </section>
+    );
+  const entries = planState.progress.slice(0, 4);
+  const trend = weightOn(A) ? weightTrend(planState.progress) : null;
+  const weighIns = planState.progress.filter((p) => p.weight).length;
+  return (
+    <section className="sec">
+      <h2>Progress</h2>
+      {trend && (
+        <div className="panel gap-bottom">
+          <p className="trend">
+            {trend.change === 0 ? 'No change' : `${trend.change > 0 ? 'Up' : 'Down'} about ${Math.abs(trend.change)} ${trend.unit}`} over your last {trend.entries} weigh-ins
+          </p>
+          <p className="hint gap-top">Remy looks at 3–4 week trends, not single weeks. Hunger, energy and how clothes fit matter just as much.</p>
+        </div>
+      )}
+      <div className="list">
+        {entries.length ? (
+          entries.map((p) => (
+            <div className="li" key={p.at}>
+              <div className="grow">
+                <div className="t">{dateText(p.at)}</div>
+                <div className="chips tight gap-top">
+                  {([['Hunger', p.hunger], ['Energy', p.energy], ['Fit', p.fit]] as const)
+                    .filter(([, v]) => v)
+                    .map(([k, v]) => (
+                      <span className="pill p-muted" key={k}>
+                        {k}: {v!.toLowerCase()}
+                      </span>
+                    ))}
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="empty">Your first check-in comes at the end of the week.</div>
+        )}
+      </div>
+      {weightOn(A) && !trend && (
+        <p className="hint gap-top">
+          Weight shows as a trend after 3 weekly weigh-ins{weighIns ? ` (${weighIns} so far)` : ''}. Single weigh-ins jump around, so Remy doesn’t show or react to them.
+        </p>
+      )}
+      <button type="button" className="btn ghost wide gap-top-lg" onClick={() => actions.go('checkin')}>
+        <Icon name="heart" size={17} /> Weekly check-in
+      </button>
+    </section>
   );
 }
 
@@ -191,6 +255,7 @@ export function Nutrition() {
             </div>
           </div>
         </section>
+        <Progress />
       </main>
       <BottomNav />
     </>

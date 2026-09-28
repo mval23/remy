@@ -1,12 +1,12 @@
 import Dexie, { type Table } from 'dexie';
 import { emptyInterview, type InterviewState } from '../interview/types';
-import { emptyGroceryEdits, type GroceryEdits } from '../planning/grocery';
-import { defaultNutrition, type NutritionSettings } from '../planning/nutrition';
-import type { Variety, WeekPlan } from '../planning/types';
+import { emptyPlanState, normalizePlanState, type PlanState } from './planState';
+
+export { emptyPlanState, normalizePlanState, type PlanState };
 
 /**
  * On-device storage (IndexedDB, through Dexie).
- * Data stays in this browser. Cloud sync comes in a later phase.
+ * This is the main copy; the optional cloud copy (sync) mirrors it.
  */
 interface Row {
   id: string;
@@ -22,30 +22,6 @@ class RemyDB extends Dexie {
 }
 
 export const db = new RemyDB();
-
-/** Everything about the current week, apart from the interview. */
-export interface PlanState {
-  plan: WeekPlan | null;
-  variety: Variety | null;
-  /** Day selected in the planner (0–6). */
-  day: number;
-  groceries: GroceryEdits;
-  nutrition: NutritionSettings;
-  /** Score adjustments from rejected meals, by recipe id. */
-  adj: Record<string, number>;
-  /** Raises protein targets; set later by weekly check-ins. */
-  hungry: boolean;
-}
-
-export const emptyPlanState = (): PlanState => ({
-  plan: null,
-  variety: null,
-  day: 0,
-  groceries: emptyGroceryEdits(),
-  nutrition: defaultNutrition(),
-  adj: {},
-  hungry: false,
-});
 
 const INTERVIEW = 'interview';
 const PLAN = 'plan';

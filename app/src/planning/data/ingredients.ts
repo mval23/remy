@@ -13,6 +13,7 @@ export const ING: Record<string, Ingredient> = {
   salmon: { n: 'Salmon fillets', u: 'lb', p: 10.99, sec: 'Meat', alg: ['fish'], f: 'salmon' },
   flank: { n: 'Flank steak', u: 'lb', p: 9.99, sec: 'Meat', alg: ['meat', 'beef'], f: 'beef' },
   broccoli: { n: 'Broccoli', u: 'crown', p: 1.79, sec: 'Produce', f: 'broccoli' },
+  zucchini: { n: 'Zucchini', u: '', p: 0.99, sec: 'Produce', f: 'zucchini' },
   carrots: { n: 'Carrots', u: '', pk: 8, pp: 1.29, pkn: '1 lb bag', sec: 'Produce', f: 'carrots' },
   spinach: { n: 'Baby spinach', u: 'cup', pk: 5, pp: 3.29, pkn: '5 oz bag', sec: 'Produce', f: 'spinach' },
   onion: { n: 'Yellow onion', u: '', p: 0.89, sec: 'Produce', f: 'onions' },

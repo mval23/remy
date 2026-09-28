@@ -3,6 +3,8 @@ import { activeAnswers, answerQuestion, fillWithSamples, firstOpen, prevBefore, 
 import { asRatings } from './interview/helpers';
 import { FOOD_GROUP_A, FOODS, Q, QBY } from './interview/questions';
 import { emptyInterview, type AnswerValue, type InterviewState, type Level, type Question } from './interview/types';
+import { answerSuggestion, applyCheckin, forgetAllLearned, forgetLearned, learnFromRejection, noticeSuggestion } from './learning/learning';
+import type { CheckinDraft, Noticed } from './learning/types';
 import { R } from './planning/data/recipes';
 import { WEEKS } from './planning/data/weeks';
 import { balanceDay } from './planning/nutrition';
@@ -18,6 +20,7 @@ import {
 } from './planning/planner';
 import { context, defaultVariety, type PlanContext } from './planning/rules';
 import type { Slot, Variety, WeekPlan } from './planning/types';
+import { backupFileName, makeBackup, readBackup, type Backup } from './storage/backup';
 import {
   deleteEverything,
   emptyPlanState,
@@ -29,8 +32,10 @@ import {
 } from './storage/db';
 import { useSync } from './sync/useSync';
 
-export type Screen = 'welcome' | 'interview' | 'resume' | 'summary' | 'home' | 'planner' | 'nutrition' | 'recipe' | 'grocery' | 'prep' | 'account';
-export type SheetName = 'map' | 'options' | 'confirmRestart' | 'replace' | 'move' | 'side';
+export type Screen =
+  | 'welcome' | 'interview' | 'resume' | 'summary' | 'home' | 'planner' | 'nutrition' | 'recipe' | 'grocery' | 'prep'
+  | 'account' | 'checkin' | 'prefs';
+export type SheetName = 'map' | 'options' | 'confirmRestart' | 'replace' | 'move' | 'side' | 'food' | 'confirmForget' | 'confirmImport';
 export interface SheetArg {
   d: number;
   slot: Slot;
@@ -51,6 +56,10 @@ export interface UiState {
   recipeId: string | null;
   /** Screen to go back to from a recipe. */
   recipeBack: Screen;
+  /** Food whose level is being changed (food sheet). */
+  sheetFood: string | null;
+  /** A backup file that was read and is waiting for confirmation. */
+  pendingImport: Backup | null;
 }
 
 export interface RejectReason {
@@ -61,6 +70,7 @@ export interface RejectReason {
 
 const initialUi = (screen: Screen = 'welcome'): UiState => ({
   screen, editReturn: null, lastAnswered: null, drafts: {}, sheet: null, sheetArg: null, toast: null, recipeId: null, recipeBack: 'planner',
+  sheetFood: null, pendingImport: null,
 });
 
 const planContext = (s: InterviewState, p: PlanState): PlanContext => context(activeAnswers(s), p.adj, p.hungry);
@@ -231,7 +241,8 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
       stampNext.current = { interview: 0, plan: 0 };
       setInterview(emptyInterview());
       setPlanState(emptyPlanState());
-      setUi({ ...initialUi(), toast: 'Everything deleted' });
+      setUi(initialUi());
+      toast('Everything deleted');
     },
 
     /* ---------- planner ---------- */
@@ -255,7 +266,7 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
     replace: (d: number, slot: Slot, recipeId: string, reason?: RejectReason) => {
       const old = planState.plan?.[d].meals[slot]?.r;
       let p: PlanState = { ...planState, plan: planState.plan && replaceMeal(planState.plan, d, slot, recipeId) };
-      if (old && reason) p = { ...p, adj: { ...p.adj, [old]: (p.adj[old] ?? 0) - (reason.why ? 2 : 1) } };
+      if (old && reason) p = learnFromRejection(p, old, reason.why);
       if (reason?.food) {
         const s = setRating(interview, reason.food, 'dislike');
         setInterview(s);
@@ -300,6 +311,83 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
 
     /* ---------- groceries ---------- */
     groceryEdit: (fn: (g: PlanState['groceries']) => PlanState['groceries']) => setPlanState((s) => ({ ...s, groceries: fn(s.groceries) })),
+
+    /* ---------- weekly check-in and learning ---------- */
+    editCheckin: (fn: (c: CheckinDraft) => CheckinDraft) => setPlanState((s) => ({ ...s, checkin: fn(s.checkin) })),
+    /** Apply the check-in and plan next week. */
+    saveCheckin: () => {
+      setPlanState(applyCheckin(planState, activeAnswers(interview)).next);
+      patchUi({ screen: 'home', sheet: null });
+      toast('Check-in saved. Next week is planned.');
+    },
+    answerNotice: (answer: Noticed) => {
+      const s = noticeSuggestion(activeAnswers(interview), planState.noticed);
+      if (!s) return;
+      setPlanState(answerSuggestion(planState, s, answer));
+      toast(answer === 'yes' ? 'It’ll be a side next week, once' : answer === 'stop' ? 'Got it. Remy won’t ask about that again.' : 'Got it');
+    },
+    forget: (id: string) => {
+      setPlanState((s) => forgetLearned(s, id));
+      toast('Deleted. Remy won’t use it.');
+    },
+    hideInference: (id: string) => {
+      setPlanState((s) => ({ ...s, hiddenInferences: { ...s.hiddenInferences, [id]: true } }));
+      toast('Deleted. Remy won’t use it.');
+    },
+    forgetAll: () => {
+      setPlanState((s) => forgetAllLearned(s, activeAnswers(interview)));
+      patchUi({ sheet: null });
+      toast('Learned preferences deleted');
+    },
+    openFood: (food: string) => patchUi({ sheet: 'food', sheetFood: food }),
+    setFoodLevel: (food: string, level: Level, levelName: string) => {
+      const s = setRating(interview, food, level);
+      setInterview(s);
+      refreshPlan(s);
+      patchUi({ sheet: null, sheetFood: null });
+      toast(`${FOODS[food].n} moved to ${levelName}`);
+    },
+    /** Change one interview answer from a settings control, and update unapproved meals. */
+    setAnswer: (id: string, v: AnswerValue, msg: string) => {
+      const s = { ...interview, answers: { ...interview.answers, [id]: v }, updatedAt: Date.now() };
+      setInterview(s);
+      refreshPlan(s);
+      toast(msg);
+    },
+
+    /* ---------- your data ---------- */
+    /** Save everything to a file the user keeps. */
+    exportData: () => {
+      const blob = new Blob([JSON.stringify(makeBackup(interview, planState), null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = backupFileName();
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+      toast('Backup saved to your downloads');
+    },
+    /** Read a backup file, then ask before replacing anything. */
+    importFile: async (file: File) => {
+      const r = readBackup(await file.text());
+      if (!r.ok) return toast(r.reason);
+      patchUi({ pendingImport: r.backup, sheet: 'confirmImport' });
+    },
+    confirmImport: () => {
+      const b = ui.pendingImport;
+      if (!b) return;
+      let plan = b.plan;
+      if (b.interview.confirmed && !plan.plan) {
+        const variety = plan.variety ?? defaultVariety(activeAnswers(b.interview));
+        plan = { ...plan, variety, plan: buildPlan(variety, planContext(b.interview, plan)).plan };
+      }
+      setInterview(b.interview);
+      setPlanState(plan);
+      setUi(initialUi(plan.plan ? 'home' : b.interview.done ? 'summary' : 'welcome'));
+      toast('Backup restored');
+    },
 
     /* ---------- nutrition ---------- */
     setEstimates: (on: boolean) => setPlanState((s) => ({ ...s, nutrition: { ...s.nutrition, nums: on } })),

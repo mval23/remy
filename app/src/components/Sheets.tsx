@@ -1,4 +1,6 @@
-import { firstOpen, formatAnswer, isAnswered, sectionStats, sequence } from '../interview/engine';
+import { activeAnswers, firstOpen, formatAnswer, isAnswered, sectionStats, sequence } from '../interview/engine';
+import { allRatings, listText } from '../interview/helpers';
+import { FOODS, LEVELS } from '../interview/questions';
 import { useRemy } from '../store';
 import { Icon } from './Icon';
 import { PlanSheets, SheetFrame } from './PlanSheets';
@@ -82,19 +84,94 @@ function Options() {
   );
 }
 
+/** Start over (from the interview) or delete everything (from Preferences): the same action. */
 function ConfirmRestart() {
-  const { actions } = useRemy();
+  const { ui, actions, sync } = useRemy();
+  const fromPrefs = ui.screen === 'prefs';
+  const where = sync.signedIn ? 'this device and your cloud copy' : 'this device';
   return (
-    <SheetFrame label="Start over">
-      <h3>Start the interview over?</h3>
-      <p className="sheet-text">This permanently deletes your answers, your meal plan and your grocery list from this device. It can’t be undone.</p>
+    <SheetFrame label={fromPrefs ? 'Delete everything' : 'Start over'}>
+      <h3>{fromPrefs ? 'Delete everything?' : 'Start the interview over?'}</h3>
+      <p className="sheet-text">
+        This permanently deletes your answers, meal plan, grocery list, check-ins and everything Remy learned from {where}. It can’t be undone. Backup files you downloaded aren’t
+        affected.
+      </p>
       <div className="row">
         <button type="button" className="btn ghost grow" onClick={actions.closeSheet}>
           Cancel
         </button>
         <button type="button" className="btn warn grow" onClick={() => void actions.restart()}>
-          Delete and start over
+          {fromPrefs ? 'Delete everything' : 'Delete and start over'}
         </button>
+      </div>
+    </SheetFrame>
+  );
+}
+
+function ConfirmForget() {
+  const { actions } = useRemy();
+  return (
+    <SheetFrame label="Delete learned preferences">
+      <h3>Delete learned preferences?</h3>
+      <p className="sheet-text">
+        This removes everything Remy inferred or learned from check-ins and skipped meals, and undoes what it changed. Your interview answers, your week and your check-in history stay.
+      </p>
+      <div className="row">
+        <button type="button" className="btn ghost grow" onClick={actions.closeSheet}>
+          Cancel
+        </button>
+        <button type="button" className="btn warn grow" onClick={actions.forgetAll}>
+          Delete
+        </button>
+      </div>
+    </SheetFrame>
+  );
+}
+
+function ConfirmImport() {
+  const { ui, interview, actions } = useRemy();
+  const b = ui.pendingImport;
+  if (!b) return null;
+  const when = b.exportedAt ? new Date(b.exportedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : 'an unknown date';
+  const parts = [b.interview.started && 'your answers', b.plan.plan && 'a meal plan', b.plan.learned.length > 0 && 'what Remy learned'].filter((x): x is string => !!x);
+  return (
+    <SheetFrame label="Restore a backup">
+      <h3>Restore this backup?</h3>
+      <p className="sheet-text">
+        Backup from {when}
+        {parts.length ? `, with ${listText(parts)}` : ''}.
+        {interview.started && ' It replaces what’s on this device now. If you’re signed in, your other devices get it too.'}
+      </p>
+      <div className="row">
+        <button type="button" className="btn ghost grow" onClick={actions.closeSheet}>
+          Cancel
+        </button>
+        <button type="button" className="btn grow" onClick={actions.confirmImport}>
+          Restore
+        </button>
+      </div>
+    </SheetFrame>
+  );
+}
+
+/** Move one food to a different level. */
+function FoodLevel() {
+  const { ui, interview, actions } = useRemy();
+  const f = ui.sheetFood;
+  if (!f || !FOODS[f]) return null;
+  const current = allRatings(activeAnswers(interview))[f];
+  return (
+    <SheetFrame label={`Change ${FOODS[f].n}`}>
+      <h3>
+        <span aria-hidden="true">{FOODS[f].e}</span> {FOODS[f].n}
+      </h3>
+      <p className="sheet-text">Remy updates the meals you haven’t approved yet. “Some ways” keeps the preparations you picked in the interview.</p>
+      <div className="levels" role="radiogroup" aria-label={FOODS[f].n}>
+        {LEVELS.map((l) => (
+          <button key={l.id} type="button" className={`l-${l.id}`} aria-pressed={current === l.id} onClick={() => actions.setFoodLevel(f, l.id, l.name)}>
+            {l.label}
+          </button>
+        ))}
       </div>
     </SheetFrame>
   );
@@ -105,6 +182,9 @@ export function Sheets() {
   if (ui.sheet === 'map') return <InterviewMap />;
   if (ui.sheet === 'options') return <Options />;
   if (ui.sheet === 'confirmRestart') return <ConfirmRestart />;
+  if (ui.sheet === 'confirmForget') return <ConfirmForget />;
+  if (ui.sheet === 'confirmImport') return <ConfirmImport />;
+  if (ui.sheet === 'food') return <FoodLevel />;
   return <PlanSheets />;
 }
 

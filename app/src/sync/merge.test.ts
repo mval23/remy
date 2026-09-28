@@ -54,6 +54,23 @@ describe('sync decisions', () => {
     expect(d.pullPlan!.at).toBeGreaterThan(200);
   });
 
+  it('doesn’t carry old check-offs into a new week planned on another device', () => {
+    const newWeek = remote(100, 200, { milk: true });
+    newWeek.plan = { ...newWeek.plan!, weekStartedAt: 200 };
+    const d = reconcile(local(100, 100, { rice: true }), newWeek);
+    expect(d.pullPlan?.value.groceries.checked).toEqual({ milk: true });
+    expect(d.pushPlan).toBe(false);
+  });
+
+  it('fills in fields missing from a cloud copy saved by an older version', () => {
+    const old = remote(100, 200);
+    const { learned: _l, checkin: _c, ...rest } = old.plan!;
+    old.plan = rest as PlanState;
+    const d = reconcile(local(100, 100), old);
+    expect(d.pullPlan?.value.learned).toEqual([]);
+    expect(d.pullPlan?.value.checkin.rated).toEqual({});
+  });
+
   it('merges check-offs, ignoring unchecked items', () => {
     expect(mergeChecked({ a: true, b: false }, { b: false, c: true })).toEqual({ a: true, c: true });
   });

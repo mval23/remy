@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Icon } from '../components/Icon';
 import { progress } from '../interview/engine';
 import { useRemy } from '../store';
@@ -6,6 +7,7 @@ export function Welcome() {
   const { interview: s, actions, sync } = useRemy();
   const pc = progress(s);
   const inProgress = s.started && !s.done;
+  const fileInput = useRef<HTMLInputElement>(null);
 
   return (
     <>
@@ -65,6 +67,26 @@ export function Welcome() {
             <button type="button" className="linkbtn self-start" onClick={() => actions.go('account')}>
               <Icon name="cloud" size={18} /> Already use Remy on another device? Sign in to sync
             </button>
+          )}
+          {!s.started && (
+            <>
+              <button type="button" className="linkbtn self-start" onClick={() => fileInput.current?.click()}>
+                <Icon name="upload" size={18} /> Have a backup file? Restore it
+              </button>
+              <input
+                ref={fileInput}
+                className="file-input"
+                type="file"
+                accept="application/json,.json"
+                tabIndex={-1}
+                aria-hidden="true"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = '';
+                  if (f) void actions.importFile(f);
+                }}
+              />
+            </>
           )}
           <p className="hint">Remy gives general meal-planning and balance guidance. It isn’t medical advice or a replacement for a dietitian.</p>
         </div>
