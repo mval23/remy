@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
   }
 
   if (body.test && (await signedIn(req))) {
-    const m = { subscription: body.subscription, title: 'Remy', body: 'Reminders are working. I’ll nudge you about thawing, your check-in and prep day.', url: '', tag: 'remy-test' };
+    const m = { subscription: body.subscription, title: 'Reminders are on', body: 'I’ll nudge you about thawing, your check-in and prep day.', url: '', tag: 'remy-test' };
     if (!valid(m)) return reply({ error: 'failed' }, 400);
     const r = await send([m]);
     return r.sent ? reply(r) : reply({ error: 'failed', ...r }, 502);

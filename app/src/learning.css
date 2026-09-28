@@ -18,3 +18,6 @@
 .li-check { cursor: pointer; }
 .li-check input[type='checkbox'] { width: 22px; height: 22px; accent-color: var(--basil); flex: none; }
 .row > label.grow { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+/* iPhone gives time boxes a fixed minimum width, which pushed the evening box off screen. */
+.field[type='time'] { min-width: 0; display: block; -webkit-appearance: none; appearance: none; color: var(--ink); }
+.field[type='time']::-webkit-date-and-time-value { text-align: left; }
