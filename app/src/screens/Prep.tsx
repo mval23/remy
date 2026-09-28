@@ -1,6 +1,7 @@
 import { BottomNav, Header } from '../components/Chrome';
+import { Lead, Leader, Mast, SecHead } from '../components/Dish';
 import { Icon } from '../components/Icon';
-import { StepLines, StepMeta } from '../components/Steps';
+import { LaneTag, StepLines } from '../components/Steps';
 import { listText, str } from '../interview/helpers';
 import { R } from '../planning/data/recipes';
 import { WEEKS } from '../planning/data/weeks';
@@ -13,7 +14,7 @@ import { useMedia, WIDE } from '../useMedia';
 
 const LANES: [Lane, string][] = [['hands', 'You'], ['oven', 'Oven'], ['stove', 'Stove'], ['chill', 'Chill']];
 
-/** A step you can tick off, with its instructions tucked into an expandable row. */
+/** A step you can tick off: time, name ........ minutes, where it happens, and its instructions tucked into an expandable row. */
 function StepRow({ step, done, onToggle, onRecipe, time }: { step: CookStep; done: boolean; onToggle: () => void; onRecipe?: () => void; time?: string }) {
   return (
     <div className={`task step${done ? ' done' : ''}${step.lane !== 'hands' ? ' bg' : ''}`}>
@@ -22,12 +23,16 @@ function StepRow({ step, done, onToggle, onRecipe, time }: { step: CookStep; don
       </button>
       <details className="grow">
         <summary>
-          {time && <span className="tm">{time}</span>}
-          <span className="tt">
-            {step.title}
-            {step.for.length > 1 && <span className="hint"> (for {listText(step.for)})</span>}
+          <span className="dish-line">
+            {time && <span className="tm">{time}</span>}
+            <span className="tt">
+              {step.title}
+              {step.for.length > 1 && <span className="hint"> (for {listText(step.for)})</span>}
+            </span>
+            <Leader />
+            <span className="min">{duration(step.minutes)}</span>
           </span>
-          <StepMeta step={step} />
+          <LaneTag lane={step.lane} temp={step.temp} />
         </summary>
         {step.alreadyDone ? (
           <p className="hint gap-top">Same step as for {step.alreadyDone} above: once covers both.</p>
@@ -48,6 +53,7 @@ function StepRow({ step, done, onToggle, onRecipe, time }: { step: CookStep; don
   );
 }
 
+/** Prep day as a timed menu: the afternoon's length up top, then what to set out, the steps and the packing. */
 export function Prep() {
   const { planState, ctx, ui, actions } = useRemy();
   const plan = planState.plan;
@@ -72,11 +78,30 @@ export function Prep() {
   const view = ui.prepView;
   const toggle = (id: string) => actions.markStep(id, !done[id]);
   const wide = useMedia(WIDE);
+  const prepDay = DAY_FULL[(str(A.prepday) || 'Sun') as Day];
 
   // Sideways on an iPad the overview sits on the left and the steps on the right; otherwise one column in this order.
   const overview = (
     <>
-      {over > 0 ? (
+      <Mast kicker={`${prepDay} · ${sc.recipes} recipes`} icon="clock" title={duration(sc.total)} sub={`1:00 PM to about ${clockTime(sc.total)}`}>
+        {over <= 0 && (
+          <div className="chips tight">
+            <span className="pill p-ok"><Icon name="check" size={13} /> Fits {str(A.preptime) || 'your window'}</span>
+          </div>
+        )}
+        <button type="button" className="btn wide" onClick={() => actions.go('cook')}>
+          <Icon name="clock" size={18} /> {doneCount ? 'Continue cooking' : 'Start cook mode'}
+        </button>
+        <p className="mast-sub">
+          {doneCount ? `${doneCount} of ${timeline.length} steps done. ` : 'One step at a time, with amounts, timers and the screen kept on.'}
+          {doneCount > 0 && (
+            <button type="button" className="linkbtn tight inline" onClick={actions.resetPrep}>
+              Start over
+            </button>
+          )}
+        </p>
+      </Mast>
+      {over > 0 && (
         <div className="warnline top-gap roomy">
           <Icon name="info" size={18} />
           <div>
@@ -94,73 +119,39 @@ export function Prep() {
             </div>
           </div>
         </div>
-      ) : (
-        <div className="panel row top-gap">
-          <div className="grow">
-            <div className="stat">{duration(sc.total)}</div>
-            <p className="hint">Starts 1:00 PM, done by {clockTime(sc.total)} · {sc.recipes} recipes</p>
-          </div>
-          <span className="pill p-ok"><Icon name="check" size={13} /> Fits {str(A.preptime) || 'your window'}</span>
-        </div>
       )}
 
-      <div className="panel stack gap-top-lg">
-        <button type="button" className="btn wide" onClick={() => actions.go('cook')}>
-          <Icon name="clock" size={18} /> {doneCount ? 'Continue cooking' : 'Start cook mode'}
-        </button>
-        <div className="row">
-          <p className="hint grow">
-            {doneCount ? `${doneCount} of ${timeline.length} steps done` : 'One step at a time, with amounts, timers and the screen kept on.'}
+      <section className="msec">
+        <SecHead title="Before you start" />
+        {firstOven && <Lead k="Preheat the oven" v={`${firstOven.temp}°C`} />}
+        <Lead k="Containers" v={packs.containers} />
+        {packs.bags + packs.foil > 0 && <Lead k="Bags and foil" v={packs.bags + packs.foil} />}
+        {gear.length > 0 && (
+          <p className="lead-note">
+            <b>Equipment:</b> {listText(gear)}.
           </p>
-          {doneCount > 0 && (
-            <button type="button" className="linkbtn tight" onClick={actions.resetPrep}>
-              Start over
-            </button>
-          )}
-        </div>
-      </div>
-
-      <section className="sec">
-        <h2>Before you start</h2>
-        <div className="panel stack">
-          {firstOven && (
-            <p className="ink-2">
-              <b>Preheat the oven to {firstOven.temp}°C</b> at the start.
-            </p>
-          )}
-          {gear.length > 0 && (
-            <div>
-              <p className="hint strong">Equipment</p>
-              <div className="chips tight gap-top">
-                {gear.map((g) => (
-                  <span className="pill p-muted" key={g}>{g}</span>
-                ))}
-                <span className="pill p-muted">{packs.containers} containers</span>
-                {packs.bags + packs.foil > 0 && <span className="pill p-muted">{packs.bags + packs.foil} bags and foil</span>}
+        )}
+        <details>
+          <summary className="linkbtn">Ingredients to set out, by recipe</summary>
+          {toPrep.map(({ r, batches, scale }) => (
+            <div className="prep-set" key={r.id}>
+              <div className="dish-line">
+                <span className="dish-name">
+                  {r.e} {r.short}
+                </span>
+                {batches > 1 && (
+                  <>
+                    <Leader />
+                    <span className="dish-count">×{batches} batches</span>
+                  </>
+                )}
               </div>
-            </div>
-          )}
-          <details>
-            <summary className="linkbtn">Ingredients to set out, by recipe</summary>
-            <div className="stack gap-top">
-              {toPrep.map(({ r, batches, scale }) => (
-                <div key={r.id}>
-                  <p className="strong">
-                    {r.e} {r.short}
-                    {batches > 1 && <span className="pill p-warn"> ×{batches} batches</span>}
-                  </p>
-                  <ul className="ing-list">
-                    {scaledIngredients(r, batches, scale).map((x) => (
-                      <li key={x.k}>
-                        <b>{x.amount}</b> {x.name}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              {scaledIngredients(r, batches, scale).map((x) => (
+                <Lead key={x.k} k={x.name} v={x.amount} />
               ))}
             </div>
-          </details>
-        </div>
+          ))}
+        </details>
       </section>
     </>
   );
@@ -183,8 +174,8 @@ export function Prep() {
 
       {view === 'timeline' ? (
         <>
-          <section className="sec">
-            <h2>What runs at the same time</h2>
+          <section className="msec">
+            <SecHead title="What runs when" />
             <div className="gantt" role="img" aria-label="Timeline of hands-on, oven, stove and chilling tasks">
               {LANES.map(([lane, label]) => (
                 <div className="lane" key={lane}>
@@ -207,9 +198,9 @@ export function Prep() {
             </div>
           </section>
 
-          <section className="sec">
-            <h2>Timeline</h2>
-            <div className="panel tasks">
+          <section className="msec">
+            <SecHead title="Timeline" aside={`${doneCount} of ${timeline.length} done`} />
+            <div className="steps-flat">
               {timeline.map((step) => (
                 <StepRow
                   key={step.id}
@@ -225,14 +216,9 @@ export function Prep() {
         </>
       ) : (
         flows.map(({ r, batches, steps }) => (
-          <section className="sec" key={r.id}>
-            <h2>
-              <span className="grow">
-                {r.e} {r.short}
-              </span>
-              {batches > 1 && <span className="pill p-warn">×{batches} batches</span>}
-            </h2>
-            <div className="panel tasks">
+          <section className="msec" key={r.id}>
+            <SecHead title={`${r.e} ${r.short}`} aside={batches > 1 ? `×${batches} batches` : undefined} />
+            <div className="steps-flat">
               {steps.map((step, i) => (
                 <StepRow key={`${step.id}-${i}`} step={step} done={!!done[step.id]} onToggle={() => toggle(step.id)} onRecipe={() => actions.openRecipe(r.id)} />
               ))}
@@ -252,28 +238,28 @@ export function Prep() {
 
   const packing = (
     <>
-      <section className="sec">
-        <h2>Pack and label</h2>
-        <div className="list">
-          {Object.entries(byRecipe).map(([id, o]) => {
-            const r = R[id];
-            return (
-              <div className="li" key={id}>
-                <span className="em-lg" aria-hidden="true">{r.e}</span>
-                <div className="grow">
-                  <div className="t">
-                    {r.short} <span className="mono hint">×{o.fridge.length + o.freezer.length + o.room.length}</span>
-                  </div>
-                  <div className="chips tight gap-top">
-                    {o.fridge.length > 0 && <span className="pill p-fridge"><Icon name="fridge" size={12} /> Fridge: {o.fridge.join(', ')}</span>}
-                    {o.freezer.length > 0 && <span className="pill p-freeze"><Icon name="snow" size={12} /> Freezer: {o.freezer.join(', ')}</span>}
-                    {o.room.length > 0 && <span className="pill p-muted">Pantry: {o.room.join(', ')}</span>}
-                  </div>
+      <section className="msec">
+        <SecHead title="Pack and label" aside={`${packs.containers} containers`} />
+        {Object.entries(byRecipe).map(([id, o]) => {
+          const r = R[id];
+          return (
+            <div className="dish" key={id}>
+              <span className="dish-emoji" aria-hidden="true">{r.e}</span>
+              <div className="dish-body">
+                <div className="dish-line">
+                  <span className="dish-name">{r.short}</span>
+                  <Leader />
+                  <span className="dish-count">×{o.fridge.length + o.freezer.length + o.room.length}</span>
+                </div>
+                <div className="chips tight">
+                  {o.fridge.length > 0 && <span className="pill p-fridge"><Icon name="fridge" size={12} /> Fridge: {o.fridge.join(', ')}</span>}
+                  {o.freezer.length > 0 && <span className="pill p-freeze"><Icon name="snow" size={12} /> Freezer: {o.freezer.join(', ')}</span>}
+                  {o.room.length > 0 && <span className="pill p-muted">Pantry: {o.room.join(', ')}</span>}
                 </div>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
         {packs.containers > packs.containerCap && (
           <div className="warnline">
             <Icon name="info" size={16} />
@@ -289,29 +275,25 @@ export function Prep() {
         <p className="hint gap-top">Label every container with the dish and the prep date.</p>
       </section>
 
-      <section className="sec">
-        <h2>Food safety rules I follow</h2>
-        <div className="panel">
-          <ul className="rules">
-            <li>Cool food in shallow containers and refrigerate within 2 hours of cooking. Cool rice quickly and refrigerate it within about an hour.</li>
-            <li>Fridge at 4°C or colder. Cooked meals are eaten within 3–4 days; anything later goes in the freezer on prep day.</li>
-            <li>Freezer at −18°C. Frozen food stays safe; quality is best within 2–3 months.</li>
-            <li>Thaw in the fridge, in cold water, or in the microwave. Never on the counter.</li>
-            <li>Reheat leftovers until steaming, 74°C in the center.</li>
-          </ul>
-        </div>
+      <section className="msec">
+        <SecHead title="Food safety" />
+        <ol className="msteps-simple">
+          <li>Cool food in shallow containers and refrigerate within 2 hours of cooking. Cool rice quickly and refrigerate it within about an hour.</li>
+          <li>Fridge at 4°C or colder. Cooked meals are eaten within 3–4 days; anything later goes in the freezer on prep day.</li>
+          <li>Freezer at −18°C. Frozen food stays safe; quality is best within 2–3 months.</li>
+          <li>Thaw in the fridge, in cold water, or in the microwave. Never on the counter.</li>
+          <li>Reheat leftovers until steaming, 74°C in the center.</li>
+        </ol>
       </section>
 
       {A.cleanup === 'As little as possible' && (
-        <section className="sec">
-          <h2>Less cleanup</h2>
-          <div className="panel">
-            <ul className="rules">
-              <li>Line every sheet pan with baking paper.</li>
-              <li>Rinse mixing bowls while things roast, so the sink never piles up.</li>
-              <li>The blender goes straight into the dishwasher after the sauce.</li>
-            </ul>
-          </div>
+        <section className="msec">
+          <SecHead title="Less cleanup" />
+          <ol className="msteps-simple">
+            <li>Line every sheet pan with baking paper.</li>
+            <li>Rinse mixing bowls while things roast, so the sink never piles up.</li>
+            <li>The blender goes straight into the dishwasher after the sauce.</li>
+          </ol>
         </section>
       )}
     </>
@@ -319,7 +301,7 @@ export function Prep() {
 
   return (
     <>
-      <Header title="Prep day" sub={`${DAY_FULL[(str(A.prepday) || 'Sun') as Day]} · 1:00 PM start`} />
+      <Header title="Prep day" sub={`${prepDay} · 1:00 PM start`} />
       <main className="body wide" tabIndex={0}>
         {wide ? (
           <div className="cols">

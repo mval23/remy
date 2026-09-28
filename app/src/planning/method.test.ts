@@ -39,7 +39,7 @@ describe('metric amounts', () => {
 describe('detailed instructions', () => {
   it('has the pilot recipes and the world-kitchen recipes written out in full', () => {
     const pilot = ['brownies', 'burritos', 'oats', 'pancakes', 'quesadilla', 'spaghetti', 'tenders', 'teriyaki'];
-    const world = ['arepas', 'bfsandwich', 'frittata', 'arrozconpollo', 'frijoles', 'fajitabowl', 'pestopasta', 'greekbowl', 'lemonchicken', 'ajiaco', 'sudado', 'enchiladas', 'tortillasoup', 'lasagna', 'chickenparm', 'minestrone', 'turkeyburgers', 'lemonsalmon', 'tunamelt', 'tunapasta', 'pandebono', 'esquites', 'hummus', 'eggbox', 'side_boiledeggs', 'arrozconleche', 'tiramisu', 'applecrisp'];
+    const world = ['arepas', 'bfsandwich', 'frittata', 'arrozconpollo', 'frijoles', 'fajitabowl', 'pestopasta', 'greekbowl', 'lemonchicken', 'ajiaco', 'sudado', 'enchiladas', 'tortillasoup', 'lasagna', 'chickenparm', 'minestrone', 'turkeyburgers', 'lemonsalmon', 'tunamelt', 'tunapasta', 'pandebono', 'esquites', 'hummus', 'eggbox', 'side_boiledeggs', 'arrozconleche', 'tiramisu', 'applecrisp', 'bandeja', 'bolognese', 'carbonara', 'pechugagratinada', 'nachos', 'pechuga', 'sandwich', 'wraps', 'guacamole', 'pericos', 'alfredo', 'salmonbowl', 'tunaavocado', 'caesar', 'sancocho', 'tinga', 'pizza', 'empanadas', 'obleas', 'fresas'];
     expect(detailed.map((r) => r.id).sort()).toEqual([...pilot, ...world].sort());
   });
 

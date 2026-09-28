@@ -1,5 +1,8 @@
 import { withMacros } from '../macros';
+import removedList from './removed.json';
 import type { Recipe, Slot, Task } from '../types';
+import { SLOTS } from '../types';
+import slotList from './slots.json';
 
 /** kcal, protein, carbs and fat are added up from the ingredients (macros.ts), so recipes don’t list them. */
 type RecipeInput = Omit<Recipe, 'id' | 'kcal' | 'pro' | 'carb' | 'fat'>;
@@ -531,6 +534,23 @@ const MEALS: Record<string, RecipeInput> = {
     prod: 0.5, plate: 'One square. Add toast or fruit if you want more.',
   },
 
+  pericos: {
+    name: 'Huevos pericos with arepa', short: 'Pericos & arepa', slot: 'Breakfast', e: '🍳', serves: 4, fridge: 4, freezer: 3,
+    foods: { eggs: 'Scrambled', tomatoes: 'Finely chopped, cooked soft', onions: 'Finely chopped, cooked soft', cheese: 1 },
+    ing: [['arepaflour', 200], ['butter', 15], ['tomatoes', 2], ['scallions', 3], ['oil', 1], ['eggs', 8], ['quesofresco', 60]],
+    why: ['The Colombian breakfast: eggs scrambled with tomato and green onion, and an arepa', 'Arepas and hogao are ready; the eggs take 5 minutes in the morning', 'About 20 g of protein'],
+    note: 'Cook-fresh mornings: 5 minutes. The arepas (freezer-friendly) and hogao are made on prep day.',
+    steps: ['Make plain arepas and a quick hogao of tomato and green onion on prep day.', 'Each morning, scramble 2 eggs with 2 spoons of hogao and toast an arepa.'],
+    reheat: 'Each morning, 5 minutes: toast an arepa in a dry pan. Scramble 2 eggs with 2 spoons of hogao over medium-low heat until just set, and crumble a little queso fresco on top.', thaw: 'Arepas go straight from the freezer into the pan.',
+    tasks: [
+      { t: 'Mix and shape arepas for pericos', l: 'hands', m: 12, gear: ['mixing bowl'], how: ['Mix {arepaflour} with {arepaflour*2:ml} of warm water and a good pinch of salt, and knead until smooth.', 'Shape {portions} arepas about 1.5 cm thick.'] },
+      { t: 'Cook the arepas', l: 'stove', m: 18, gear: ['large nonstick pan'], how: ['Cook in a pan brushed with {butter} over medium-low heat, 5–6 minutes per side, until golden spots form.'] },
+      { t: 'Cook the hogao for pericos', l: 'stove', m: 8, gear: ['medium pot'], how: ['Finely chop {tomatoes} and {scallions}, and cook in {oil} over medium heat for 6 minutes, until soft. Season with salt and box it.'] },
+      { t: 'Bag arepas and pack the pericos kit', l: 'hands', m: 4, end: true, gear: ['freezer bag'], how: ['Cool the arepas and bag them; freeze what you won’t eat in 4 days.', 'Keep {eggs} and {quesofresco} for the mornings.'] },
+    ],
+    prod: 0.5, plate: 'One arepa with 2 eggs scrambled with hogao.',
+  },
+
   /* lunch */
   arrozconpollo: {
     name: 'Colombian arroz con pollo', short: 'Arroz con pollo', slot: 'Lunch', e: '🍛', serves: 4, fridge: 4, freezer: 2,
@@ -642,10 +662,116 @@ const MEALS: Record<string, RecipeInput> = {
     prod: 0.75, plate: 'About 300 g.',
   },
 
+  pechuga: {
+    name: 'Pechuga a la plancha with rice, hogao & avocado', short: 'Pechuga a la plancha', slot: 'Lunch', e: '🍗', serves: 4, fridge: 4, freezer: 0,
+    foods: { chicken: 1, rice: 1, tomatoes: 'Finely chopped, cooked soft', onions: 'Finely chopped, cooked soft', avocado: 'Raw' },
+    ing: [['chickenbreast', 680], ['limes', 1], ['garlic', 2], ['cumin', 1], ['oil', 1], ['rice', 190], ['tomatoes', 2], ['scallions', 3], ['avocados', 2]],
+    why: ['A Colombian everyday lunch: seared chicken breast, rice and hogao', 'Lean and high in protein', 'Avocado sliced fresh when you eat it'],
+    note: 'Not frozen: the avocado is sliced fresh each day.',
+    steps: ['Pound chicken breasts even and marinate with lime, garlic and cumin.', 'Sear 5–6 minutes per side; cook a quick hogao of tomato and green onion.', 'Portion with rice; add avocado when you eat it.'],
+    reheat: 'Microwave 2 minutes until 74°C, then add half an avocado, sliced.',
+    tasks: [
+      RICE_TASK,
+      { t: 'Marinate the pechugas', l: 'hands', m: 6, gear: ['mixing bowl'], how: ['Pound {chickenbreast} to an even 1.5 cm between two sheets of baking paper.', 'Toss with the juice of {limes}, {garlic} (grated), {cumin} and a good pinch of salt.'] },
+      { t: 'Sear the pechugas', l: 'stove', m: 16, gear: ['large nonstick pan'], how: ['Heat {oil*0.5} over medium-high heat and sear the chicken in batches, 5–6 minutes per side, until golden and 74°C inside.', 'Rest 5 minutes, then slice.'] },
+      { t: 'Cook the hogao', l: 'stove', m: 10, how: ['Finely chop {tomatoes} and {scallions}, and cook in {oil*0.5} over medium heat for 8 minutes, until soft and jammy. Season with salt.'] },
+      { t: 'Portion pechuga lunches', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Divide rice (about {rice*3:g} cooked), sliced chicken and hogao between {portions} containers.', 'Keep {avocados} whole until the day you eat them.'] },
+    ],
+    prod: 1, plate: 'Half chicken and hogao, a quarter rice, and half an avocado.',
+  },
+  sandwich: {
+    name: 'Chicken, avocado & cheese sandwiches', short: 'Chicken avocado sandwich', slot: 'Lunch', e: '🥪', serves: 4, fridge: 4, freezer: 0, cold: true,
+    foods: { chicken: 1, cheese: 1, avocado: 'Mashed', tomatoes: 'Raw' },
+    ing: [['chickenbreast', 450], ['herbs', 1], ['oil', 1], ['cheeseblock', 110], ['tomatoes', 2], ['lettuce', 1], ['bread', 8], ['avocados', 2], ['limes', 1]],
+    why: ['A proper sandwich: roast chicken, cheese, tomato, lettuce and smashed avocado', 'The chicken is roasted on prep day; the sandwich takes 3 minutes', 'Packed apart, so the bread never goes soggy'],
+    note: 'Assembled the day you eat it; everything else is ready in the fridge.',
+    steps: ['Roast herb chicken breasts and slice thin.', 'Pack chicken, cheese, tomato and lettuce in boxes.', 'On the day, mash avocado with lime onto bread and fill.'],
+    reheat: 'On the day: mash half an avocado with lime juice and salt, spread on 2 slices of bread, and fill with chicken, cheese, tomato and lettuce. 3 minutes.',
+    tasks: [
+      { t: 'Season chicken for sandwiches', l: 'hands', m: 4, gear: ['sheet pan', 'baking paper'], how: ['Rub {chickenbreast} with {oil}, {herbs} and a pinch of salt, and lay on a lined sheet pan.'] },
+      { t: 'Roast sandwich chicken', l: 'oven', m: 22, temp: 220, how: ['Roast at 220°C for 20–22 minutes, until 74°C in the thickest part. Cool before slicing.'] },
+      { t: 'Slice and pack sandwich fillings', l: 'hands', m: 10, end: true, gear: ['containers'], how: ['Slice the chicken thin, slice {cheeseblock} and {tomatoes}, and wash and dry {lettuce}.', 'Pack the fillings in {portions} boxes. Keep {bread} in its bag, and {avocados} and {limes} whole until the day you eat it.'] },
+    ],
+    prod: 1, plate: 'One sandwich (2 slices of bread).',
+  },
+  wraps: {
+    name: 'Chicken ranch wraps', short: 'Chicken ranch wraps', slot: 'Lunch', e: '🌯', serves: 4, fridge: 4, freezer: 0, cold: true,
+    foods: { chicken: 1, cheese: 1, tomatoes: 'Raw' }, sauces: ['Ranch'],
+    ing: [['chickenbreast', 570], ['paprika', 1], ['oil', 1], ['lettuce', 1], ['tomatoes', 2], ['cheddar', 85], ['ranch', 120], ['tortillas', 4]],
+    why: ['Smoky roast chicken, crunchy lettuce and ranch in a soft tortilla', 'Roll one in 2 minutes; the fillings are ready', 'Good cold, or with the chicken warmed'],
+    note: 'Rolled the day you eat it, so the tortilla stays soft, not soggy.',
+    steps: ['Roast paprika chicken breasts and slice into strips.', 'Pack chicken, lettuce, tomato and cheese; ranch in small cups.', 'On the day, spread a tortilla with ranch, fill and roll.'],
+    reheat: 'On the day: spread a tortilla with ranch, add chicken, lettuce, tomato and cheese, fold in the sides and roll. Warm the chicken for 60 seconds first if you like.',
+    tasks: [
+      { t: 'Season chicken for wraps', l: 'hands', m: 4, gear: ['sheet pan', 'baking paper'], how: ['Rub {chickenbreast} with {oil}, {paprika} and a pinch of salt, and lay on a lined sheet pan.'] },
+      { t: 'Roast wrap chicken', l: 'oven', m: 22, temp: 220, how: ['Roast at 220°C for 20–22 minutes, until 74°C in the thickest part.'] },
+      { t: 'Slice and pack wrap fillings', l: 'hands', m: 10, end: true, gear: ['containers'], how: ['Slice the chicken into strips. Chop {lettuce}, dice {tomatoes}, and pack them with {cheddar} and the chicken in {portions} boxes.', 'Put {ranch} in small cups and keep {tortillas} in their bag.'] },
+    ],
+    prod: 1, plate: 'One large wrap.',
+  },
+
+  alfredo: {
+    name: 'Chicken alfredo pasta with peas', short: 'Chicken alfredo', slot: 'Lunch', e: '🍝', serves: 4, fridge: 4, freezer: 0,
+    foods: { chicken: 1, pasta: 1, cheese: 1 }, sauces: ['Alfredo'],
+    ing: [['chickenbreast', 450], ['oil', 1], ['pasta', 300], ['peas', 150], ['butter', 30], ['garlic', 2], ['cream', 150], ['milk', 150], ['parmesan', 60]],
+    why: ['Creamy parmesan sauce with seared chicken', 'Peas cook in the pasta pot', 'Half milk, half cream, so it’s lighter than restaurant alfredo'],
+    note: 'Not frozen: cream sauces split in the freezer.',
+    steps: ['Sear sliced chicken breast.', 'Boil pasta with peas.', 'Simmer garlic, cream and milk; stir in parmesan and toss everything together.'],
+    reheat: 'Microwave 2 minutes with a splash of milk, stirring halfway, until steaming (74°C).',
+    tasks: [
+      { t: 'Sear chicken for alfredo', l: 'stove', m: 14, gear: ['large nonstick pan'], how: ['Slice {chickenbreast} into strips, season with salt and pepper, and sear in {oil} over medium-high heat for 6–7 minutes, until 74°C inside.'] },
+      { t: 'Boil pasta with peas', l: 'stove', m: 12, gear: ['large pot', 'colander'], how: ['Boil {pasta} in salted water for 1 minute less than the packet says, adding {peas} for the last 2 minutes. Keep a mug of the water, then drain.'] },
+      { t: 'Make the alfredo sauce', l: 'stove', m: 8, gear: ['medium pot'], how: ['Melt {butter}, add {garlic} (grated) and cook 1 minute.', 'Add {cream} and {milk}, simmer 3 minutes, then stir in {parmesan} until smooth.'] },
+      { t: 'Toss and portion chicken alfredo', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Toss the pasta, peas and chicken with the sauce, loosening with a splash of pasta water, and divide between {portions} containers.'] },
+    ],
+    prod: 0.5, plate: 'About 350 g. A green side rounds it out.',
+  },
+  salmonbowl: {
+    name: 'Honey-soy salmon & avocado rice bowls', short: 'Salmon avocado bowl', slot: 'Lunch', e: '🍚', serves: 3, fridge: 3, freezer: 0,
+    foods: { salmon: 1, rice: 1, avocado: 'Raw' },
+    ing: [['soy', 2], ['honey', 1], ['salmon', 450], ['rice', 190], ['cucumber', 1], ['avocados', 1.5], ['limes', 1]],
+    why: ['Glazed salmon, rice, cucumber and avocado: a fresh, filling bowl', 'Good cold or warm', 'Healthy fats and about 35 g of protein'],
+    note: 'Cooked fish is eaten within 3 days and isn’t frozen.',
+    steps: ['Brush salmon with soy and honey; roast at 220°C for 12–14 minutes.', 'Flake over rice with sliced cucumber.', 'Add avocado and lime when you eat it.'],
+    reheat: 'Eat cold, or microwave the salmon and rice at half power for 90 seconds. Add avocado slices and a squeeze of lime.',
+    tasks: [
+      RICE_TASK,
+      { t: 'Glaze salmon for bowls', l: 'hands', m: 4, gear: ['sheet pan', 'baking paper'], how: ['Whisk {soy} with {honey}, and brush it over {salmon} on a lined sheet pan.'] },
+      { t: 'Roast salmon for bowls', l: 'oven', m: 14, temp: 220, how: ['Roast at 220°C for 12–14 minutes, until it flakes easily and reaches 63°C.'] },
+      { t: 'Portion salmon bowls', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Flake the salmon over rice (about {rice*3:g} cooked) in {portions} containers and add sliced {cucumber}.', 'Keep {avocados} and {limes} to add when you eat it.'] },
+    ],
+    prod: 1, plate: 'Salmon, rice, cucumber and half an avocado.',
+  },
+  tunaavocado: {
+    name: 'Tuna-stuffed avocados', short: 'Tuna-stuffed avocado', slot: 'Lunch', e: '🥑', serves: 2, fridge: 3, freezer: 0, cold: true,
+    foods: { tuna: 1, avocado: 'Raw', tomatoes: 'Raw', corn: 1 },
+    ing: [['tuna', 2], ['mayo', 2], ['limes', 1], ['tomatoes', 1], ['corn', 100], ['avocados', 2]],
+    why: ['Light, fresh and ready in 2 minutes', 'Tuna and avocado: protein and healthy fats', 'No cooking at all'],
+    steps: ['Mix tuna with a little mayonnaise, lime, tomato and corn.', 'Halve an avocado and fill it when you eat it.'],
+    reheat: 'Halve an avocado, remove the pit, and pile in half the tuna salad. 2 minutes.',
+    tasks: [{ t: 'Mix tuna salad for stuffed avocados', l: 'hands', m: 6, end: true, gear: ['mixing bowl', 'containers'], how: ['Drain {tuna} and mix with {mayo}, the juice of {limes}, diced {tomatoes}, {corn} (thawed), salt and pepper. Box it for the fridge.', 'Keep {avocados} whole, to halve and fill when you eat them.'] }],
+    prod: 1.5, plate: 'One whole avocado, filled.',
+  },
+  caesar: {
+    name: 'Chicken caesar salad with homemade croutons', short: 'Chicken caesar', slot: 'Lunch', e: '🥗', serves: 4, fridge: 4, freezer: 0, cold: true,
+    foods: { chicken: 1, cheese: 1 },
+    ing: [['chickenbreast', 570], ['oil', 2], ['herbs', 1], ['bread', 4], ['lettuce', 2], ['parmesan', 40], ['caesar', 120]],
+    why: ['The American lunch classic, with crunchy homemade croutons', 'Lean chicken and crisp romaine', 'Dressing packed apart, so the salad stays crisp'],
+    note: 'Caesar dressing usually has anchovy (fish) and egg; Remy checks it against your allergies.',
+    steps: ['Roast herb chicken breasts and bake bread cubes into croutons.', 'Pack chopped romaine with sliced chicken and parmesan; dressing and croutons apart.', 'Toss just before eating.'],
+    reheat: 'Toss the lettuce with the dressing just before eating, and add the croutons last.',
+    tasks: [
+      { t: 'Season chicken and cube bread for caesar', l: 'hands', m: 6, gear: ['2 sheet pans', 'baking paper'], how: ['Rub {chickenbreast} with {oil*0.5}, {herbs} and a pinch of salt, and lay on a lined pan.', 'Cut {bread} into cubes, toss with {oil*0.5} and spread on the second pan.'] },
+      { t: 'Roast caesar chicken and croutons (2 pans)', l: 'oven', m: 22, temp: 220, pans: 2, how: ['Roast the chicken at 220°C for 20–22 minutes, until 74°C inside. Take the croutons out after 10–12 minutes, when golden and crisp.'] },
+      { t: 'Pack caesar salads', l: 'hands', m: 10, end: true, gear: ['containers', 'freezer bag'], how: ['Chop {lettuce}, and pack it with the sliced chicken and {parmesan} in {portions} boxes.', 'Bag the croutons, and put {caesar} in small cups.'] },
+    ],
+    prod: 1, plate: 'One big box of salad, dressing and croutons on the side.',
+  },
+
   /* dinner */
   ajiaco: {
-    name: 'Colombian ajiaco (chicken, potato & corn soup)', short: 'Ajiaco', slot: 'Dinner', e: '🍲', serves: 5, fridge: 4, freezer: 3,
-    foods: { chicken: 1, potatoes: 1, corn: 1, onions: 'Finely chopped, cooked soft' },
+    name: 'Colombian ajiaco (chicken, potato & corn soup)', short: 'Ajiaco', slot: 'Lunch', e: '🍲', serves: 5, fridge: 4, freezer: 3,
+    foods: { chicken: 1, potatoes: 1, corn: 1, onions: 'Finely chopped, cooked soft', avocado: 'Raw' },
     ing: [['potatoes', 900], ['scallions', 4], ['garlic', 3], ['chickenbreast', 680], ['chickenbroth', 1900], ['corn', 300], ['sourcream', 150], ['avocados', 2]],
     why: ['Bogotá’s famous soup: chicken, potatoes and corn', 'Comforting but light, with plenty of protein', 'Freezes well for the end of the week'],
     note: 'Traditional ajiaco uses guascas, a Colombian herb. Add 1 tablespoon of dried guascas with the broth if you find it; it’s still good without.',
@@ -659,7 +785,7 @@ const MEALS: Record<string, RecipeInput> = {
     prod: 0.75, plate: 'One big bowl, about 450 ml, with sour cream and avocado.',
   },
   sudado: {
-    name: 'Colombian chicken sudado (tomato-braised chicken & potatoes)', short: 'Chicken sudado', slot: 'Dinner', e: '🍗', serves: 4, fridge: 4, freezer: 3,
+    name: 'Colombian chicken sudado (tomato-braised chicken & potatoes)', short: 'Chicken sudado', slot: 'Lunch', e: '🍗', serves: 4, fridge: 4, freezer: 3,
     foods: { chicken: 1, potatoes: 1, rice: 1, tomatoes: 'Finely chopped, cooked soft', onions: 'Finely chopped, cooked soft' },
     ing: [['tomatoes', 3], ['onion', 1], ['garlic', 2], ['potatoes', 450], ['oil', 1], ['cumin', 1], ['paprika', 1], ['thighs', 680], ['rice', 190]],
     why: ['Colombian home cooking: chicken slowly braised in hogao', 'Tomato and onion cook down into a smooth sauce', 'Served with rice, the Colombian way'],
@@ -791,6 +917,133 @@ const MEALS: Record<string, RecipeInput> = {
     prod: 0, plate: 'Two open-faced halves. Add a vegetable side for produce.',
   },
 
+  bandeja: {
+    name: 'Bandeja paisa', short: 'Bandeja paisa', slot: 'Lunch', e: '🍽️', serves: 4, fridge: 4, freezer: 2,
+    foods: { beans: 1, beef: 1, rice: 1, tomatoes: 'Finely chopped, cooked soft', onions: 'Finely chopped, cooked soft', eggs: 'Fried', avocado: 'Raw' },
+    ing: [['tomatoes', 2], ['scallions', 3], ['oil', 1], ['redbeans', 2], ['cumin', 1], ['beef', 280], ['arepaflour', 80], ['plantains', 2], ['chorizo', 160], ['rice', 150], ['avocados', 1], ['eggs', 4]],
+    why: ['The big Colombian plate: beans in hogao, rice, carne molida, chorizo, sweet plantain and an arepa', 'Everything but the egg is cooked on prep day', 'A fried egg and avocado on top, fresh, the way it should be'],
+    note: 'The big one, at about 900 kcal. If you set goals, Remy fits the portion. The egg is fried fresh when you eat it.',
+    steps: ['Simmer red beans in hogao (tomato and green onion).', 'Brown the ground beef; bake chorizo, sweet plantain and small arepas at 200°C.', 'Portion with rice. On the night, fry an egg and add avocado.'],
+    reheat: 'Microwave 3 minutes, stirring the beans and rice halfway, until steaming (74°C). Fry an egg (about 3 minutes, until the white is set) and add a few avocado slices.', thaw: 'Move to the fridge the night before.',
+    tasks: [
+      RICE_TASK,
+      { t: 'Chop the hogao for bandeja paisa', l: 'hands', m: 6, how: ['Finely chop {tomatoes} and {scallions}.'] },
+      { t: 'Simmer red beans for bandeja paisa', l: 'stove', m: 28, gear: ['medium pot'], how: ['Cook the tomato and green onion in {oil*0.33} over medium heat for 6 minutes, until soft and jammy.', 'Add {redbeans} with their liquid, {cumin} and 250 ml water. Simmer 20 minutes, mashing some beans against the pot to thicken. Season with salt.'] },
+      { t: 'Brown the carne molida', l: 'stove', m: 10, gear: ['large nonstick pan'], how: ['Brown {beef} in {oil*0.33} over medium-high heat, breaking it up finely, 8 minutes. Season with salt and pepper.'] },
+      { t: 'Shape small arepas', l: 'hands', m: 8, gear: ['mixing bowl'], how: ['Mix {arepaflour} with {arepaflour*2:ml} of warm water and a pinch of salt, and knead until smooth.', 'Shape {portions} small, thin arepas.'] },
+      { t: 'Bake chorizo, sweet plantain and arepas (2 pans)', l: 'oven', m: 25, temp: 200, pans: 2, gear: ['2 sheet pans', 'baking paper'], how: ['Peel {plantains} and cut into thick diagonal slices. Lay them and the arepas on a lined pan and brush with {oil*0.33}.', 'Put {chorizo} on the second pan. Bake both at 200°C for 20–25 minutes, turning once, until the plantain is caramelized and the chorizo reaches 71°C inside.'] },
+      { t: 'Portion bandeja paisa', l: 'hands', m: 8, end: true, gear: ['containers'], how: ['Divide rice (about {rice*3:g} cooked), beans, beef, sliced chorizo, plantain and an arepa between {portions} containers. Cool, then refrigerate.', 'Keep {eggs} and {avocados} to fry and slice when you eat it.'] },
+    ],
+    subs: [['pork chorizo', 'chicken sausage']],
+    prod: 1.5, plate: 'One container, plus a fried egg and a few slices of avocado.',
+  },
+  bolognese: {
+    name: 'Slow-simmered spaghetti bolognese', short: 'Spaghetti bolognese', slot: 'Dinner', e: '🍝', serves: 5, fridge: 4, freezer: 3,
+    foods: { beef: 1, pasta: 1, cheese: 1, onions: 'Finely chopped, cooked soft', carrots: 'Finely chopped, cooked soft', tomatoes: 'Blended into a sauce' }, sauces: ['Marinara'],
+    ing: [['onion', 1], ['carrots', 2], ['garlic', 2], ['oil', 1], ['beef', 570], ['milk', 120], ['crushedtomatoes', 1], ['herbs', 1], ['spaghetti', 350], ['parmesan', 40]],
+    why: ['The Italian classic: a rich meat sauce simmered slowly', 'A splash of milk makes it mellow and tender', 'The sauce freezes for 3 months'],
+    note: 'Sauce and pasta are stored separately so the pasta doesn’t go soft.',
+    steps: ['Soften finely chopped onion, carrot and garlic; brown the beef.', 'Add milk, then crushed tomatoes and herbs; simmer 40 minutes.', 'Boil spaghetti and portion separately from the sauce.'],
+    reheat: 'Microwave the sauce 2 minutes, stir, add the pasta and heat 1 more minute until steaming (74°C). Top with parmesan.', thaw: 'Move frozen sauce to the fridge the night before.',
+    tasks: [
+      { t: 'Chop the soffritto for bolognese', l: 'hands', m: 10, how: ['Finely chop {onion}, {carrots} and {garlic}; the smaller, the smoother the sauce.'] },
+      { t: 'Brown the beef and soffritto', l: 'hands', m: 12, gear: ['large deep pan'], how: ['Soften the vegetables in {oil} over medium heat for 8 minutes.', 'Add {beef} and brown it, breaking it up, 8 minutes.'] },
+      { t: 'Simmer bolognese', l: 'stove', m: 45, how: ['Pour in {milk} and simmer until it’s absorbed, about 5 minutes.', 'Add {crushedtomatoes}, {herbs}, 150 ml water and a pinch of salt. Simmer on low, partly covered, for 40 minutes, stirring now and then, until thick.'] },
+      { t: 'Boil spaghetti for bolognese', l: 'stove', m: 12, gear: ['large pot', 'colander'], how: ['Boil {spaghetti} in salted water for 1 minute less than the packet says. Drain and toss with a little oil so it doesn’t stick.'] },
+      { t: 'Portion bolognese', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Divide the pasta and the sauce into {portions} containers each. Refrigerate 4 days’ worth and freeze the rest of the sauce.', 'Keep {parmesan} for the top.'] },
+    ],
+    subs: [['ground beef', 'ground turkey', 'turkey']],
+    prod: 1, plate: 'About 150 g cooked pasta with a generous ladle of sauce.',
+  },
+  carbonara: {
+    name: 'Carbonara with crispy bacon (made fresh)', short: 'Carbonara', slot: 'Dinner', e: '🥓', serves: 2, fridge: 4, freezer: 0,
+    foods: { pasta: 1, eggs: 'Blended into a sauce', cheese: 1 },
+    ing: [['bacon', 100], ['parmesan', 40], ['spaghetti', 170], ['eggs', 3]],
+    why: ['Silky egg-and-cheese sauce with crispy bacon, no cream', 'The bacon is crisped on prep day, so the night takes 15 minutes', 'Made fresh, because carbonara turns grainy when reheated'],
+    note: 'Cook-fresh night: 15 minutes. Prep day crisps the bacon and grates the cheese.',
+    steps: ['On prep day, crisp the bacon and box it with the parmesan.', 'On the night, boil spaghetti, whisk eggs with the parmesan, and toss off the heat with a splash of pasta water.'],
+    reheat: 'On the night: boil the spaghetti. Whisk 1½ eggs per portion with the parmesan and plenty of pepper. Drain the pasta (keep a mug of the water), warm the bacon in the pot for 1 minute, take it off the heat, add the pasta and egg mix and toss fast with splashes of water until creamy and thickened. Eat right away.',
+    tasks: [
+      { t: 'Crisp bacon for carbonara', l: 'stove', m: 10, gear: ['large nonstick pan'], how: ['Cut {bacon} into small strips and cook over medium heat until crisp, 8–10 minutes.', 'Drain on paper towel, cool, and box it with {parmesan} for the fridge.'] },
+      { t: 'Box the carbonara kit', l: 'hands', m: 3, end: true, how: ['Keep {spaghetti} and {eggs} for the nights you make it.'] },
+    ],
+    subs: [['bacon', 'turkey bacon']],
+    prod: 0, plate: 'About 85 g dry pasta per plate. A green side rounds it out.',
+  },
+  pechugagratinada: {
+    name: 'Pechuga gratinada with mashed potatoes & green beans', short: 'Pechuga gratinada', slot: 'Dinner', e: '🧀', serves: 4, fridge: 4, freezer: 2,
+    foods: { chicken: 1, cheese: 1, tomatoes: 'Blended into a sauce', potatoes: 'Mashed', greenbeans: 'Steamed' }, sauces: ['Marinara'],
+    ing: [['chickenbreast', 680], ['marinara', 0.5], ['mozzarella', 110], ['potatoes', 680], ['milk', 120], ['butter', 30], ['greenbeans', 240]],
+    why: ['Colombian-style chicken breast baked under melted cheese', 'Creamy mash and green beans on the side', 'High in protein'],
+    steps: ['Top chicken breasts with a little marinara and mozzarella; bake at 200°C for 25 minutes.', 'Boil and mash potatoes with milk and butter.', 'Steam green beans and portion.'],
+    reheat: 'Microwave 2–3 minutes, until 74°C in the center.', thaw: 'Move to the fridge the night before.',
+    tasks: [
+      { t: 'Top chicken for pechuga gratinada', l: 'hands', m: 6, gear: ['baking dish'], how: ['Lay {chickenbreast} in the dish and season with salt and pepper.', 'Spread {marinara} over the top and cover with {mozzarella}.'] },
+      { t: 'Bake pechuga gratinada', l: 'oven', m: 25, temp: 200, how: ['Bake at 200°C for 22–25 minutes, until the cheese is golden and the chicken reaches 74°C in the thickest part.'] },
+      { t: 'Boil and mash potatoes', l: 'stove', m: 20, gear: ['large pot'], how: ['Peel and chop {potatoes}; boil in salted water 15 minutes, until soft.', 'Drain and mash with {milk} and {butter}.'] },
+      { t: 'Steam green beans', l: 'stove', m: 6, gear: ['medium pot'], how: ['Steam or boil {greenbeans} for 5 minutes, until bright green and tender.'] },
+      { t: 'Portion pechuga gratinada', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Divide the chicken, mash and green beans between {portions} containers. Cool, then refrigerate.'] },
+    ],
+    prod: 1, plate: 'One breast, a scoop of mash, and green beans.',
+  },
+  nachos: {
+    name: 'Loaded chicken nachos with fresh guacamole', short: 'Chicken nachos', slot: 'Dinner', e: '🌮', serves: 4, fridge: 4, freezer: 0,
+    foods: { chicken: 1, cheese: 1, corn: 1, avocado: 'Mashed', tomatoes: 'Raw' }, sauces: ['Mild salsa'],
+    ing: [['thighs', 450], ['taco', 2], ['oil', 1], ['corn', 150], ['tortillachips', 150], ['cheddar', 85], ['salsa', 130], ['sourcream', 90], ['avocados', 1.5], ['tomatoes', 1], ['limes', 1]],
+    why: ['Loaded nachos with taco chicken, melted cheese and guacamole', 'The chicken is roasted on prep day; the nachos bake in 8 minutes', 'Mild: taco spices, no chili heat'],
+    note: 'Cook-fresh night: 8 minutes in the oven, plus 3 minutes for the guacamole.',
+    steps: ['Roast taco-seasoned chicken and shred it on prep day.', 'On the night, bake chips with chicken, corn and cheese for 8 minutes.', 'Top with guacamole, salsa and sour cream.'],
+    reheat: 'On the night: spread a quarter of the chips on a lined tray, top with a quarter of the chicken and corn and a handful of cheese, and bake at 200°C for 6–8 minutes, until the cheese melts and the chicken is hot. Meanwhile mash half an avocado with lime juice, salt and diced tomato. Top with the guacamole, salsa and sour cream.',
+    tasks: [
+      TACO_PREP,
+      TACO_ROAST,
+      { t: 'Box the nachos toppings', l: 'hands', m: 4, end: true, gear: ['containers'], how: ['Box the shredded chicken (about {thighs*0.75:g}) with {corn} for the fridge.', 'Keep {tortillachips}, {cheddar}, {salsa} and {sourcream} for the nights you make them, and {avocados}, {tomatoes} and {limes} for fresh guacamole.'] },
+    ],
+    prod: 1, plate: 'A quarter of the tray, with guacamole, salsa and sour cream.',
+  },
+
+  sancocho: {
+    name: 'Sancocho de pollo', short: 'Sancocho', slot: 'Lunch', e: '🍲', serves: 6, fridge: 4, freezer: 3,
+    foods: { chicken: 1, potatoes: 1, corn: 1, rice: 1, onions: 'Finely chopped, cooked soft', avocado: 'Raw' },
+    ing: [['potatoes', 600], ['greenplantains', 2], ['scallions', 4], ['garlic', 3], ['thighs', 900], ['cumin', 1], ['chickenbroth', 1900], ['yuca', 450], ['corn', 300], ['rice', 190], ['avocados', 2], ['limes', 1]],
+    why: ['Colombia’s Sunday soup: chicken, yuca, green plantain, potato and corn', 'Served the proper way, with rice, avocado and lime', 'Freezes well for the end of the week'],
+    steps: ['Simmer chicken with green onion, garlic and cumin in broth.', 'Add green plantain and yuca, then potatoes and corn, until everything is tender.', 'Serve with rice, avocado and lime.'],
+    reheat: 'Microwave 3–4 minutes, stirring halfway, until steaming (74°C). Serve with rice, avocado and a squeeze of lime.', thaw: 'Move to the fridge the night before.',
+    tasks: [
+      RICE_TASK,
+      { t: 'Chop vegetables for sancocho', l: 'hands', m: 12, how: ['Peel and cut {potatoes} into chunks.', 'Peel {greenplantains} (score the skin lengthwise and pull it off) and cut into 4 cm pieces.', 'Chop {scallions} and {garlic}.'] },
+      { t: 'Simmer the sancocho', l: 'stove', m: 50, gear: ['large pot'], how: ['Put {thighs}, the green onion, garlic, {cumin} and {chickenbroth} in the pot and simmer 15 minutes.', 'Add the green plantain and {yuca} (no need to thaw) and simmer 15 minutes.', 'Add the potatoes and {corn}, and simmer 20 minutes more, until everything is tender and the chicken reaches 74°C. Season with salt and pull the chicken into large pieces.'] },
+      { t: 'Portion sancocho', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Cool the soup in shallow containers, then divide into {portions} portions with rice (about {rice*3:g} cooked in total) on the side.', 'Keep {avocados} and {limes} to serve.'] },
+    ],
+    prod: 1, plate: 'One big bowl, with a small bowl of rice and some avocado.',
+  },
+  tinga: {
+    name: 'Mild chicken tinga tacos', short: 'Chicken tinga tacos', slot: 'Dinner', e: '🌮', serves: 4, fridge: 4, freezer: 3,
+    foods: { chicken: 1, cheese: 1, tomatoes: 'Blended into a sauce', onions: 'Blended into a sauce', avocado: 'Raw' },
+    ing: [['chickenbreast', 680], ['onion', 1], ['crushedtomatoes', 0.5], ['garlic', 2], ['paprika', 2], ['cumin', 1], ['oil', 1], ['corntortillas', 12], ['quesofresco', 80], ['avocados', 1], ['limes', 1]],
+    why: ['Shredded chicken in a smoky tomato sauce: Mexican tinga, made mild', 'Freezes well', 'Warm tortillas, queso fresco and avocado on the night'],
+    steps: ['Poach and shred the chicken.', 'Blend onion, tomatoes, garlic and spices; simmer with the chicken until thick.', 'Serve in warm corn tortillas with queso fresco and avocado.'],
+    reheat: 'Microwave the tinga 2 minutes until steaming (74°C). Warm 3 tortillas in a dry pan, fill, and top with crumbled queso fresco, avocado and lime.', thaw: 'Move to the fridge the night before.',
+    tasks: [
+      { t: 'Poach chicken for tinga', l: 'stove', m: 20, gear: ['medium pot'], how: ['Cover {chickenbreast} with water and a pinch of salt, and simmer gently 15–18 minutes, until 74°C inside. Shred with two forks.'] },
+      { t: 'Blend the tinga sauce', l: 'hands', m: 6, gear: ['blender'], how: ['Roughly chop {onion} and blend with {crushedtomatoes}, {garlic}, {paprika} and {cumin} until smooth.'] },
+      { t: 'Simmer chicken tinga', l: 'stove', m: 15, gear: ['large deep pan'], how: ['Cook the sauce in {oil} for 5 minutes, add the shredded chicken and simmer 10 minutes, until thick. Season with salt.'] },
+      { t: 'Box the tinga', l: 'hands', m: 4, end: true, gear: ['containers'], how: ['Box the tinga for the fridge or freezer.', 'Keep {corntortillas}, {quesofresco}, {avocados} and {limes} for serving.'] },
+    ],
+    prod: 1, plate: 'Three tacos with queso fresco and avocado.',
+  },
+  pizza: {
+    name: 'Pizza night: margherita', short: 'Margherita pizza', slot: 'Dinner', e: '🍕', serves: 2, fridge: 4, freezer: 0,
+    foods: { cheese: 1, tomatoes: 'Blended into a sauce' }, sauces: ['Marinara'],
+    ing: [['mozzarella', 140], ['pizzadough', 340], ['marinara', 0.5], ['tomatoes', 1], ['herbs', 1], ['oil', 1]],
+    why: ['Homemade pizza in 20 minutes, with store-bought dough', 'Marinara, melted mozzarella and fresh tomato', 'A fun cook-fresh night'],
+    note: 'Cook-fresh night: 20 minutes. It’s light on protein, so a protein side or salad goes well with it.',
+    steps: ['Stretch the dough, spread marinara, add mozzarella and tomato.', 'Bake at your oven’s hottest setting for 10–12 minutes.'],
+    reheat: 'On the night, 20 minutes: heat the oven to 250°C (or its hottest). Stretch the dough on a floured tray, brush with a little oil, spread with marinara, add the mozzarella and tomato slices, sprinkle the herbs, and bake 10–12 minutes, until the crust is golden and the cheese bubbles.',
+    tasks: [{ t: 'Pack the pizza night kit', l: 'hands', m: 5, end: true, gear: ['containers'], how: ['Box {mozzarella} for the fridge.', 'Keep {pizzadough}, {marinara}, {tomatoes}, {herbs} and {oil} for the night.'] }],
+    prod: 0.5, plate: 'Half a pizza. A salad or protein side rounds it out.',
+  },
+
   /* snacks */
   pandebono: {
     name: 'Pandebono (Colombian cheese bread)', short: 'Pandebono', slot: 'Afternoon snack', e: '🥯', serves: 6, fridge: 0, freezer: 3,
@@ -847,6 +1100,34 @@ const MEALS: Record<string, RecipeInput> = {
     prod: 1, plate: 'One box.',
   },
 
+  guacamole: {
+    name: 'Fresh guacamole with tortilla chips', short: 'Guacamole & chips', slot: 'Afternoon snack', e: '🥑', serves: 4, fridge: 5, freezer: 0, room: true,
+    foods: { avocado: 'Mashed', tomatoes: 'Raw' },
+    ing: [['tortillachips', 120], ['avocados', 2], ['limes', 1], ['tomatoes', 1]],
+    why: ['Guacamole, made fresh in 3 minutes', 'Creamy, crunchy and a serving of fruit', 'Chips are portioned ahead, so a snack stays a snack'],
+    note: 'Ripen avocados on the counter; once soft, keep them in the fridge for up to 3 days. Add chopped cilantro if you like it.',
+    steps: ['Portion the chips on prep day.', 'Each time: mash half an avocado with lime and salt, and stir in diced tomato.'],
+    reheat: 'Make it fresh, 3 minutes: mash half an avocado with a squeeze of lime and a pinch of salt, and stir in a spoon of diced tomato. Eat with a bag of chips.',
+    tasks: [{ t: 'Portion chips for guacamole snacks', l: 'hands', m: 3, end: true, gear: ['freezer bag'], how: ['Divide {tortillachips} into {portions} small bags.', 'Keep {avocados}, {limes} and {tomatoes} to make it fresh; guacamole browns within a day.'] }],
+    prod: 1, plate: 'Half an avocado of guacamole with about 30 g of chips.',
+  },
+
+  empanadas: {
+    name: 'Baked Colombian empanadas', short: 'Empanadas', slot: 'Afternoon snack', e: '🥟', serves: 6, fridge: 3, freezer: 3,
+    foods: { beef: 1, potatoes: 1, tomatoes: 'Finely chopped, cooked soft', onions: 'Finely chopped, cooked soft' },
+    ing: [['potatoes', 250], ['beef', 250], ['tomatoes', 1], ['scallions', 2], ['cumin', 1], ['oil', 2], ['arepaflour', 250], ['paprika', 1]],
+    why: ['Crispy corn empanadas with beef and potato, baked instead of fried', 'They freeze beautifully and reheat in the air fryer', 'Great with guacamole'],
+    steps: ['Cook a beef and potato filling with hogao.', 'Make a masarepa dough, fill and fold 12 empanadas.', 'Brush with oil and bake at 200°C for 20–25 minutes.'],
+    reheat: 'Air fryer at 180°C for 5 minutes (8 from frozen), until hot in the center. With guacamole or salsa if you like.', thaw: 'No thawing: air-fry straight from frozen.',
+    tasks: [
+      { t: 'Cook the empanada filling', l: 'stove', m: 20, gear: ['medium pot', 'large nonstick pan'], how: ['Boil {potatoes}, diced small, for 10 minutes until tender, and drain.', 'Meanwhile brown {beef} with chopped {tomatoes}, {scallions} and {cumin} in {oil*0.5}. Mash in the potatoes, season with salt and let it cool.'] },
+      { t: 'Make, fill and fold the empanadas', l: 'hands', m: 25, gear: ['mixing bowl', 'sheet pan', 'baking paper'], how: ['Mix {arepaflour}, {paprika} and a pinch of salt with {arepaflour*2.2:ml} of warm water, and knead until smooth.', 'Flatten walnut-size balls thin between two sheets of plastic, add a spoon of filling, fold over and seal the edge with a glass. Make {portions*2}.'] },
+      { t: 'Bake the empanadas', l: 'oven', m: 25, temp: 200, how: ['Brush with {oil*0.5} and bake at 200°C for 20–25 minutes, turning once, until golden and crisp.'] },
+      { t: 'Cool and bag the empanadas', l: 'hands', m: 4, end: true, gear: ['freezer bag'], how: ['Cool, then bag in pairs. Keep 3 days’ worth in the fridge and freeze the rest.'] },
+    ],
+    prod: 0.25, plate: 'Two empanadas.',
+  },
+
   /* sweets */
   arrozconleche: {
     name: 'Colombian arroz con leche', short: 'Arroz con leche', slot: 'Evening sweet', e: '🍚', serves: 6, fridge: 4, freezer: 0, cold: true,
@@ -889,6 +1170,26 @@ const MEALS: Record<string, RecipeInput> = {
     ],
     prod: 0.75, plate: 'One small container.',
   },
+  obleas: {
+    name: 'Obleas con arequipe', short: 'Obleas', slot: 'Evening sweet', e: '🍪', serves: 6, fridge: 7, freezer: 0, room: true,
+    foods: {}, sweet: ['Cookies', 'Candy'],
+    ing: [['obleas', 12], ['arequipe', 120]],
+    why: ['The Colombian street sweet: thin wafers with arequipe', 'Portioned ahead, and ready in a minute', 'Small, sweet and satisfying'],
+    steps: ['Portion arequipe into small cups.', 'Spread between two obleas when you eat it.'],
+    reheat: 'Spread a spoon of arequipe between 2 obleas.',
+    tasks: [{ t: 'Portion arequipe for obleas', l: 'hands', m: 3, end: true, how: ['Spoon {arequipe} into {portions} small lidded cups, and keep {obleas} in their pack.'] }],
+    prod: 0, plate: 'Two obleas with a spoon of arequipe.',
+  },
+  fresas: {
+    name: 'Fresas con crema', short: 'Fresas con crema', slot: 'Evening sweet', e: '🍓', serves: 4, fridge: 3, freezer: 0, cold: true,
+    foods: { berries: 1 }, sweet: ['Fruit desserts'],
+    ing: [['strawberries', 450], ['cream', 120], ['condensed', 0.25]],
+    why: ['The Colombian classic: strawberries in sweet whipped cream', 'Mostly fruit, and already portioned', 'Cold, creamy and ready'],
+    steps: ['Quarter the strawberries.', 'Whip cream with condensed milk and layer with the strawberries in 4 jars.'],
+    reheat: 'Eat cold.',
+    tasks: [{ t: 'Make fresas con crema', l: 'hands', m: 8, end: true, gear: ['mixing bowl', 'whisk', 'jars'], how: ['Hull and quarter {strawberries}.', 'Whip {cream} with {condensed} to soft peaks, and layer with the strawberries in {portions} jars.'] }],
+    prod: 1, plate: 'One jar.',
+  },
 };
 
 /** Sides are added to a meal to balance it. Slot 'Side' keeps them out of meal replacement. */
@@ -901,6 +1202,10 @@ const SIDES: Record<string, SideInput> = {
   side_boiledeggs: {
     name: 'Two hard-boiled eggs', short: 'Hard-boiled eggs', e: '🥚', kind: 'protein', best: ['Breakfast', 'Afternoon snack'], for: ['Breakfast', 'Lunch', 'Afternoon snack'], foods: { eggs: 'Hard-boiled' },
     ing: [['eggs', 2]], prod: 0, fridge: 7, tasks: [BOILED_EGGS], why: ['Hard-boiled on prep day; they keep all week'],
+  },
+  side_guac: {
+    name: 'Fresh guacamole', short: 'Guacamole', e: '🥑', kind: 'produce', for: ['Lunch', 'Dinner', 'Afternoon snack'], foods: { avocado: 'Mashed' },
+    ing: [['avocados', 0.5], ['limes', 0.25]], prod: 1, st: { k: 'room', l: 'Make fresh · 3 min' }, why: ['Made fresh in 3 minutes'],
   },
   side_cheese: { name: 'String cheese', short: 'String cheese', e: '🧀', kind: 'protein', best: ['Lunch', 'Afternoon snack'], for: ['Breakfast', 'Lunch', 'Afternoon snack'], foods: { cheese: 1 }, ing: [['stringcheese', 1]], prod: 0, st: { k: 'fridge', l: 'Store-bought · fridge' }, why: [] },
   side_berries: { name: 'Bowl of berries', short: 'Berries', e: '🍓', kind: 'produce', for: ['Breakfast', 'Lunch', 'Afternoon snack'], foods: { berries: 1 }, ing: [['berries', 140]], prod: 1, st: { k: 'freezer', l: 'Frozen bag · thaw in the fridge overnight' }, why: [] },
@@ -934,8 +1239,40 @@ for (const [id, s] of Object.entries(SIDES)) {
   R[id] = withMacros({ id, slot: 'Side' as const, side: true, serves: 1, fridge: 0, freezer: 0, steps: [], reheat: '', tasks: [], plate: '', ...s });
 }
 
-export const SIDE_IDS = Object.keys(SIDES);
-export const MEAL_IDS = Object.keys(MEALS);
+/** Recipes Remy can pick. Deleted ones (see `REMOVED`) are left out; AI recipes are added by `registerAiRecipes`. */
+export const SIDE_IDS: string[] = [];
+export const MEAL_IDS: string[] = [];
+
+/**
+ * Recipes the owner deleted on the menu page (menu.html, saved in removed.json). They stay in `R`, so a plan or
+ * backup that still has one shows it, but Remy never picks them again.
+ */
+export const REMOVED = new Set<string>();
+
+export function applyRemoved(ids: readonly string[]): void {
+  REMOVED.clear();
+  for (const id of ids) REMOVED.add(id);
+  const ai = MEAL_IDS.filter((id) => id.startsWith('ai_'));
+  MEAL_IDS.splice(0, MEAL_IDS.length, ...Object.keys(MEALS).filter((id) => !REMOVED.has(id)), ...ai);
+  SIDE_IDS.splice(0, SIDE_IDS.length, ...Object.keys(SIDES).filter((id) => !REMOVED.has(id)));
+}
+applyRemoved(removedList);
+
+/** Each library meal's own slot, before any change on the menu page. */
+const BASE_SLOT: Record<string, Slot> = Object.fromEntries(Object.entries(MEALS).map(([id, r]) => [id, r.slot as Slot]));
+export const baseSlot = (id: string): Slot | undefined => BASE_SLOT[id];
+
+/**
+ * Meals the owner moved on the menu page (menu.html, saved in slots.json as recipe id → slot), e.g. a soup
+ * that's lunch rather than dinner. A moved recipe is planned only in its new slot.
+ */
+export function applySlots(map: Record<string, string>): void {
+  for (const id of Object.keys(BASE_SLOT)) {
+    const s = map[id] as Slot;
+    R[id].slot = SLOTS.includes(s) ? s : BASE_SLOT[id];
+  }
+}
+applySlots(slotList);
 
 /**
  * Recipes created by the AI live in the user's saved data, not in this file.

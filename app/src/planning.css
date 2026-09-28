@@ -10,15 +10,8 @@
 .chips.tight { gap: 6px; }
 .em-lg { font-size: 22px; line-height: 1; flex: none; }
 .small { font-size: 12px; }
-.strike { text-decoration: line-through; }
 .muted { color: var(--ink-2); }
 
-/* home */
-.hero { border-radius: 22px; padding: 18px 18px 30px; background: var(--basil); color: var(--on-basil); margin-top: 4px; }
-.hero h2 { font-size: 24px; font-weight: 800; margin-top: 4px; }
-.eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
-.hero-list { margin: -16px 8px 0; position: relative; }
-.hero-btn { margin-top: 12px; background: var(--on-basil); color: var(--basil); }
 
 /* planner */
 .seg { display: flex; background: var(--surface-2); border-radius: 14px; padding: 4px; gap: 4px; }
@@ -27,29 +20,9 @@
 .seg button[aria-pressed='true'] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
 .seg.narrow { width: 120px; flex: none; }
 .summary-line { margin: 8px 2px 10px; }
-.planner-top > .btn { margin-bottom: 10px; }
 .goals-line { margin: -2px 2px 10px; color: var(--ink-2); }
 .goals-line .ic { color: var(--basil); vertical-align: -2px; }
-.days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; position: sticky; top: -4px; background: var(--bg); padding: 4px 0 10px; z-index: 2; }
-.days button { border: 1.5px solid var(--line); background: var(--surface); border-radius: 14px; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; padding: 0; color: var(--ink); }
-.days button small { font-size: 11px; font-weight: 600; color: var(--ink-2); }
-.days button[aria-pressed='true'] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.days button[aria-pressed='true'] small { color: var(--bg); opacity: 0.8; }
 .dot-warn { color: var(--citrus); }
-.balance-strip { margin-bottom: 10px; padding: 10px 12px; }
-.meal { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
-.meal.ok { border-color: var(--basil); }
-.meal.out { background: var(--surface-2); border-style: dashed; }
-.meal .slot { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); display: flex; align-items: center; gap: 6px; }
-.meal .name { font-family: var(--f-display); font-size: 17px; font-weight: 700; border: 0; background: none; padding: 0; text-align: left; color: var(--ink); display: flex; gap: 8px; align-items: center; min-height: 44px; margin: -6px 0; }
-.meal .name.static { min-height: 0; }
-.meal .name .em { font-size: 22px; }
-.meal .acts { display: flex; gap: 6px; flex-wrap: wrap; }
-.meal .acts button { border: 1px solid var(--line-2); background: var(--surface); border-radius: 10px; min-height: 44px; padding: 0 10px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; color: var(--ink-2); }
-/* The five meal actions: one even row, icon above label. */
-.meal .acts.toolbar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-.meal .acts.toolbar button { flex-direction: column; justify-content: center; gap: 2px; min-height: 52px; padding: 4px 2px; font-size: 12px; line-height: 1.15; }
-.meal .acts button.yes[aria-pressed='true'] { background: var(--basil); border-color: var(--basil); color: var(--on-basil); }
 .sideline { display: flex; align-items: center; gap: 8px; background: var(--surface-2); border-radius: 10px; padding: 2px 2px 2px 10px; font-size: 13.5px; font-weight: 600; min-height: 40px; }
 .iconbtn.small { width: 36px; height: 36px; }
 .warnline.tight { margin-top: 0; align-items: center; }
@@ -60,7 +33,6 @@
 .pill.p-bad { background: var(--danger-soft); color: var(--danger); }
 .pill.p-sweet { background: var(--berry-soft); color: var(--berry); }
 .pill.p-oven { background: var(--carrot-soft); color: var(--carrot); }
-.li.blocked { opacity: 0.85; }
 
 /* calories and macros for a meal */
 .macros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: var(--surface-2); border-radius: 12px; padding: 6px 4px; text-align: center; }
@@ -68,27 +40,10 @@
 .macros span { display: block; font-size: 11.5px; font-weight: 600; color: var(--ink-2); }
 
 /* recipe */
-.recipe-top { gap: 14px; margin-top: 4px; align-items: center; }
-.recipe-emoji { width: 72px; height: 72px; border-radius: 22px; background: var(--surface-2); display: grid; place-items: center; font-size: 40px; flex: none; }
-.recipe-name { font-size: 23px; }
 .li.compact { min-height: 44px; }
-.chip.static { min-height: 36px; cursor: default; }
-.steps { margin: 0; padding: 12px 12px 12px 34px; display: flex; flex-direction: column; gap: 8px; }
 .rules { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
 
 /* grocery */
-.gi { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); min-height: 56px; }
-.list > div:last-child > .gi:last-child,
-.list > .gi:last-child { border-bottom: 0; }
-.gi .cb { width: 44px; height: 44px; margin: 0 -8px; border: 0; background: none; display: grid; place-items: center; flex: none; padding: 0; color: var(--on-basil); }
-.gi .cb > span { width: 28px; height: 28px; border-radius: 9px; border: 2px solid var(--line-2); background: var(--surface); display: grid; place-items: center; }
-.gi .cb[aria-pressed='true'] > span { background: var(--basil); border-color: var(--basil); }
-.gi-main { flex: 1; min-width: 0; border: 0; background: none; text-align: left; padding: 0; min-height: 44px; }
-.gi .nm { font-weight: 600; font-size: 15px; }
-.gi.done .nm { text-decoration: line-through; color: var(--ink-3); }
-.gi .qty { font-family: var(--f-mono); font-size: 13px; color: var(--ink-2); background: var(--surface-2); border-radius: 8px; padding: 4px 8px; white-space: nowrap; }
-.gi .price { font-family: var(--f-mono); font-size: 12px; color: var(--ink-3); min-width: 44px; text-align: right; }
-.gi-edit { background: var(--surface-2); flex-wrap: wrap; }
 .qty-field { width: 120px; min-height: 40px; }
 .bar.tall { height: 8px; margin-top: 0; }
 .btn.tall { min-height: 48px; }
@@ -109,7 +64,6 @@
 .gantt .axis { display: grid; grid-template-columns: 52px 1fr; gap: 8px; margin-top: 4px; }
 .gantt .ticks { position: relative; height: 16px; font-family: var(--f-mono); font-size: 10px; color: var(--ink-3); }
 .gantt .ticks span { position: absolute; transform: translateX(-50%); }
-.tasks { padding: 4px 14px; }
 .task { display: grid; grid-template-columns: 50px 1fr; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .task:last-child { border-bottom: 0; }
 .task .tm { font-family: var(--f-mono); font-size: 13px; color: var(--ink-2); padding-top: 2px; }
@@ -124,9 +78,7 @@
 .meanwhile { font-size: 12.5px; color: var(--ink-3); margin-top: 2px; }
 
 /* nutrition */
-.day-label { width: 40px; font-weight: 700; flex: none; }
 .plate-row { gap: 16px; align-items: center; }
-.plate-text { min-width: 170px; }
 .plate { flex: none; max-width: 100%; }
 .plate-rim { fill: var(--surface); stroke: var(--line-2); }
 .plate-produce { fill: var(--basil-soft); stroke: var(--surface); }

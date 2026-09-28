@@ -43,9 +43,11 @@
   /* `translate` is separate from the rise animation's `transform`, so both apply. */
   .toast { left: 50%; right: auto; width: min(440px, calc(100% - 48px)); translate: -50% 0; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
 
-  /* Plan: meal cards side by side. */
-  .meals { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; align-items: start; }
-  .days button { min-height: 60px; font-size: 14px; }
+  /* Plan: roomier day tabs and a bigger headline. */
+  .daytabs button { min-height: 58px; font-size: 15px; }
+  .mast h2 { font-size: 64px; }
+  .mast h2.long { font-size: 48px; }
+  .sheet .mast h2 { font-size: 38px; }
 
   /* Grocery aisles flow into two columns. */
   .masonry.aisles { columns: 2; column-gap: 24px; margin-top: 22px; }
@@ -66,8 +68,11 @@
 
   .masonry.aisles { columns: 3; }
 
-  /* Plan: variety choice and the week summary share one line. */
-  .planner-top { display: flex; gap: 20px; align-items: center; }
+  /* Plan: variety choice and the week summary share one line; the day's courses sit in two columns, like a printed menu. */
+  .planner-top { display: flex; gap: 20px; align-items: center; margin-top: 14px; }
   .planner-top .seg { flex: 0 1 460px; }
-  .planner-top .summary-line { flex: 1; min-width: 0; margin: 0; }
+  .planner-top .row { flex: 1; min-width: 0; }
+  .planner-top .summary-line { margin: 0; }
+  .courses { columns: 2; column-gap: 48px; }
+  .courses > .course { break-inside: avoid; }
 }

@@ -53,18 +53,3 @@ export function StoragePill({ st }: { st: StorageInfo }) {
   if (st.k === 'unsafe') return <span className="pill p-bad"><Icon name="info" size={13} /> {st.l}</span>;
   return null;
 }
-
-/** A tappable list row. */
-export function RowButton({ icon, tone, title, sub, onClick, children }: { icon?: IconName; tone?: string; title: string; sub?: string; onClick: () => void; children?: ReactNode }) {
-  return (
-    <button type="button" className="li li-btn" onClick={onClick}>
-      {icon && <span className={tone}><Icon name={icon} size={22} /></span>}
-      {children}
-      <div className="grow">
-        <div className="t">{title}</div>
-        {sub && <div className="s">{sub}</div>}
-      </div>
-      <Icon name="right" size={18} />
-    </button>
-  );
-}

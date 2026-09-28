@@ -1,0 +1,110 @@
+import type { ReactNode } from 'react';
+import { ingredientName } from '../planning/method';
+import type { Macros } from '../planning/macros';
+import type { Recipe } from '../planning/types';
+import { Icon, type IconName } from './Icon';
+import { macroText } from './Macros';
+
+/** Pantry basics left out of a dish's description. */
+const BASICS = new Set(['oil', 'spices', 'bakingpowder', 'vanilla', 'cumin', 'paprika', 'herbs', 'cinnamon', 'taco', 'garlic', 'sugar']);
+
+/** What's in a dish, the way a menu says it: "Rolled oats, milk, vanilla Greek yogurt, …". */
+export function describe(r: Recipe): string {
+  const text = r.ing
+    .filter(([k]) => !BASICS.has(k))
+    .map(([k]) => ingredientName(k, 2))
+    .join(', ');
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** The dotted line between a name and its value. */
+export const Leader = () => <span className="leader" aria-hidden="true" />;
+
+/** "17 g protein · 72 g carbs · 7 g fat", numbers in bold. */
+export function MacroLine({ n, note }: { n: Macros; note?: string }) {
+  return (
+    <p className="macro-line" aria-label={`About ${macroText(n)}${note ? `, ${note}` : ''}`}>
+      <b>{n.pro} g</b> protein · <b>{n.carb} g</b> carbs · <b>{n.fat} g</b> fat{note ? ` · ${note}` : ''}
+    </p>
+  );
+}
+
+/** Name ........ 550 kcal. The name opens the recipe when `onOpen` is given; with estimates off (no kcal) there are no dots. */
+export function DishLine({ name, kcal, onOpen }: { name: string; kcal?: number | null; onOpen?: () => void }) {
+  return (
+    <div className="dish-line">
+      {onOpen ? (
+        <button type="button" className="dish-name" onClick={onOpen}>
+          {name}
+        </button>
+      ) : (
+        <span className="dish-name">{name}</span>
+      )}
+      {kcal != null && (
+        <>
+          <Leader />
+          <span className="dish-kcal">{kcal.toLocaleString('en-US')} kcal</span>
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Label ........ value */
+export function Lead({ k, v, wrap }: { k: ReactNode; v: ReactNode; wrap?: boolean }) {
+  return (
+    <div className="lead">
+      <span className="k">{k}</span>
+      <Leader />
+      <span className={`v${wrap ? ' wrap' : ''}`}>{v}</span>
+    </div>
+  );
+}
+
+/** Label ........ value  › that opens another screen. */
+export function LeadLink({ k, v, onClick }: { k: ReactNode; v?: ReactNode; onClick: () => void }) {
+  return (
+    <button type="button" className="lead lead-link" onClick={onClick}>
+      <span className="k">{k}</span>
+      <Leader />
+      {v != null && v !== '' && <span className="v">{v}</span>}
+      <Icon name="right" size={16} />
+    </button>
+  );
+}
+
+/** A framed note from the chef, its kicker set into the frame. */
+export function ChefNote({ kicker, icon = 'spark', children }: { kicker: string; icon?: IconName; children: ReactNode }) {
+  return (
+    <section className="chef-note" aria-label={kicker}>
+      <span className="chef-note-kicker">
+        <Icon name={icon} size={15} /> {kicker}
+      </span>
+      {children}
+    </section>
+  );
+}
+
+/** A screen's masthead: small kicker, big headline, a line under it, then anything else. */
+export function Mast({ kicker, icon = 'toque', title, sub, children }: { kicker: ReactNode; icon?: IconName; title: string; sub?: ReactNode; children?: ReactNode }) {
+  return (
+    <div className="mast">
+      <span className="mast-kicker">
+        <Icon name={icon} size={16} /> {kicker}
+      </span>
+      <h2 className={title.length > 13 ? 'long' : undefined}>{title}</h2>
+      {sub && <p className="mast-sub">{sub}</p>}
+      {children}
+    </div>
+  );
+}
+
+/** A menu section heading with a rule under it and something small on the right. */
+export function SecHead({ title, aside }: { title: string; aside?: ReactNode }) {
+  return (
+    <div className="msec-head">
+      <h3>{title}</h3>
+      {aside != null && <span className="aside">{aside}</span>}
+    </div>
+  );
+}

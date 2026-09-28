@@ -1,7 +1,8 @@
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
 import { AnswerControls } from '../components/AnswerControls';
 import { BottomNav, Header } from '../components/Chrome';
-import { Avatar, Icon } from '../components/Icon';
+import { Leader, Mast, SecHead } from '../components/Dish';
+import { Icon } from '../components/Icon';
 import { applyCheckin, BODY_QUESTIONS, bodyCheckinOn, checkinDue, mealsToRate, NOT_AGAIN_REASONS, weekQuestions, weightOn, type CheckinQuestion } from '../learning/learning';
 import type { CheckinDraft, MealRating } from '../learning/types';
 import type { AnswerValue, Question as InterviewQuestion } from '../interview/types';
@@ -25,7 +26,7 @@ function toggle<T>(rec: Record<string, T>, k: string, v: T): Record<string, T> {
 
 function Question({ f, value, onPick }: { f: CheckinQuestion; value: string | undefined; onPick: (o: string) => void }) {
   return (
-    <div className="panel">
+    <div className="qline">
       <p className="strong">{f.q}</p>
       <div className="chips gap-top" role="group" aria-label={f.q}>
         {f.o.map((o) => (
@@ -51,7 +52,7 @@ function LaterQuestion({ q }: { q: InterviewQuestion }) {
   };
   const empty = Array.isArray(draft) ? draft.length === 0 : !draft;
   return (
-    <div className="panel stack">
+    <div className="qline stack">
       <p className="strong">{q.say(ctx.A)}</p>
       <p className="hint">One question from your interview that I saved for later. It goes into your profile.</p>
       <AnswerControls q={q} answers={ctx.A} draft={draft} setDraft={setDraft} pick={(v) => save(v)} submit={() => !empty && save(draft)} />
@@ -87,38 +88,37 @@ export function Checkin() {
     <>
       <Header title="Weekly check-in" sub="About 2 minutes" back="home" />
       <main className="body">
-        <div className="msg top-gap">
-          <Avatar />
-          <div className="bubble">How did this week go? Rate what you ate and skip anything you didn’t try. Then I’ll plan next week around it.</div>
-        </div>
+        <Mast kicker="End of the week" title="How was the menu?" sub="Rate what you ate and skip anything you didn’t try. Then I’ll plan next week around it." />
 
-        <section className="sec">
-          <h2>This week’s meals</h2>
-          <div className="list">
+        <section className="msec">
+          <SecHead title="This week’s dishes" aside={`${rated} of ${meals.length} rated`} />
+          <div>
             {meals.map(({ id, times }) => {
               const r = R[id];
               const v = c.rated[id];
               const why = c.why[id] ?? [];
               return (
-                <Fragment key={id}>
-                  <div className="li wrap">
-                    <span className="em-lg" aria-hidden="true">{r.e}</span>
-                    <div className="grow rate-name">
-                      <div className="t">{r.short}</div>
-                      <div className="s">{times} time{times > 1 ? 's' : ''} this week</div>
-                    </div>
-                    <div className="row rate-row" role="group" aria-label={`Rate ${r.short}`}>
+                <div className="rate-dish" key={id}>
+                  <div className="dish-line">
+                    <span className="dish-name">
+                      <span aria-hidden="true">{r.e}</span> {r.short}
+                    </span>
+                    <Leader />
+                    <span className="times">
+                      {times} time{times > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <div className="rate-row" role="group" aria-label={`Rate ${r.short}`}>
                       {RATINGS.map(([val, icon, label]) => (
                         <button key={val} type="button" className="chip rate-chip" aria-pressed={v === val} onClick={() => edit({ rated: toggle(c.rated, id, val) })}>
                           <Icon name={icon} size={16} />
                           {label}
                         </button>
                       ))}
-                    </div>
                   </div>
                   {v === 'no' && (
-                    <div className="li sub-li">
-                      <div className="grow">
+                    <div className="rate-why">
+                      <div>
                         <p className="hint">What didn’t work? (optional)</p>
                         <div className="chips gap-top">
                           {NOT_AGAIN_REASONS.map((x) => (
@@ -136,15 +136,15 @@ export function Checkin() {
                       </div>
                     </div>
                   )}
-                </Fragment>
+                </div>
               );
             })}
           </div>
         </section>
 
-        <section className="sec">
-          <h2>A few quick questions</h2>
-          <div className="stack">
+        <section className="msec">
+          <SecHead title="A few quick questions" />
+          <div>
             {weekQuestions(plan, A, planState).map((f) => (
               <Question key={f.id} f={f} value={c.q[f.id]} onPick={pick(f.id)} />
             ))}
@@ -153,14 +153,14 @@ export function Checkin() {
         </section>
 
         {bodyCheckinOn(A) && (
-          <section className="sec">
-            <h2>How your body felt</h2>
-            <div className="stack">
+          <section className="msec">
+            <SecHead title="How your body felt" aside="optional" />
+            <div>
               {BODY_QUESTIONS.map((f) => (
                 <Question key={f.id} f={f} value={c.q[f.id]} onPick={pick(f.id)} />
               ))}
               {weightOn(A) && (
-                <div className="panel">
+                <div className="qline">
                   <p className="strong">
                     Weekly weight <span className="hint">(optional)</span>
                   </p>
@@ -183,16 +183,19 @@ export function Checkin() {
           </section>
         )}
 
-        <section className="sec">
-          <h2>What I’ll change next week</h2>
-          <div className="list">
-            {changes.map((x) => (
-              <div className="li" key={x}>
-                <span className="c-basil"><Icon name="spark" size={17} /></span>
-                <div className="grow">{x}</div>
-              </div>
-            ))}
+        <section className="bill">
+          <div className="dish-line">
+            <h2 className="dish-name">Next week</h2>
+            <Leader />
+            <span className="dish-kcal">
+              {changes.length} change{changes.length === 1 ? '' : 's'}
+            </span>
           </div>
+          <ul className="bill-list">
+            {changes.map((x) => (
+              <li key={x}>{x}</li>
+            ))}
+          </ul>
           {!checkinDue(A, planState.weekStartedAt) && (
             <div className="warnline">
               <Icon name="info" size={16} />
