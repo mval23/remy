@@ -1,5 +1,6 @@
 import { emptyCheckin, type CheckinDraft, type LearnedItem, type Noticed, type ProgressEntry, type SweetPortion } from '../learning/types';
 import { emptyGroceryEdits, type GroceryEdits } from '../planning/grocery';
+import type { ShopMode } from '../planning/month';
 import { defaultNutrition, type NutritionSettings } from '../planning/nutrition';
 import type { Recipe, Variety, WeekPlan } from '../planning/types';
 import { migrateRecipe } from '../planning/units';
@@ -43,6 +44,10 @@ export interface PlanState {
   reminders: ReminderSettings;
   /** Cook-mode steps ticked off, for the week planned at `week` (a new week starts fresh). */
   prepDone: { week: number; done: Record<string, true> };
+  /** Shop weekly for everything, or monthly for what keeps and weekly for fresh food. */
+  shopping: ShopMode;
+  /** The monthly shop: when it started and the user's edits (check-offs carry across weeks until a new month). */
+  month: { startedAt: number; edits: GroceryEdits };
   /** Set once saved AI recipes are in metric units; missing on data from earlier versions. */
   units?: 'metric';
 }
@@ -68,6 +73,8 @@ export const emptyPlanState = (): PlanState => ({
   aiConsent: false,
   reminders: defaultReminderSettings(),
   prepDone: { week: 0, done: {} },
+  shopping: 'weekly',
+  month: { startedAt: 0, edits: emptyGroceryEdits() },
 });
 
 /**

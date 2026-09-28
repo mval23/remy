@@ -34,11 +34,22 @@ export function proteinTarget(slot: Slot | 'Side', hungry: boolean): number {
   return 0;
 }
 
+/** Meal slots whose portion size can be fitted to goals. Snacks and sweets stay as written. */
+export const MAIN_SLOTS: Slot[] = ['Breakfast', 'Lunch', 'Dinner'];
+
+/** A meal's estimates: the recipe at its portion size (`x`), plus its side. */
 export function mealNutrition(m: Meal | undefined) {
   if (!m?.r) return null;
   const r = R[m.r];
+  const x = m.x ?? 1;
   const s = m.side ? R[m.side] : null;
-  return { kcal: r.kcal + (s?.kcal ?? 0), pro: r.pro + (s?.pro ?? 0), carb: r.carb + (s?.carb ?? 0), fat: r.fat + (s?.fat ?? 0), prod: r.prod + (s?.prod ?? 0) };
+  return {
+    kcal: Math.round(r.kcal * x + (s?.kcal ?? 0)),
+    pro: Math.round(r.pro * x + (s?.pro ?? 0)),
+    carb: Math.round(r.carb * x + (s?.carb ?? 0)),
+    fat: Math.round(r.fat * x + (s?.fat ?? 0)),
+    prod: r.prod * x + (s?.prod ?? 0),
+  };
 }
 
 export interface DayNutrition {

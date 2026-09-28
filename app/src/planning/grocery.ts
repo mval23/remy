@@ -2,7 +2,7 @@ import { asBudget, has } from '../interview/helpers';
 import type { Answers } from '../interview/types';
 import { ING } from './data/ingredients';
 import { R } from './data/recipes';
-import { portions } from './planner';
+import { portions, portionSizes } from './planner';
 import { quantityText } from './units';
 import type { WeekPlan } from './types';
 
@@ -36,20 +36,36 @@ export interface GroceryItem {
   qtyText: string;
 }
 
-/** Merge every planned recipe's ingredients into one list, applying the user's edits. */
-export function groceryList(plan: WeekPlan, A: Answers, edits: GroceryEdits): GroceryItem[] {
+/** How much of each ingredient the week's cooking uses (whole batches × portion size), and which recipes use it. */
+export interface Totals {
+  total: Record<string, number>;
+  from: Record<string, string[]>;
+}
+
+export function ingredientTotals(plan: WeekPlan): Totals {
   const pc = portions(plan);
+  const size = portionSizes(plan);
   const total: Record<string, number> = {};
   const from: Record<string, string[]> = {};
   for (const id of Object.keys(pc)) {
     const r = R[id];
-    const batches = Math.ceil(pc[id] / r.serves);
+    const batches = Math.ceil(pc[id] / r.serves) * (size[id] ?? 1);
     for (const [k, q] of r.ing) {
       total[k] = (total[k] ?? 0) + q * batches;
       from[k] = from[k] ?? [];
       if (!from[k].includes(r.short)) from[k].push(r.short);
     }
   }
+  return { total, from };
+}
+
+/** Merge every planned recipe's ingredients into one list, applying the user's edits. */
+export function groceryList(plan: WeekPlan, A: Answers, edits: GroceryEdits): GroceryItem[] {
+  return toItems(ingredientTotals(plan), A, edits);
+}
+
+/** Turn ingredient totals into list items with packs, prices and the user's edits. */
+export function toItems({ total, from }: Totals, A: Answers, edits: GroceryEdits): GroceryItem[] {
   const items: GroceryItem[] = Object.keys(total).map((k) => {
     const g = ING[k];
     const q = total[k];

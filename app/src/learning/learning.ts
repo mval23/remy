@@ -5,6 +5,7 @@ import { R } from '../planning/data/recipes';
 import { WEEKS } from '../planning/data/weeks';
 import { emptyGroceryEdits } from '../planning/grocery';
 import { dayNutrition, sideOptions } from '../planning/nutrition';
+import { fitToGoals, goalsOf, hasGoals } from '../planning/goals';
 import { buildPlan, eachMeal } from '../planning/planner';
 import { duration, schedule } from '../planning/schedule';
 import { dayIndexOn } from '../planning/calendar';
@@ -280,6 +281,9 @@ export function applyCheckin(state: PlanState, A: Answers, at = Date.now()): Che
   let plan = buildPlan(variety, ctx).plan;
   if (trial) plan = placeTrial(plan, trial);
   if (lowEnergy) plan = plan.map((day, i) => (dayNutrition(day, hungry).light ? fillLightDay(day, i, ctx) : day));
+  // Daily goals the person set: fit the new week toward them.
+  const goals = goalsOf(state.nutrition);
+  if (hasGoals(goals)) plan = fitToGoals(plan, ctx, goals).plan;
   const fresh = mealsToRate(plan).filter((m) => !recent.includes(m.id)).map((m) => R[m.id].short);
   if (recent.length && fresh.length) changes.push(`New next week: ${listText(fresh)}`);
   const before = state.plan ? schedule(state.plan, A).total : 0;

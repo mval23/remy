@@ -1,6 +1,6 @@
 import type { Answers } from '../interview/types';
 import { R } from './data/recipes';
-import { eachMeal, portions } from './planner';
+import { eachMeal, portions, portionSizes } from './planner';
 import { storage } from './rules';
 import type { Lane, Recipe, Task, WeekPlan } from './types';
 
@@ -17,7 +17,7 @@ export interface ScheduledTask {
   /** Recipes this task serves (short names). */
   for: string[];
   /** The recipe tasks behind it, with batches, for instructions and amounts. A shared task has several. */
-  refs: { r: Recipe; batches: number; task: Task }[];
+  refs: { r: Recipe; batches: number; task: Task; scale?: number }[];
   /** The oven needs a new temperature for this task. */
   setTemp?: boolean;
 }
@@ -38,6 +38,7 @@ export interface Schedule {
  */
 export function schedule(plan: WeekPlan, A: Answers): Schedule {
   const pc = portions(plan);
+  const size = portionSizes(plan);
   const recipes = Object.keys(pc).map((id) => R[id]).filter((r) => r.tasks.length > 0);
   const passive = (r: Recipe) => r.tasks.filter((t) => t.l !== 'hands').reduce((s, t) => s + t.m, 0);
   const minTemp = (r: Recipe) => Math.min(999, ...r.tasks.filter((t) => t.temp).map((t) => t.temp as number));
@@ -68,14 +69,14 @@ export function schedule(plan: WeekPlan, A: Answers): Schedule {
         if (t.key && shared[t.key]) {
           const o = shared[t.key];
           if (!o.for.includes(r.short)) o.for.push(r.short);
-          o.refs.push({ r, batches, task: t });
+          o.refs.push({ r, batches, task: t, scale: size[r.id] });
           ready = Math.max(ready, o.e);
           continue;
         }
         const m = t.l === 'hands' && batches > 1 ? Math.round(t.m * (1 + 0.5 * (batches - 1))) : t.m;
         const starts = [ready, ...placed.filter((p) => p.l === t.l).map((p) => p.e)].filter((x) => x >= ready).sort((a, b) => a - b);
         const s = starts.find((c) => fits(t.l, c, m, t.temp, t.pans)) ?? Math.max(ready, ...placed.map((p) => p.e));
-        const o: ScheduledTask = { id: t.key ? `key:${t.key}` : `${r.id}:${ti}`, t: t.t, l: t.l, s, e: s + m, temp: t.temp, pans: t.pans, for: [r.short], refs: [{ r, batches, task: t }] };
+        const o: ScheduledTask = { id: t.key ? `key:${t.key}` : `${r.id}:${ti}`, t: t.t, l: t.l, s, e: s + m, temp: t.temp, pans: t.pans, for: [r.short], refs: [{ r, batches, task: t, scale: size[r.id] }] };
         placed.push(o);
         if (t.key) shared[t.key] = o;
         if (t.l !== 'chill') ready = o.e;

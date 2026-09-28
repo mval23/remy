@@ -6,6 +6,7 @@ import { bodyCheckinOn, weightOn, weightTrend } from '../learning/learning';
 import { fraction } from '../planning/grocery';
 import { balanceOn, dayNutrition, estimatesOn, kcalRange, LIGHT_DAY_KCAL } from '../planning/nutrition';
 import { SLOT_SHORT } from '../planning/types';
+import { goalsOf, hasGoals } from '../planning/goals';
 import { useRemy } from '../store';
 
 function Plate() {
@@ -102,6 +103,7 @@ export function Nutrition() {
   const produce = Object.keys(rat).filter((f) => (FOODS[f]?.veg || ['berries', 'bananas', 'apples', 'grapes'].includes(f)) && accepted(f)).map((f) => FOODS[f].n.toLowerCase());
   const counted = days.filter((x) => !x.out);
   const avgKcal = counted.length ? Math.round(counted.reduce((s, x) => s + x.kcal, 0) / counted.length) : 0;
+  const goals = goalsOf(n);
   const avgPro = counted.length ? Math.round(counted.reduce((s, x) => s + x.pro, 0) / counted.length) : 0;
 
   return (
@@ -230,28 +232,35 @@ export function Nutrition() {
               </div>
               <div>
                 <p className="strong">
-                  Targets from a dietitian or doctor <span className="hint">(optional)</span>
+                  Your daily goals <span className="hint">(optional)</span>
                 </p>
                 <div className="row gap-top">
-                  <input className="field grow" type="number" inputMode="numeric" placeholder="kcal per day" aria-label="Daily calorie target" value={n.kcal} onChange={(e) => actions.setTargets(e.target.value, n.pro)} />
-                  <input className="field grow" type="number" inputMode="numeric" placeholder="g protein" aria-label="Daily protein target" value={n.pro} onChange={(e) => actions.setTargets(n.kcal, e.target.value)} />
+                  <input className="field grow" type="number" inputMode="numeric" placeholder="kcal per day" aria-label="Daily calorie goal" value={n.kcal} onChange={(e) => actions.setTargets(e.target.value, n.pro)} />
+                  <input className="field grow" type="number" inputMode="numeric" placeholder="g protein" aria-label="Daily protein goal" value={n.pro} onChange={(e) => actions.setTargets(n.kcal, e.target.value)} />
                 </div>
                 {n.kcal || n.pro ? (
                   <>
                     <p className="hint ink-2 gap-top">
                       This week averages about {kcalRange(avgKcal)} kcal and {avgPro} g protein a day (days without a meal out).
-                      {n.kcal && ` Your target: ${n.kcal} kcal.`}
-                      {n.pro && ` Protein target: ${n.pro} g.`} Remy shows how the week compares; changing portions is up to you and your professional.
+                    </p>
+                    {hasGoals(goals) && (
+                      <button type="button" className="btn soft wide gap-top" onClick={actions.fitGoals}>
+                        <Icon name="spark" size={17} /> Fit my week to these goals
+                      </button>
+                    )}
+                    <p className="hint gap-top">
+                      Remy swaps meals you haven’t approved for lighter or heavier ones, adds protein sides, then adjusts main-meal portions by up to 20%. New weeks are fitted
+                      automatically. It never plans a day under about 1,200 kcal, and your sweet always stays.
                     </p>
                     {n.kcal && Number(n.kcal) < LIGHT_DAY_KCAL && (
                       <div className="warnline">
                         <Icon name="info" size={16} />
-                        <span>That’s below about 1,200 kcal, which Remy won’t plan on its own. Keep it only if a professional set it for you.</span>
+                        <span>That’s below about 1,200 kcal, so Remy fits your week to about 1,200 instead. Go lower only with a professional’s guidance.</span>
                       </div>
                     )}
                   </>
                 ) : (
-                  <p className="hint gap-top">Leave these empty unless a professional gave you numbers. Remy never needs your weight to plan.</p>
+                  <p className="hint gap-top">Optional. With goals, Remy fits your menu toward them. Remy never works out targets from your weight or body.</p>
                 )}
               </div>
             </div>

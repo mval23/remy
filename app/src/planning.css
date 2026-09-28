@@ -27,6 +27,9 @@
 .seg button[aria-pressed='true'] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
 .seg.narrow { width: 120px; flex: none; }
 .summary-line { margin: 8px 2px 10px; }
+.planner-top > .btn { margin-bottom: 10px; }
+.goals-line { margin: -2px 2px 10px; color: var(--ink-2); }
+.goals-line .ic { color: var(--basil); vertical-align: -2px; }
 .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; position: sticky; top: -4px; background: var(--bg); padding: 4px 0 10px; z-index: 2; }
 .days button { border: 1.5px solid var(--line); background: var(--surface); border-radius: 14px; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; padding: 0; color: var(--ink); }
 .days button small { font-size: 11px; font-weight: 600; color: var(--ink-2); }
@@ -141,3 +144,4 @@
 .nav button.on .ic { background: var(--basil-soft); border-radius: 999px; padding: 6px 16px; box-sizing: content-box; }
 .foot + .nav { border-top: 0; }
 .foot:has(+ .nav) { padding-bottom: 10px; }
+

@@ -5,6 +5,7 @@ import { listText, str } from '../interview/helpers';
 import { checkinDue, mealsToRate, noticeSuggestion } from '../learning/learning';
 import { R } from '../planning/data/recipes';
 import { costEstimate, groceryList } from '../planning/grocery';
+import { buysMonthly } from '../planning/month';
 import { balanceOn, dayNutrition, estimatesOn, mealNutrition } from '../planning/nutrition';
 import { approvalCounts } from '../planning/planner';
 import { dayIndexOn } from '../planning/calendar';
@@ -35,7 +36,8 @@ export function Home() {
   const sc = schedule(plan, A);
   const packs = packingCounts(plan, A);
   const items = groceryList(plan, A, planState.groceries);
-  const toBuy = items.filter((x) => !x.home);
+  // Shopping monthly: staples are on the month's list, not this week's.
+  const toBuy = items.filter((x) => !x.home && (planState.shopping !== 'monthly' || x.custom || !buysMonthly(x.k)));
   const checked = toBuy.filter((x) => planState.groceries.checked[x.k]).length;
   const cost = costEstimate(items, A);
   const approvals = approvalCounts(plan);

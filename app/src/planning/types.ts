@@ -128,6 +128,8 @@ export interface Meal {
   skip?: boolean;
   /** Slot needs a choice: nothing in the library fits. */
   need?: boolean;
+  /** Portion size when fitted to the person's goals: 0.8–1.2 of the recipe's portion (missing = 1). Main meals only. */
+  x?: number;
 }
 
 export interface PlanDay {

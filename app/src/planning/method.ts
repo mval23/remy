@@ -1,6 +1,6 @@
 import { ING } from './data/ingredients';
 import { R } from './data/recipes';
-import { portions } from './planner';
+import { portions, portionSizes } from './planner';
 import type { Schedule, ScheduledTask } from './schedule';
 import type { Recipe, Task, WeekPlan } from './types';
 import { quantityText } from './units';
@@ -16,10 +16,11 @@ export interface Part {
   amount?: boolean;
 }
 
-/** One recipe's share of a task: which recipe, and how many batches this week. */
+/** One recipe's share of a task: which recipe, how many batches this week, and the portion size (goals; 1 = as written). */
 export interface Source {
   r: Recipe;
   batches: number;
+  scale?: number;
 }
 
 /** Batches of each recipe this week (portions ÷ servings per batch, rounded up). */
@@ -39,7 +40,7 @@ export function ingredientName(k: string, q: number): string {
 
 /** Total amount of ingredient `k` across the sources (a shared task, like one pot of rice, adds them up). */
 function total(k: string, sources: Source[]): number {
-  return sources.reduce((s, { r, batches }) => s + (r.ing.find(([key]) => key === k)?.[1] ?? 0) * batches, 0);
+  return sources.reduce((s, { r, batches, scale }) => s + (r.ing.find(([key]) => key === k)?.[1] ?? 0) * batches * (scale ?? 1), 0);
 }
 
 const PLACEHOLDER = /\{(\w+)(?:\*([\d.]+))?(?::(\w+))?\}/g;
@@ -79,8 +80,8 @@ export function taskLines(task: Task, sources: Source[]): Part[][] {
 }
 
 /** Ingredients of a recipe, scaled to `batches`. */
-export function scaledIngredients(r: Recipe, batches: number): { k: string; amount: string; name: string }[] {
-  return r.ing.map(([k, q]) => ({ k, amount: quantityText(q * batches, ING[k].u), name: ingredientName(k, q * batches) }));
+export function scaledIngredients(r: Recipe, batches: number, scale = 1): { k: string; amount: string; name: string }[] {
+  return r.ing.map(([k, q]) => ({ k, amount: quantityText(q * batches * scale, ING[k].u), name: ingredientName(k, q * batches * scale) }));
 }
 
 /** Everything written out in detail? (Recipes are being rewritten a few at a time.) */
@@ -110,9 +111,10 @@ export interface CookStep {
 /** The recipes cooked on prep day, with batches, in the order the schedule starts them. */
 export function recipesToPrep(plan: WeekPlan, sc: Schedule): Source[] {
   const b = batchesFor(plan);
+  const size = portionSizes(plan);
   const order: string[] = [];
   for (const t of sc.tasks) for (const s of t.refs) if (!order.includes(s.r.id)) order.push(s.r.id);
-  return order.map((id) => ({ r: R[id], batches: b[id] }));
+  return order.map((id) => ({ r: R[id], batches: b[id], scale: size[id] }));
 }
 
 /** Timeline order: every scheduled task, with its instructions. */
@@ -124,7 +126,7 @@ export function timelineSteps(sc: Schedule): CookStep[] {
     minutes: t.e - t.s,
     temp: t.temp,
     for: t.for,
-    sources: t.refs.filter((x, i) => t.refs.findIndex((y) => y.r.id === x.r.id) === i).map(({ r, batches }) => ({ r, batches })),
+    sources: t.refs.filter((x, i) => t.refs.findIndex((y) => y.r.id === x.r.id) === i).map(({ r, batches, scale }) => ({ r, batches, scale })),
     lines: t.refs.length ? taskLines(t.refs[0].task, t.refs) : [],
     start: t.s,
   }));
@@ -135,13 +137,13 @@ export function recipeSteps(plan: WeekPlan, sc: Schedule): { r: Recipe; batches:
   const byTask = new Map<Task, ScheduledTask>();
   for (const t of sc.tasks) for (const s of t.refs) byTask.set(s.task, t);
   const seen = new Map<string, string>();
-  return recipesToPrep(plan, sc).map(({ r, batches }) => ({
+  return recipesToPrep(plan, sc).map(({ r, batches, scale }) => ({
     r,
     batches,
     steps: r.tasks.map((task, i) => {
       const st = byTask.get(task);
       const id = st?.id ?? `${r.id}:${i}`;
-      const step: CookStep = { id, title: task.t, lane: task.l, minutes: st ? st.e - st.s : task.m, temp: task.temp, for: st?.for ?? [r.short], sources: [{ r, batches }], lines: taskLines(task, st?.refs ?? [{ r, batches }]) };
+      const step: CookStep = { id, title: task.t, lane: task.l, minutes: st ? st.e - st.s : task.m, temp: task.temp, for: st?.for ?? [r.short], sources: [{ r, batches, scale }], lines: taskLines(task, st?.refs ?? [{ r, batches, scale }]) };
       if (seen.has(id)) step.alreadyDone = seen.get(id);
       else seen.set(id, r.short);
       return step;
