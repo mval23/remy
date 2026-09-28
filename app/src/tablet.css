@@ -1,0 +1,73 @@
+/* ---------- tablets (iPad upright and sideways) ----------
+   Phones keep the single phone-width column. From 700 px wide the app fills the screen:
+   the bottom menu becomes a rail on the left, content is centred at a readable width,
+   and busy screens split into two columns when there is room (1000 px and up). */
+
+@media (min-width: 700px) {
+  body { background: var(--bg); }
+  .app {
+    --w: 640px; /* content width: welcome and interview */
+    --pad: max(24px, calc((100% - var(--w)) / 2));
+    max-width: none; border-inline: 0; box-shadow: none;
+  }
+  .app:has(> .nav) { --w: 720px; padding-left: calc(84px + env(safe-area-inset-left, 0px)); }
+
+  /* Header, content and footer share the same centred width. */
+  .head { padding-inline: var(--pad); padding-top: 18px; }
+  .ttl h1 { font-size: 24px; }
+  .ttl p { font-size: 13px; }
+  .body { padding: 4px var(--pad) calc(32px + env(safe-area-inset-bottom, 0px)); }
+  .foot { padding-inline: var(--pad); }
+  .foot.stacked { align-items: center; }
+  .foot.stacked .btn { width: min(100%, 440px); }
+  .prog { padding-inline: var(--pad); }
+  .editbar { margin-inline: var(--pad); }
+
+  /* The bottom menu becomes a rail down the left edge. */
+  .nav {
+    position: absolute; top: 0; bottom: 0; left: 0; z-index: 5;
+    width: calc(84px + env(safe-area-inset-left, 0px));
+    padding: calc(20px + env(safe-area-inset-top, 0px)) 12px 20px calc(12px + env(safe-area-inset-left, 0px));
+    grid-template-columns: 1fr; grid-auto-rows: 56px; align-content: start; gap: 8px;
+    border-top: 0; border-right: 1px solid var(--line);
+  }
+  .nav button.on .ic { padding: 8px 14px; }
+  .foot:has(+ .nav) { padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+
+  /* Sheets open as a centred dialog instead of sliding up from the bottom edge. */
+  .scrim { align-items: center; justify-content: center; padding: 32px; }
+  .sheet { max-width: 560px; max-height: min(86%, 760px); border-radius: 24px; padding: 20px 24px 24px; box-shadow: var(--shadow); }
+  .grab { display: none; }
+  .sheet-close { top: 12px; right: 12px; }
+
+  /* `translate` is separate from the rise animation's `transform`, so both apply. */
+  .toast { left: 50%; right: auto; width: min(440px, calc(100% - 48px)); translate: -50% 0; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+
+  /* Plan: meal cards side by side. */
+  .meals { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; align-items: start; }
+  .days button { min-height: 60px; font-size: 14px; }
+
+  /* Grocery aisles flow into two columns. */
+  .masonry.aisles { columns: 2; column-gap: 24px; margin-top: 22px; }
+  .masonry.aisles > * { break-inside: avoid; margin-top: 0; margin-bottom: 22px; }
+}
+
+/* Sideways iPad and larger: two-column screens get the full width. */
+@media (min-width: 1000px) {
+  .app:has(> .body.wide) { --w: 1080px; }
+
+  /* Two columns, each read top to bottom. */
+  .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 32px; align-items: start; }
+  .cols > div > :first-child { margin-top: 4px; }
+
+  /* Sections flow into two balanced columns. */
+  .masonry { columns: 2; column-gap: 32px; margin-top: 22px; }
+  .masonry > * { break-inside: avoid; margin-top: 0; margin-bottom: 22px; }
+
+  .masonry.aisles { columns: 3; }
+
+  /* Plan: variety choice and the week summary share one line. */
+  .planner-top { display: flex; gap: 20px; align-items: center; }
+  .planner-top .seg { flex: 0 1 460px; }
+  .planner-top .summary-line { flex: 1; min-width: 0; margin: 0; }
+}

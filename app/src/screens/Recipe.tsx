@@ -53,203 +53,209 @@ export function Recipe() {
   return (
     <>
       <Header title={r.short} sub={r.slot} back={ui.recipeBack} />
-      <main className="body" tabIndex={0}>
-        <div className="row recipe-top">
-          <div className="recipe-emoji" aria-hidden="true">{r.e}</div>
+      <main className="body wide" tabIndex={0}>
+        <div className="cols">
           <div>
-            <h2 className="recipe-name">{r.name}</h2>
-            <div className="chips tight gap-top">
-              <span className="pill p-muted">{r.slot}</span>
-              <span className="pill p-muted">{r.store ? 'Store-bought' : `${handsOn} min hands-on`}</span>
-              <span className="pill p-muted">Makes {r.serves}</span>
+            <div className="row recipe-top">
+              <div className="recipe-emoji" aria-hidden="true">{r.e}</div>
+              <div>
+                <h2 className="recipe-name">{r.name}</h2>
+                <div className="chips tight gap-top">
+                  <span className="pill p-muted">{r.slot}</span>
+                  <span className="pill p-muted">{r.store ? 'Store-bought' : `${handsOn} min hands-on`}</span>
+                  <span className="pill p-muted">Makes {r.serves}</span>
+                </div>
+              </div>
             </div>
+
+            <section className="sec">
+              <h2>Why Remy picked this</h2>
+              <div className="list">
+                {r.why.map((w) => (
+                  <div className="li compact" key={w}>
+                    <span className="c-basil"><Icon name="check" size={18} /></span>
+                    <div className="grow">{w}</div>
+                  </div>
+                ))}
+                {found.length > 0 && (
+                  <div className="li compact">
+                    <span className="c-basil"><Icon name="spark" size={18} /></span>
+                    <div className="grow">
+                      <span className="hint">Matches your profile: </span>
+                      {found.join(', ')}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+            {r.note && (
+              <div className="warnline">
+                <Icon name="info" size={16} />
+                <span>{r.note}</span>
+              </div>
+            )}
+
+            {days.length > 0 && (
+              <section className="sec">
+                <h2>This week</h2>
+                <div className="chips">
+                  {days.map((x, i) => (
+                    <span className="chip static" key={i}>
+                      {x.d} <StoragePill st={x.st} />
+                    </span>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <section className="sec">
+              <h2>
+                <span className="grow">Ingredients</span>
+              </h2>
+              {batches > 1 && (
+                <div className="seg" role="group" aria-label="Amounts for">
+                  <button type="button" aria-pressed={!oneBatch} onClick={() => setOneBatch(false)}>
+                    This week (×{batches})
+                  </button>
+                  <button type="button" aria-pressed={oneBatch} onClick={() => setOneBatch(true)}>
+                    One batch ({r.serves})
+                  </button>
+                </div>
+              )}
+              <div className={`list${batches > 1 ? ' gap-top' : ''}`}>
+                {r.ing.map(([k, q]) => (
+                  <div className="li compact" key={k}>
+                    <div className="grow">{ING[k].n}</div>
+                    <span className="mono hint">{quantityText(q * scale, ING[k].u)}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="hint gap-top">Makes {r.serves * scale} portions. Tbsp and tsp are standard 15 ml and 5 ml spoons.</p>
+            </section>
+          </div>
+
+          <div>
+            {isDetailed(r) ? (
+              <section className="sec">
+                <h2>Method</h2>
+                <div className="panel tasks">
+                  {r.tasks.map((t, i) => (
+                    <div className="method-step" key={i}>
+                      <div className="row wrap">
+                        <span className="strong grow">{t.t}</span>
+                        <StepMeta step={{ lane: t.l, minutes: t.m, temp: t.temp }} />
+                      </div>
+                      <StepLines lines={taskLines(t, [{ r, batches: scale }])} />
+                    </div>
+                  ))}
+                </div>
+                {!r.store && <p className="hint gap-top">On prep day these steps run alongside your other recipes; the Prep screen shows the fastest order.</p>}
+              </section>
+            ) : (
+              r.steps.length > 0 && (
+                <section className="sec">
+                  <h2>Steps</h2>
+                  <ol className="panel steps">
+                    {r.steps.map((s) => (
+                      <li key={s}>{s}</li>
+                    ))}
+                  </ol>
+                </section>
+              )
+            )}
+
+            <section className="sec">
+              <h2>Storage and reheating</h2>
+              <div className="panel kv">
+                <div>
+                  <span className="c-blue"><Icon name="fridge" size={18} /></span>
+                  <div className="grow"><div className="k">Fridge</div><div className="v">{fridgeText}</div></div>
+                </div>
+                <div>
+                  <span className="c-blue"><Icon name="snow" size={18} /></span>
+                  <div className="grow"><div className="k">Freezer</div><div className="v">{freezerText}</div></div>
+                </div>
+                {r.thaw && (
+                  <div>
+                    <span className="c-blue"><Icon name="clock" size={18} /></span>
+                    <div className="grow"><div className="k">Thawing</div><div className="v">{r.thaw}</div></div>
+                  </div>
+                )}
+                <div>
+                  <span className="c-carrot"><Icon name="therm" size={18} /></span>
+                  <div className="grow"><div className="k">Reheating</div><div className="v">{r.reheat}</div></div>
+                </div>
+              </div>
+            </section>
+
+            {subs.length > 0 && (
+              <section className="sec">
+                <h2>Substitutions</h2>
+                <div className="list">
+                  {subs.map((s) => (
+                    <div className="li compact" key={s.from + s.to}>
+                      <Icon name="swap" size={17} />
+                      <div className="grow">
+                        {s.from} → <b>{s.to}</b>
+                        {s.note && <span className="hint"> ({s.note})</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="hint gap-top">Only foods you rated Okay or better, and never anything that conflicts with your safety rules.</p>
+              </section>
+            )}
+
+            <section className="sec">
+              <h2>Nutrition</h2>
+              <div className="panel kv">
+                {r.plate && (
+                  <div>
+                    <span className="c-basil"><Icon name="box" size={18} /></span>
+                    <div className="grow">
+                      <div className="k">Portion</div>
+                      <div className="v">{r.plate}</div>
+                      {r.slot === 'Evening sweet' && planState.sweetPortion && (
+                        <div className="hint">
+                          {planState.sweetPortion === 'more'
+                            ? 'You said this portion felt small, so go a little bigger, about a quarter more. Satisfying beats strict.'
+                            : 'You said this portion felt like too much, so cut it a little smaller. Any extra keeps for another day.'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <span className="c-carrot"><Icon name="spark" size={18} /></span>
+                  <div className="grow">
+                    <div className="k">Protein</div>
+                    <div className="v">
+                      {target ? (r.pro >= target ? `Good source for a ${r.slot.toLowerCase()}` : 'On the light side. Pair it with a protein side.') : r.pro >= 10 ? 'Some protein' : 'Not a focus for this slot'}
+                      {nums && <span className="mono hint"> ≈{r.pro} g</span>}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <span className="c-basil"><Icon name="heart" size={18} /></span>
+                  <div className="grow">
+                    <div className="k">Fruit and vegetables</div>
+                    <div className="v">{r.prod ? `${fraction(r.prod)} serving${r.prod > 1 ? 's' : ''}` : 'None'}</div>
+                  </div>
+                </div>
+                {nums && (
+                  <div>
+                    <span className="c-muted"><Icon name="info" size={18} /></span>
+                    <div className="grow">
+                      <div className="k">Estimate</div>
+                      <div className="v">About {r.kcal} kcal per portion <span className="hint">(brands and portions vary)</span></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {!nums && <p className="hint gap-top">Calorie estimates are off. Turn them on in Nutrition balance if you want them.</p>}
+            </section>
           </div>
         </div>
-
-        <section className="sec">
-          <h2>Why Remy picked this</h2>
-          <div className="list">
-            {r.why.map((w) => (
-              <div className="li compact" key={w}>
-                <span className="c-basil"><Icon name="check" size={18} /></span>
-                <div className="grow">{w}</div>
-              </div>
-            ))}
-            {found.length > 0 && (
-              <div className="li compact">
-                <span className="c-basil"><Icon name="spark" size={18} /></span>
-                <div className="grow">
-                  <span className="hint">Matches your profile: </span>
-                  {found.join(', ')}
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-        {r.note && (
-          <div className="warnline">
-            <Icon name="info" size={16} />
-            <span>{r.note}</span>
-          </div>
-        )}
-
-        {days.length > 0 && (
-          <section className="sec">
-            <h2>This week</h2>
-            <div className="chips">
-              {days.map((x, i) => (
-                <span className="chip static" key={i}>
-                  {x.d} <StoragePill st={x.st} />
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section className="sec">
-          <h2>
-            <span className="grow">Ingredients</span>
-          </h2>
-          {batches > 1 && (
-            <div className="seg" role="group" aria-label="Amounts for">
-              <button type="button" aria-pressed={!oneBatch} onClick={() => setOneBatch(false)}>
-                This week (×{batches})
-              </button>
-              <button type="button" aria-pressed={oneBatch} onClick={() => setOneBatch(true)}>
-                One batch ({r.serves})
-              </button>
-            </div>
-          )}
-          <div className={`list${batches > 1 ? ' gap-top' : ''}`}>
-            {r.ing.map(([k, q]) => (
-              <div className="li compact" key={k}>
-                <div className="grow">{ING[k].n}</div>
-                <span className="mono hint">{quantityText(q * scale, ING[k].u)}</span>
-              </div>
-            ))}
-          </div>
-          <p className="hint gap-top">Makes {r.serves * scale} portions. Tbsp and tsp are standard 15 ml and 5 ml spoons.</p>
-        </section>
-
-        {isDetailed(r) ? (
-          <section className="sec">
-            <h2>Method</h2>
-            <div className="panel tasks">
-              {r.tasks.map((t, i) => (
-                <div className="method-step" key={i}>
-                  <div className="row wrap">
-                    <span className="strong grow">{t.t}</span>
-                    <StepMeta step={{ lane: t.l, minutes: t.m, temp: t.temp }} />
-                  </div>
-                  <StepLines lines={taskLines(t, [{ r, batches: scale }])} />
-                </div>
-              ))}
-            </div>
-            {!r.store && <p className="hint gap-top">On prep day these steps run alongside your other recipes; the Prep screen shows the fastest order.</p>}
-          </section>
-        ) : (
-          r.steps.length > 0 && (
-            <section className="sec">
-              <h2>Steps</h2>
-              <ol className="panel steps">
-                {r.steps.map((s) => (
-                  <li key={s}>{s}</li>
-                ))}
-              </ol>
-            </section>
-          )
-        )}
-
-        <section className="sec">
-          <h2>Storage and reheating</h2>
-          <div className="panel kv">
-            <div>
-              <span className="c-blue"><Icon name="fridge" size={18} /></span>
-              <div className="grow"><div className="k">Fridge</div><div className="v">{fridgeText}</div></div>
-            </div>
-            <div>
-              <span className="c-blue"><Icon name="snow" size={18} /></span>
-              <div className="grow"><div className="k">Freezer</div><div className="v">{freezerText}</div></div>
-            </div>
-            {r.thaw && (
-              <div>
-                <span className="c-blue"><Icon name="clock" size={18} /></span>
-                <div className="grow"><div className="k">Thawing</div><div className="v">{r.thaw}</div></div>
-              </div>
-            )}
-            <div>
-              <span className="c-carrot"><Icon name="therm" size={18} /></span>
-              <div className="grow"><div className="k">Reheating</div><div className="v">{r.reheat}</div></div>
-            </div>
-          </div>
-        </section>
-
-        {subs.length > 0 && (
-          <section className="sec">
-            <h2>Substitutions</h2>
-            <div className="list">
-              {subs.map((s) => (
-                <div className="li compact" key={s.from + s.to}>
-                  <Icon name="swap" size={17} />
-                  <div className="grow">
-                    {s.from} → <b>{s.to}</b>
-                    {s.note && <span className="hint"> ({s.note})</span>}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="hint gap-top">Only foods you rated Okay or better, and never anything that conflicts with your safety rules.</p>
-          </section>
-        )}
-
-        <section className="sec">
-          <h2>Nutrition</h2>
-          <div className="panel kv">
-            {r.plate && (
-              <div>
-                <span className="c-basil"><Icon name="box" size={18} /></span>
-                <div className="grow">
-                  <div className="k">Portion</div>
-                  <div className="v">{r.plate}</div>
-                  {r.slot === 'Evening sweet' && planState.sweetPortion && (
-                    <div className="hint">
-                      {planState.sweetPortion === 'more'
-                        ? 'You said this portion felt small, so go a little bigger, about a quarter more. Satisfying beats strict.'
-                        : 'You said this portion felt like too much, so cut it a little smaller. Any extra keeps for another day.'}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-            <div>
-              <span className="c-carrot"><Icon name="spark" size={18} /></span>
-              <div className="grow">
-                <div className="k">Protein</div>
-                <div className="v">
-                  {target ? (r.pro >= target ? `Good source for a ${r.slot.toLowerCase()}` : 'On the light side. Pair it with a protein side.') : r.pro >= 10 ? 'Some protein' : 'Not a focus for this slot'}
-                  {nums && <span className="mono hint"> ≈{r.pro} g</span>}
-                </div>
-              </div>
-            </div>
-            <div>
-              <span className="c-basil"><Icon name="heart" size={18} /></span>
-              <div className="grow">
-                <div className="k">Fruit and vegetables</div>
-                <div className="v">{r.prod ? `${fraction(r.prod)} serving${r.prod > 1 ? 's' : ''}` : 'None'}</div>
-              </div>
-            </div>
-            {nums && (
-              <div>
-                <span className="c-muted"><Icon name="info" size={18} /></span>
-                <div className="grow">
-                  <div className="k">Estimate</div>
-                  <div className="v">About {r.kcal} kcal per portion <span className="hint">(brands and portions vary)</span></div>
-                </div>
-              </div>
-            )}
-          </div>
-          {!nums && <p className="hint gap-top">Calorie estimates are off. Turn them on in Nutrition balance if you want them.</p>}
-        </section>
       </main>
       <BottomNav />
     </>

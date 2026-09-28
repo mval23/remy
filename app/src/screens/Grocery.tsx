@@ -84,7 +84,7 @@ export function Grocery() {
   return (
     <>
       <Header title="Grocery list" sub={`For ${DAY_FULL[(str(A.prepday) || 'Sun') as Day]} prep · ${buy.length} to buy`} />
-      <main className="body">
+      <main className="body wide">
         {(brands.length > 0 || frozen.length > 0) && (
           <div className="panel stack top-gap">
             {brands.length > 0 && (
@@ -135,19 +135,21 @@ export function Grocery() {
           </button>
         </div>
 
-        {SECTION_ORDER.map((sec) => {
-          const list = buy.filter((x) => x.sec === sec);
-          if (!list.length) return null;
-          return (
-            <section className="sec" key={sec}>
-              <h2>
-                <span className="grow">{sec}</span>
-                <span className="mono">{list.length}</span>
-              </h2>
-              <div className="list">{list.map(row)}</div>
-            </section>
-          );
-        })}
+        <div className="masonry aisles">
+          {SECTION_ORDER.map((sec) => {
+            const list = buy.filter((x) => x.sec === sec);
+            if (!list.length) return null;
+            return (
+              <section className="sec" key={sec}>
+                <h2>
+                  <span className="grow">{sec}</span>
+                  <span className="mono">{list.length}</span>
+                </h2>
+                <div className="list">{list.map(row)}</div>
+              </section>
+            );
+          })}
+        </div>
 
         {home.length > 0 && (
           <section className="sec">

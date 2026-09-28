@@ -32,18 +32,20 @@ export function Planner() {
   return (
     <>
       <Header title="Your week" sub={`Prep on ${DAY_FULL[(str(A.prepday) || 'Sun') as Day]} · tap a meal for the recipe`} />
-      <main className="body">
-        <div className="seg" role="group" aria-label="Variety">
-          {VARIETIES.map((v) => (
-            <button key={v} type="button" aria-pressed={planState.variety === v} onClick={() => actions.setVariety(v)}>
-              {WEEKS[v].label}
-            </button>
-          ))}
+      <main className="body wide">
+        <div className="planner-top">
+          <div className="seg" role="group" aria-label="Variety">
+            {VARIETIES.map((v) => (
+              <button key={v} type="button" aria-pressed={planState.variety === v} onClick={() => actions.setVariety(v)}>
+                {WEEKS[v].label}
+              </button>
+            ))}
+          </div>
+          <p className="hint summary-line">
+            {recipeCount} recipes · {duration(sc.total)} prep{' '}
+            {sc.total > windowMax ? <span className="pill p-warn">over your window</span> : <span className="pill p-ok">fits</span>} · {approvals.ok}/{approvals.total} approved
+          </p>
         </div>
-        <p className="hint summary-line">
-          {recipeCount} recipes · {duration(sc.total)} prep{' '}
-          {sc.total > windowMax ? <span className="pill p-warn">over your window</span> : <span className="pill p-ok">fits</span>} · {approvals.ok}/{approvals.total} approved
-        </p>
 
         <div className="days" role="group" aria-label="Day">
           {plan.map((x, i) => (
@@ -92,7 +94,7 @@ export function Planner() {
           </div>
         )}
 
-        <div className="stack">
+        <div className="stack meals">
           {SLOTS.map((slot) => (
             mealCard(slot)
           ))}
