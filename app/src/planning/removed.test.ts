@@ -5,7 +5,7 @@ import { applyRemoved, applySlots, baseSlot, MEAL_IDS, R, SIDE_IDS } from './dat
 import slotMap from './data/slots.json';
 import removedList from './data/removed.json';
 import { buildPlan, dropRemoved, eachMeal, regenerate } from './planner';
-import { context } from './rules';
+import { context, storage } from './rules';
 import type { WeekPlan } from './types';
 
 const ctx = context(activeAnswers(fillWithSamples(emptyInterview())));
@@ -82,5 +82,41 @@ describe('meals moved on the menu', () => {
 
   it('serves ajiaco, sancocho, bandeja paisa and sudado at lunch', () => {
     for (const id of ['ajiaco', 'sancocho', 'bandeja', 'sudado']) expect(R[id].slot, id).toBe('Lunch');
+  });
+});
+
+describe('a short lunch list', () => {
+  // Every lunch that freezes, gone: the lunches left only keep 3–4 days, so days 5–7 need something from the freezer.
+  const freezable = () => MEAL_IDS.filter((id) => R[id].slot === 'Lunch' && R[id].freezer > 0);
+
+  it('never leaves a lunch empty: a freezer-friendly dinner fills the late days, marked borrowed', () => {
+    applyRemoved(freezable());
+    const { plan } = buildPlan('balanced', ctx);
+    plan.forEach((day, i) => {
+      const m = day.meals.Lunch;
+      if (!m || m.out) return;
+      expect(m.r, `lunch on day ${i + 1}`).toBeTruthy();
+      expect(storage(R[m.r!], i + 1).k, `lunch on day ${i + 1}`).not.toBe('unsafe');
+      if (R[m.r!].slot !== 'Lunch') expect(m.borrowed).toBe(true);
+    });
+    expect(plan.some((day) => day.meals.Lunch?.borrowed)).toBe(true);
+  });
+
+  it('keeps an approved borrowed lunch when the plan loads or is rebuilt', () => {
+    applyRemoved(freezable());
+    const { plan } = buildPlan('balanced', ctx);
+    const d = plan.findIndex((day) => day.meals.Lunch?.borrowed);
+    const approved = plan.map((day, i) => (i === d ? { ...day, meals: { ...day.meals, Lunch: { ...day.meals.Lunch!, ok: true } } } : day));
+    expect(dropRemoved(approved, ctx).plan[d].meals.Lunch).toEqual(approved[d].meals.Lunch);
+    expect(buildPlan('balanced', ctx, approved).plan[d].meals.Lunch).toEqual(approved[d].meals.Lunch);
+  });
+
+  it('fills a lunch saved as “needs a choice” when the plan loads', () => {
+    applyRemoved(freezable());
+    const { plan } = buildPlan('balanced', ctx);
+    const empty = plan.map((day, i) => (i === 6 ? { ...day, meals: { ...day.meals, Lunch: { r: null, need: true, ok: false } } } : day));
+    const m = dropRemoved(empty, ctx).plan[6].meals.Lunch!;
+    expect(m.r).toBeTruthy();
+    expect(storage(R[m.r!], 7).k).not.toBe('unsafe');
   });
 });
