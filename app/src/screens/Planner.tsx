@@ -10,6 +10,7 @@ import { approvalCounts, portions } from '../planning/planner';
 import { storage, windowMinutes } from '../planning/rules';
 import { duration, schedule } from '../planning/schedule';
 import { DAY_FULL, SLOT_SHORT, SLOTS, type Day, type Slot, type Variety } from '../planning/types';
+import { goalsOf, hasGoals, weekAverage } from '../planning/goals';
 import { useRemy } from '../store';
 
 const VARIETIES: Variety[] = ['favorites', 'balanced', 'variety'];
@@ -29,6 +30,9 @@ export function Planner() {
   const balance = balanceOn(A);
   const nums = estimatesOn(planState.nutrition, A);
   const dn = dayNutrition(day, ctx.hungry);
+  const goals = goalsOf(planState.nutrition);
+  const avg = weekAverage(plan, ctx.hungry);
+  const size = plan.flatMap((x) => Object.values(x.meals)).find((m) => m?.x)?.x ?? 1;
 
   return (
     <>
@@ -46,7 +50,19 @@ export function Planner() {
             {recipeCount} recipes · {duration(sc.total)} prep{' '}
             {sc.total > windowMax ? <span className="pill p-warn">over your window</span> : <span className="pill p-ok">fits</span>} · {approvals.ok}/{approvals.total} approved
           </p>
+          <button type="button" className="btn sm soft self-start" onClick={actions.regenerate}>
+            <Icon name="swap" size={16} /> New menu
+          </button>
         </div>
+        {hasGoals(goals) && (
+          <p className="hint goals-line">
+            <Icon name="spark" size={14} /> Fitted to your goals ({[goals.kcal && `${goals.kcal.toLocaleString('en-US')} kcal`, goals.pro && `${goals.pro} g protein`].filter(Boolean).join(', ')}): about{' '}
+            {Math.round(avg.kcal).toLocaleString('en-US')} kcal and {Math.round(avg.pro)} g protein a day{size !== 1 ? `, main-meal portions ${Math.round(size * 100)}%` : ''}.{' '}
+            <button type="button" className="linkbtn tight inline" onClick={actions.fitGoals}>
+              Fit again
+            </button>
+          </p>
+        )}
 
         <div className="days" role="group" aria-label="Day">
           {plan.map((x, i) => (
@@ -174,6 +190,7 @@ export function Planner() {
         </button>
         <div className="hint">
           {pc[r.id] > 1 && `${nth} of ${pc[r.id]} this week · `}
+          {m.x && m.x !== 1 && `${Math.round(m.x * 100)}% portion · `}
           {st.k === 'freezer' && r.thaw ? r.thaw : r.reheat.split('.')[0]}
         </div>
         {nums && mn && <MacroRow n={mn} note={m.side ? 'with the side' : undefined} />}

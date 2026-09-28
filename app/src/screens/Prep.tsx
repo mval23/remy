@@ -143,14 +143,14 @@ export function Prep() {
           <details>
             <summary className="linkbtn">Ingredients to set out, by recipe</summary>
             <div className="stack gap-top">
-              {toPrep.map(({ r, batches }) => (
+              {toPrep.map(({ r, batches, scale }) => (
                 <div key={r.id}>
                   <p className="strong">
                     {r.e} {r.short}
                     {batches > 1 && <span className="pill p-warn"> ×{batches} batches</span>}
                   </p>
                   <ul className="ing-list">
-                    {scaledIngredients(r, batches).map((x) => (
+                    {scaledIngredients(r, batches, scale).map((x) => (
                       <li key={x.k}>
                         <b>{x.amount}</b> {x.name}
                       </li>

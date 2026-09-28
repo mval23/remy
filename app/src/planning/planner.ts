@@ -118,6 +118,49 @@ export function buildPlan(variety: Variety, ctx: PlanContext, previous?: WeekPla
   return { plan, changed };
 }
 
+/**
+ * “New menu”: a different week for every meal that isn't approved. Approved meals stay.
+ * Each unapproved recipe is swapped, on every day it appears, for one that isn't on the current menu,
+ * passes every rule, isn't avoided after feedback and keeps safely until its last day. Recipes the person
+ * likes (score above 0) come first. `seed` picks among the best few, so tapping again gives another option;
+ * the result is deterministic for the same seed.
+ */
+export function regenerate(variety: Variety, ctx: PlanContext, previous: WeekPlan, seed: number): { plan: WeekPlan; changed: number } {
+  let plan = buildPlan(variety, ctx, previous).plan.map((day) => ({ ...day, meals: Object.fromEntries(Object.entries(day.meals).map(([k, m]) => [k, m && { ...m }])) as PlanDay['meals'] }));
+  const current = new Set<string>();
+  eachMeal(previous, (m) => m.r && current.add(m.r));
+  eachMeal(plan, (m) => m.ok && m.r && current.add(m.r));
+  const taken = new Set<string>();
+  for (const slot of SLOTS) {
+    // Unapproved recipes in this slot, and the last day each is eaten.
+    const lastDay: Record<string, number> = {};
+    plan.forEach((day, i) => {
+      const m = day.meals[slot];
+      if (m?.r && !m.ok) lastDay[m.r] = i + 1;
+    });
+    Object.keys(lastDay).sort().forEach((id, k) => {
+      const fits = MEAL_IDS.map((x) => R[x]).filter(
+        (r) => r.slot === slot && !current.has(r.id) && !taken.has(r.id) && !avoided(r.id, ctx) && check(r, ctx.A).ok && storage(r, lastDay[id]).k !== 'unsafe',
+      );
+      const liked = fits.filter((r) => score(r, ctx) > 0);
+      const pool = (liked.length ? liked : fits).sort((a, b) => score(b, ctx) - score(a, ctx) || a.id.localeCompare(b.id)).slice(0, 4);
+      if (!pool.length) return;
+      const pick = pool[(seed + k) % pool.length];
+      taken.add(pick.id);
+      for (const day of plan) {
+        const m = day.meals[slot];
+        if (m?.r === id && !m.ok) day.meals[slot] = { r: pick.id, ok: false };
+      }
+    });
+  }
+  if (ctx.A.balance === 'Yes, suggest sides') plan = plan.map((day, i) => balanceDay(day, i, ctx).day);
+  let changed = 0;
+  plan.forEach((day, i) => {
+    for (const slot of SLOTS) if (day.meals[slot]?.r && day.meals[slot]?.r !== previous[i]?.meals[slot]?.r) changed++;
+  });
+  return { plan, changed };
+}
+
 /* ---------- reading the plan ---------- */
 
 export function eachMeal(plan: WeekPlan, fn: (m: Meal, slot: Slot, dayIndex: number, day: PlanDay) => void) {
@@ -127,6 +170,21 @@ export function eachMeal(plan: WeekPlan, fn: (m: Meal, slot: Slot, dayIndex: num
       if (m) fn(m, slot, i, day);
     }
   });
+}
+
+/**
+ * Portion size per recipe this week (1 = as written). Goals can make main-meal portions a little smaller or
+ * bigger; cooking amounts and the grocery list follow it. Averaged over the recipe's meals; sides stay 1.
+ */
+export function portionSizes(plan: WeekPlan): Record<string, number> {
+  const sum: Record<string, number> = {};
+  const n: Record<string, number> = {};
+  eachMeal(plan, (m) => {
+    if (!m.r) return;
+    sum[m.r] = (sum[m.r] ?? 0) + (m.x ?? 1);
+    n[m.r] = (n[m.r] ?? 0) + 1;
+  });
+  return Object.fromEntries(Object.keys(sum).map((id) => [id, sum[id] / n[id]]));
 }
 
 /** Portions per recipe id across the week, sides included. */

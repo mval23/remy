@@ -10,7 +10,7 @@ import { R } from '../planning/data/recipes';
 import { fraction, quantityText } from '../planning/grocery';
 import { isDetailed, taskLines } from '../planning/method';
 import { estimatesOn, proteinTarget } from '../planning/nutrition';
-import { eachMeal, portions } from '../planning/planner';
+import { eachMeal, portions, portionSizes } from '../planning/planner';
 import { check, matches, storage } from '../planning/rules';
 import type { StorageInfo } from '../planning/types';
 import { useRemy } from '../store';
@@ -26,7 +26,9 @@ export function Recipe() {
   const plan = planState.plan;
   const count = portions(plan)[r.id] ?? 0;
   const batches = Math.max(1, Math.ceil(count / r.serves));
-  const scale = oneBatch ? 1 : batches;
+  // Goals can make this week's portions a little smaller or bigger; the week's amounts follow.
+  const size = portionSizes(plan)[r.id] ?? 1;
+  const scale = oneBatch ? 1 : batches * size;
   const handsOn = r.tasks.filter((t) => t.l === 'hands').reduce((s, t) => s + t.m, 0);
   const nums = estimatesOn(planState.nutrition, A);
   const target = proteinTarget(r.slot, ctx.hungry);
@@ -131,7 +133,7 @@ export function Recipe() {
                   </div>
                 ))}
               </div>
-              <p className="hint gap-top">Makes {r.serves * scale} portions. Tbsp and tsp are standard 15 ml and 5 ml spoons.</p>
+              <p className="hint gap-top">Makes {r.serves * (oneBatch ? 1 : batches)} portions{!oneBatch && size !== 1 ? `, each ${Math.round(size * 100)}% of the usual size to fit your goals` : ''}. Tbsp and tsp are standard 15 ml and 5 ml spoons.</p>
             </section>
           </div>
 
@@ -212,7 +214,10 @@ export function Recipe() {
               {nums && (
                 <>
                   <MacroRow n={r} note="per portion" />
-                  <p className="hint gap-top gap-bottom">Per portion. Rough estimates added up from the ingredients; brands and portions vary.</p>
+                  <p className="hint gap-top gap-bottom">
+                    Per portion as written. Rough estimates added up from the ingredients; brands and portions vary.
+                    {size !== 1 && ` This week your portions are ${Math.round(size * 100)}% of this, to fit your goals.`}
+                  </p>
                 </>
               )}
               <div className="panel kv">

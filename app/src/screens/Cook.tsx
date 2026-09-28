@@ -170,9 +170,9 @@ export function Cook() {
             ) : step.sources.length ? (
               <div className="panel stack gap-top-lg">
                 <p className="hint">This recipe isn’t written out step by step yet. Its ingredients for this week:</p>
-                {step.sources.map(({ r, batches }) => (
+                {step.sources.map(({ r, batches, scale }) => (
                   <ul className="ing-list" key={r.id}>
-                    {scaledIngredients(r, batches).map((x) => (
+                    {scaledIngredients(r, batches, scale).map((x) => (
                       <li key={x.k}>
                         <b>{x.amount}</b> {x.name}
                       </li>

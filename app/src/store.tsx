@@ -7,12 +7,16 @@ import { answerSuggestion, applyCheckin, forgetAllLearned, forgetLearned, learnF
 import type { CheckinDraft, Noticed } from './learning/types';
 import { R, registerAiRecipes } from './planning/data/recipes';
 import { WEEKS } from './planning/data/weeks';
+import { fitToGoals, goalsOf, hasGoals } from './planning/goals';
+import { emptyGroceryEdits } from './planning/grocery';
+import type { ShopMode } from './planning/month';
 import { balanceDay } from './planning/nutrition';
 import {
   approveAll,
   approveDay,
   buildPlan,
   openSlot,
+  regenerate,
   replaceMeal,
   setApproved,
   setSide,
@@ -90,9 +94,17 @@ function openedFromReminder(): Screen | null {
 
 const planContext = (s: InterviewState, p: PlanState): PlanContext => context(activeAnswers(s), p.adj, p.hungry, p.recent);
 
+/** A newly built week, fitted to the person's daily goals when they set some. */
+const fitted = (plan: WeekPlan, s: InterviewState, p: PlanState): WeekPlan => {
+  const goals = goalsOf(p.nutrition);
+  return hasGoals(goals) ? fitToGoals(plan, planContext(s, p), goals).plan : plan;
+};
+const pct = (x: number) => `${Math.round(x * 100)}%`;
+
 function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
   const [interview, setInterview] = useState<InterviewState>(initial.interview);
   const [planState, setPlanState] = useState<PlanState>(initial.plan);
+  const shuffles = useRef(1);
   // Saved AI recipes must be in the library before anything below (or any screen) looks them up.
   registerAiRecipes(planState.aiRecipes);
   const [ui, setUi] = useState<UiState>(() => initialUi(initial.plan.plan ? openedFromReminder() ?? 'home' : 'welcome'));
@@ -186,7 +198,7 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
   const refreshPlan = (s: InterviewState, p: PlanState = planState) => {
     if (!s.confirmed || !p.plan) return;
     const { plan, changed } = buildPlan(p.variety ?? defaultVariety(activeAnswers(s)), planContext(s, p), p.plan);
-    setPlanState({ ...p, plan });
+    setPlanState({ ...p, plan: fitted(plan, s, p) });
     if (changed) toast(`Plan updated: ${changed} meal${changed > 1 ? 's' : ''} changed`);
   };
 
@@ -275,7 +287,7 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
       const variety = defaultVariety(activeAnswers(s));
       setInterview(s);
       // The first week is cooked on the next prep day; reminders and “today” follow that date.
-      setPlanState((p) => ({ ...p, variety, day: 0, weekStartedAt: Date.now(), plan: buildPlan(variety, planContext(s, p)).plan }));
+      setPlanState((p) => ({ ...p, variety, day: 0, weekStartedAt: Date.now(), plan: fitted(buildPlan(variety, planContext(s, p)).plan, s, p) }));
       patchUi({ screen: 'planner' });
       toast('Your week is ready. Review each meal.');
     },
@@ -302,9 +314,32 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
     selectDay: (d: number) => patchPlan({ day: d }),
     setVariety: (v: Variety) => {
       const kept = planState.plan ? planState.plan.flatMap((d) => Object.values(d.meals)).filter((m) => m?.ok).length : 0;
-      const plan = buildPlan(v, planContext(interview, planState), planState.plan).plan;
+      const plan = fitted(buildPlan(v, planContext(interview, planState), planState.plan).plan, interview, planState);
       patchPlan({ variety: v, plan });
       toast(kept ? `${WEEKS[v].label}: kept ${kept} approved meal${kept > 1 ? 's' : ''}, rebuilt the rest` : `${WEEKS[v].label}: plan rebuilt`);
+    },
+    /** A different menu for every meal that isn't approved; tap again for another option. */
+    regenerate: () => {
+      if (!planState.plan) return;
+      const seed = shuffles.current++;
+      const variety = planState.variety ?? defaultVariety(activeAnswers(interview));
+      const { plan, changed } = regenerate(variety, planContext(interview, planState), planState.plan, seed);
+      const kept = planState.plan.flatMap((d) => Object.values(d.meals)).filter((m) => m?.ok).length;
+      patchPlan({ plan: fitted(plan, interview, planState) });
+      toast(changed ? `New menu: ${changed} meal${changed > 1 ? 's' : ''} changed${kept ? `, ${kept} approved kept` : ''}. Tap again for another.` : 'Nothing else fits your rules for these meals');
+    },
+    /** Fit this week to the daily goals now (new weeks are fitted automatically). */
+    fitGoals: () => {
+      const goals = goalsOf(planState.nutrition);
+      if (!planState.plan || !hasGoals(goals)) return;
+      const r = fitToGoals(planState.plan, planContext(interview, planState), goals);
+      patchPlan({ plan: r.plan });
+      const parts = [
+        r.swapped && `${r.swapped} meal${r.swapped > 1 ? 's' : ''} swapped`,
+        r.sides && `${r.sides} protein side${r.sides > 1 ? 's' : ''} added`,
+        r.scale !== 1 && `portions ${pct(r.scale)}`,
+      ].filter(Boolean);
+      toast(parts.length ? `Fitted to your goals: ${parts.join(', ')}` : 'Your week already fits your goals');
     },
     toggleApproved: (d: number, slot: Slot) => updatePlan((p) => setApproved(p, d, slot, !p[d].meals[slot]?.ok)),
     approveDay: (d: number) => {
@@ -382,6 +417,17 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
 
     /* ---------- groceries ---------- */
     groceryEdit: (fn: (g: PlanState['groceries']) => PlanState['groceries']) => setPlanState((s) => ({ ...s, groceries: fn(s.groceries) })),
+    /** Shop weekly for everything, or monthly for what keeps. */
+    setShopping: (mode: ShopMode) => {
+      setPlanState((s) => ({ ...s, shopping: mode, month: mode === 'monthly' && !s.month.startedAt ? { ...s.month, startedAt: Date.now() } : s.month }));
+      toast(mode === 'monthly' ? 'Staples move to a monthly list' : 'Everything is back on the weekly list');
+    },
+    monthEdit: (fn: (g: PlanState['groceries']) => PlanState['groceries']) => setPlanState((s) => ({ ...s, month: { ...s.month, edits: fn(s.month.edits) } })),
+    /** Clear the monthly list's check-offs and start a new month from this week. */
+    newMonth: () => {
+      setPlanState((s) => ({ ...s, month: { startedAt: Date.now(), edits: { ...emptyGroceryEdits(), have: s.month.edits.have } } }));
+      toast('New month started');
+    },
 
     /* ---------- weekly check-in and learning ---------- */
     editCheckin: (fn: (c: CheckinDraft) => CheckinDraft) => setPlanState((s) => ({ ...s, checkin: fn(s.checkin) })),
