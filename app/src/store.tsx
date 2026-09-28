@@ -5,7 +5,7 @@ import { FOOD_GROUP_A, FOODS, Q, QBY } from './interview/questions';
 import { emptyInterview, type AnswerValue, type InterviewState, type Level, type Question } from './interview/types';
 import { answerSuggestion, applyCheckin, forgetAllLearned, forgetLearned, learnFromRejection, noticeSuggestion } from './learning/learning';
 import type { CheckinDraft, Noticed } from './learning/types';
-import { R } from './planning/data/recipes';
+import { R, registerAiRecipes } from './planning/data/recipes';
 import { WEEKS } from './planning/data/weeks';
 import { balanceDay } from './planning/nutrition';
 import {
@@ -19,7 +19,7 @@ import {
   swapMeals,
 } from './planning/planner';
 import { context, defaultVariety, type PlanContext } from './planning/rules';
-import type { Slot, Variety, WeekPlan } from './planning/types';
+import type { Recipe, Slot, Variety, WeekPlan } from './planning/types';
 import { backupFileName, makeBackup, readBackup, type Backup } from './storage/backup';
 import {
   deleteEverything,
@@ -78,6 +78,8 @@ const planContext = (s: InterviewState, p: PlanState): PlanContext => context(ac
 function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
   const [interview, setInterview] = useState<InterviewState>(initial.interview);
   const [planState, setPlanState] = useState<PlanState>(initial.plan);
+  // Saved AI recipes must be in the library before anything below (or any screen) looks them up.
+  registerAiRecipes(planState.aiRecipes);
   const [ui, setUi] = useState<UiState>(() => initialUi(initial.plan.plan ? 'home' : 'welcome'));
   const toastTimer = useRef<number | undefined>(undefined);
   /** Change time to save with the next update. Set when applying the cloud copy, so it isn't re-uploaded as “new”. */
@@ -262,10 +264,15 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
       updatePlan(approveAll);
       toast('Whole week approved');
     },
-    /** Swap in a recipe. With a reason, the rejected recipe is ranked lower from now on. */
-    replace: (d: number, slot: Slot, recipeId: string, reason?: RejectReason) => {
-      const old = planState.plan?.[d].meals[slot]?.r;
-      let p: PlanState = { ...planState, plan: planState.plan && replaceMeal(planState.plan, d, slot, recipeId) };
+    /**
+     * Swap in a recipe. With a reason, the rejected recipe is ranked lower from now on.
+     * `keep` is a new AI recipe to save with the user's data first.
+     */
+    replace: (d: number, slot: Slot, recipeId: string, reason?: RejectReason, keep?: Recipe) => {
+      const base = keep ? { ...planState, aiRecipes: { ...planState.aiRecipes, [keep.id]: keep } } : planState;
+      if (keep) registerAiRecipes(base.aiRecipes);
+      const old = base.plan?.[d].meals[slot]?.r;
+      let p: PlanState = { ...base, plan: base.plan && replaceMeal(base.plan, d, slot, recipeId) };
       if (old && reason) p = learnFromRejection(p, old, reason.why);
       if (reason?.food) {
         const s = setRating(interview, reason.food, 'dislike');
@@ -355,6 +362,20 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
       toast(msg);
     },
 
+    /* ---------- AI ---------- */
+    setAiConsent: (on: boolean) => {
+      setPlanState((s) => ({ ...s, aiConsent: on }));
+      toast(on ? 'AI ideas turned on' : 'AI ideas turned off. Nothing more is sent.');
+    },
+    /** Delete a saved AI recipe that isn't in the current week. */
+    deleteAiRecipe: (id: string) => {
+      const aiRecipes = { ...planState.aiRecipes };
+      delete aiRecipes[id];
+      registerAiRecipes(aiRecipes);
+      setPlanState({ ...planState, aiRecipes });
+      toast('Recipe deleted');
+    },
+
     /* ---------- your data ---------- */
     /** Save everything to a file the user keeps. */
     exportData: () => {
@@ -379,6 +400,7 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
       const b = ui.pendingImport;
       if (!b) return;
       let plan = b.plan;
+      registerAiRecipes(plan.aiRecipes);
       if (b.interview.confirmed && !plan.plan) {
         const variety = plan.variety ?? defaultVariety(activeAnswers(b.interview));
         plan = { ...plan, variety, plan: buildPlan(variety, planContext(b.interview, plan)).plan };
@@ -416,6 +438,7 @@ export function RemyProvider({ children, fallback }: { children: ReactNode; fall
   const [initial, setInitial] = useState<{ interview: InterviewState; plan: PlanState } | null>(null);
   useEffect(() => {
     void Promise.all([loadInterview(), loadPlanState()]).then(([interview, plan]) => {
+      registerAiRecipes(plan.aiRecipes);
       // Profiles confirmed before planning existed get their first week now.
       if (interview.confirmed && !plan.plan) {
         const variety = defaultVariety(activeAnswers(interview));

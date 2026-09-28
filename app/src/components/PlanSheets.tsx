@@ -7,6 +7,7 @@ import { autoReplacement, moveBlocker, replacementOptions } from '../planning/pl
 import { check, matches, storage } from '../planning/rules';
 import { DAY_FULL, SLOT_SHORT } from '../planning/types';
 import { useRemy, type SheetArg } from '../store';
+import { AiIdea } from './AiIdea';
 import { StoragePill } from './Chrome';
 import { Icon } from './Icon';
 
@@ -67,6 +68,9 @@ function ReplaceSheet({ arg }: { arg: SheetArg }) {
           )}
         </section>
       )}
+      <section className="sec">
+        <AiIdea d={d} slot={slot} reason={reason} />
+      </section>
       <section className="sec">
         <h2>
           <span className="grow">Suggestions</span>
