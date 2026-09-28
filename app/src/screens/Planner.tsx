@@ -166,7 +166,8 @@ export function Planner() {
 
     const r = R[m.r];
     const st = storage(r, d + 1);
-    const nth = plan!.slice(0, d + 1).filter((x) => x.meals[slot]?.r === r.id).length;
+    // Which portion of this dish this is, counting every meal it appears at (a dinner can also be a lunch).
+    const nth = plan!.slice(0, d + 1).reduce((n, x, i) => n + SLOTS.filter((s2, si) => (i < d || si <= SLOTS.indexOf(slot)) && x.meals[s2]?.r === r.id).length, 0);
     const target = proteinTarget(slot, ctx.hungry);
     const pro = mealNutrition(m)?.pro ?? 0;
     // The dish on its own line; a side gets its own line and calories.
@@ -195,8 +196,9 @@ export function Planner() {
                 )}
               </div>
             )}
-            {(pc[r.id] > 1 || (m.x && m.x !== 1) || st.k !== 'fridge') && (
+            {(pc[r.id] > 1 || (m.x && m.x !== 1) || st.k !== 'fridge' || m.borrowed) && (
               <div className="chips tight">
+                {m.borrowed && <span className="pill p-muted">From the {r.slot.toLowerCase()} menu</span>}
                 {pc[r.id] > 1 && <span className="pill p-muted">{nth} of {pc[r.id]} this week</span>}
                 {m.x && m.x !== 1 && <span className="pill p-muted">{Math.round(m.x * 100)}% portion</span>}
                 {st.k !== 'fridge' && <StoragePill st={st} />}

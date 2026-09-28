@@ -14,12 +14,30 @@ import { SLOTS } from './types';
 export function resolve(templateId: string, slot: Slot, day: number, used: Set<string>, ctx: PlanContext): string | null {
   const r = R[templateId];
   if (r && r.slot === slot && !REMOVED.has(templateId) && check(r, ctx.A).ok && storage(r, day).k !== 'unsafe' && !avoided(r.id, ctx)) return templateId;
+  return bestFor(slot, day, used, ctx) ?? (PARTNER[slot] ? bestFor(PARTNER[slot]!, day, used, ctx) : null);
+}
+
+/** The best recipe of `slot`'s own kind that fits the rules and keeps until `day`; recipes already this week come first. */
+function bestFor(slot: Slot, day: number, used: Set<string>, ctx: PlanContext): string | null {
   const fits = MEAL_IDS.map((id) => R[id]).filter((x) => x.slot === slot && check(x, ctx.A).ok && storage(x, day).k !== 'unsafe');
   const preferred = fits.filter((x) => !avoided(x.id, ctx));
   const candidates = preferred.length ? preferred : fits;
   candidates.sort((a, b) => score(b, ctx) + (used.has(b.id) ? 3 : 0) - (score(a, ctx) + (used.has(a.id) ? 3 : 0)));
   return candidates[0]?.id ?? null;
 }
+
+/**
+ * Lunch and dinner stand in for each other. When nothing for one of them fits the rules and keeps until a late day
+ * (days 5–7 need a dish that freezes), a freezer-friendly main from the other meal fills it, preferably one already
+ * cooked this week, so a meal is never left empty just because the lunch list is short.
+ */
+const PARTNER: Partial<Record<Slot, Slot>> = { Lunch: 'Dinner', Dinner: 'Lunch' };
+
+/** A recipe can be served at this meal: its own meal, or borrowed from the other main meal. */
+export const servesAt = (r: Recipe, slot: Slot, m?: Meal) => r.slot === slot || (!!m?.borrowed && PARTNER[slot] === r.slot);
+
+/** A meal with this recipe, marked borrowed when the recipe belongs to the other main meal. */
+export const mealWith = (id: string, slot: Slot): Meal => (R[id].slot === slot ? { r: id, ok: false } : { r: id, ok: false, borrowed: true });
 
 /** Minutes of prep-day work (everything except fridge and freezer time). */
 const work = (r: Recipe) => r.tasks.filter((t) => t.l !== 'chill').reduce((s, t) => s + t.m, 0);
@@ -96,7 +114,7 @@ export function buildPlan(variety: Variety, ctx: PlanContext, previous?: WeekPla
         return;
       }
       const prev = previous?.[i]?.meals[slot];
-      if (prev?.ok && prev.r && !REMOVED.has(prev.r) && R[prev.r].slot === slot && check(R[prev.r], ctx.A).ok) {
+      if (prev?.ok && prev.r && !REMOVED.has(prev.r) && servesAt(R[prev.r], slot, prev) && check(R[prev.r], ctx.A).ok) {
         meals[slot] = prev;
         used.add(prev.r);
         return;
@@ -109,7 +127,7 @@ export function buildPlan(variety: Variety, ctx: PlanContext, previous?: WeekPla
       const rid = resolve(swap[planned] ?? planned, slot, i + 1, used, ctx);
       if (rid) used.add(rid);
       if (!prev || prev.r !== rid) changed++;
-      meals[slot] = rid ? { r: rid, ok: false } : { r: null, need: true, ok: false };
+      meals[slot] = rid ? mealWith(rid, slot) : { r: null, need: true, ok: false };
     });
     return { d, meals };
   });
@@ -262,7 +280,7 @@ export const approveDay = (plan: WeekPlan, d: number): WeekPlan => plan.map((day
 export const approveAll = (plan: WeekPlan): WeekPlan => plan.map(approveAllMeals);
 
 /** Swap in a different recipe for one meal. Other meals are untouched. The side is dropped. */
-export const replaceMeal = (plan: WeekPlan, d: number, slot: Slot, recipeId: string) => withMeal(plan, d, slot, () => ({ r: recipeId, ok: false }));
+export const replaceMeal = (plan: WeekPlan, d: number, slot: Slot, recipeId: string) => withMeal(plan, d, slot, () => mealWith(recipeId, slot));
 
 /** Plan a meal on a slot that was skipped or eaten out. */
 export const openSlot = (plan: WeekPlan, d: number, slot: Slot) => withMeal(plan, d, slot, () => ({ r: null, need: true, ok: false }));
@@ -293,14 +311,21 @@ export function replacementOptions(plan: WeekPlan, d: number, slot: Slot, ctx: P
     else out.hidden.push({ r, reason: c.reason });
   }
   out.allowed.sort((a, b) => score(b, ctx) - score(a, ctx));
+  // Nothing for this meal keeps until this day: offer freezer-friendly mains from the other meal too.
+  const partner = PARTNER[slot];
+  if (partner && !out.allowed.some((r) => storage(r, d + 1).k !== 'unsafe')) {
+    const extra = MEAL_IDS.map((id) => R[id]).filter((r) => r.slot === partner && r.id !== current && check(r, ctx.A).ok && storage(r, d + 1).k !== 'unsafe');
+    out.allowed.push(...extra.sort((a, b) => score(b, ctx) - score(a, ctx)));
+  }
   return out;
 }
 
 /** The best allowed, storage-safe alternative (“Pick for me”). */
 /**
- * Take recipes deleted from the menu, or moved to another meal there, out of a plan: each meal that uses one
- * gets the best allowed replacement (or needs a choice when nothing fits), and deleted sides are dropped.
- * Other meals are untouched.
+ * Repair a saved plan when it loads. Recipes deleted from the menu, or moved to another meal there, are taken out:
+ * each meal that uses one gets the best allowed replacement (or needs a choice when nothing fits), and deleted
+ * sides are dropped. Meals left empty ("needs a choice") are filled when something now fits, borrowing from the other
+ * main meal if needed. Other meals are untouched.
  */
 export function dropRemoved(plan: WeekPlan, ctx: PlanContext): { plan: WeekPlan; changed: number } {
   let next = plan;
@@ -312,10 +337,16 @@ export function dropRemoved(plan: WeekPlan, ctx: PlanContext): { plan: WeekPlan;
         next = setSide(next, d, slot, null);
         changed++;
       }
-      if (m?.r && (REMOVED.has(m.r) || R[m.r].slot !== slot)) {
+      if (m?.r && (REMOVED.has(m.r) || !servesAt(R[m.r], slot, m))) {
         const id = autoReplacement(next, d, slot, ctx);
-        next = withMeal(next, d, slot, () => (id ? { r: id, ok: false } : { r: null, need: true, ok: false }));
+        next = withMeal(next, d, slot, () => (id ? mealWith(id, slot) : { r: null, need: true, ok: false }));
         changed++;
+      } else if (m && !m.r && m.need) {
+        const id = autoReplacement(next, d, slot, ctx);
+        if (id) {
+          next = withMeal(next, d, slot, () => mealWith(id, slot));
+          changed++;
+        }
       }
     }
   });

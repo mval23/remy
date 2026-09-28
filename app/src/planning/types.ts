@@ -128,6 +128,8 @@ export interface Meal {
   skip?: boolean;
   /** Slot needs a choice: nothing in the library fits. */
   need?: boolean;
+  /** A dinner eaten at lunch (or a lunch at dinner): nothing for this meal fits and keeps until this day, so a freezer-friendly main from the other meal fills it. */
+  borrowed?: boolean;
   /** Portion size when fitted to the person's goals: 0.8–1.2 of the recipe's portion (missing = 1). Main meals only. */
   x?: number;
 }
