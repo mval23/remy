@@ -15,7 +15,7 @@ The project has two parts:
 ## Files
 
 - `prototype/index.html`: the whole prototype and the product plan in one self-contained HTML file (CSS, markup, and JS inline). **This file is the source of truth**; edit it directly.
-- `.claude/launch.json`: `remy-prototype` serves `prototype/` at http://localhost:5178; `remy-app` runs the app’s dev server at http://localhost:5173.
+- `.claude/launch.json`: `remy-prototype` serves `prototype/` at http://localhost:5178; `remy-app` runs the app’s dev server at http://localhost:5173; `remy-app-5190` runs the same server on port 5190 for when 5173 is taken.
 - `app/`: the React app (see “The app” below).
 - `.github/workflows/keep-alive.yml`: every 3 days, calls the `keep_alive()` database function with the same repository variables, so the free Supabase project doesn’t pause (SETUP.md step 9).
 - `.github/workflows/deploy.yml`: on every push to `main`, runs the tests, builds with `BASE_PATH=/remy/` and the optional repository variables `SUPABASE_URL` / `SUPABASE_ANON_KEY` / `VAPID_PUBLIC_KEY`, and publishes to GitHub Pages (https://mval23.github.io/remy/).

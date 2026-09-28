@@ -47,7 +47,7 @@ export function Recipe() {
   return (
     <>
       <Header title={r.short} sub={r.slot} back={ui.recipeBack} />
-      <main className="body">
+      <main className="body" tabIndex={0}>
         <div className="row recipe-top">
           <div className="recipe-emoji" aria-hidden="true">{r.e}</div>
           <div>

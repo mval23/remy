@@ -22,13 +22,14 @@
 
 /* planner */
 .seg { display: flex; background: var(--surface-2); border-radius: 14px; padding: 4px; gap: 4px; }
-.seg button { flex: 1; border: 0; background: transparent; border-radius: 10px; min-height: 42px; font-weight: 600; font-size: 13px; color: var(--ink-2); padding: 0 6px; }
+/* Buttons size to their label so "Repeat favorites" stays on one line. */
+.seg button { flex: 1 1 auto; white-space: nowrap; border: 0; background: transparent; border-radius: 10px; min-height: 44px; font-weight: 600; font-size: 13px; color: var(--ink-2); padding: 0 8px; }
 .seg button[aria-pressed='true'] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
 .seg.narrow { width: 120px; flex: none; }
 .summary-line { margin: 8px 2px 10px; }
 .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; position: sticky; top: -4px; background: var(--bg); padding: 4px 0 10px; z-index: 2; }
 .days button { border: 1.5px solid var(--line); background: var(--surface); border-radius: 14px; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; padding: 0; color: var(--ink); }
-.days button small { font-size: 10px; font-weight: 600; color: var(--ink-3); }
+.days button small { font-size: 11px; font-weight: 600; color: var(--ink-2); }
 .days button[aria-pressed='true'] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .days button[aria-pressed='true'] small { color: var(--bg); opacity: 0.8; }
 .dot-warn { color: var(--citrus); }
@@ -37,11 +38,14 @@
 .meal.ok { border-color: var(--basil); }
 .meal.out { background: var(--surface-2); border-style: dashed; }
 .meal .slot { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); display: flex; align-items: center; gap: 6px; }
-.meal .name { font-family: var(--f-display); font-size: 17px; font-weight: 700; border: 0; background: none; padding: 0; text-align: left; color: var(--ink); display: flex; gap: 8px; align-items: center; min-height: 32px; }
+.meal .name { font-family: var(--f-display); font-size: 17px; font-weight: 700; border: 0; background: none; padding: 0; text-align: left; color: var(--ink); display: flex; gap: 8px; align-items: center; min-height: 44px; margin: -6px 0; }
 .meal .name.static { min-height: 0; }
 .meal .name .em { font-size: 22px; }
 .meal .acts { display: flex; gap: 6px; flex-wrap: wrap; }
-.meal .acts button { border: 1px solid var(--line-2); background: var(--surface); border-radius: 10px; min-height: 40px; padding: 0 10px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; color: var(--ink-2); }
+.meal .acts button { border: 1px solid var(--line-2); background: var(--surface); border-radius: 10px; min-height: 44px; padding: 0 10px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; color: var(--ink-2); }
+/* The five meal actions: one even row, icon above label. */
+.meal .acts.toolbar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.meal .acts.toolbar button { flex-direction: column; justify-content: center; gap: 2px; min-height: 52px; padding: 4px 2px; font-size: 12px; line-height: 1.15; }
 .meal .acts button.yes[aria-pressed='true'] { background: var(--basil); border-color: var(--basil); color: var(--on-basil); }
 .sideline { display: flex; align-items: center; gap: 8px; background: var(--surface-2); border-radius: 10px; padding: 2px 2px 2px 10px; font-size: 13.5px; font-weight: 600; min-height: 40px; }
 .iconbtn.small { width: 36px; height: 36px; }
@@ -68,8 +72,9 @@
 .gi { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); min-height: 56px; }
 .list > div:last-child > .gi:last-child,
 .list > .gi:last-child { border-bottom: 0; }
-.gi .cb { width: 28px; height: 28px; border-radius: 9px; border: 2px solid var(--line-2); background: var(--surface); display: grid; place-items: center; flex: none; padding: 0; color: var(--on-basil); }
-.gi .cb[aria-pressed='true'] { background: var(--basil); border-color: var(--basil); }
+.gi .cb { width: 44px; height: 44px; margin: 0 -8px; border: 0; background: none; display: grid; place-items: center; flex: none; padding: 0; color: var(--on-basil); }
+.gi .cb > span { width: 28px; height: 28px; border-radius: 9px; border: 2px solid var(--line-2); background: var(--surface); display: grid; place-items: center; }
+.gi .cb[aria-pressed='true'] > span { background: var(--basil); border-color: var(--basil); }
 .gi-main { flex: 1; min-width: 0; border: 0; background: none; text-align: left; padding: 0; min-height: 44px; }
 .gi .nm { font-weight: 600; font-size: 15px; }
 .gi.done .nm { text-decoration: line-through; color: var(--ink-3); }

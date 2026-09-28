@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { FOODS } from '../interview/questions';
 import { R, SIDE_IDS } from '../planning/data/recipes';
 import { REJECT_REASONS } from '../planning/data/weeks';
@@ -11,12 +11,43 @@ import { AiIdea } from './AiIdea';
 import { StoragePill } from './Chrome';
 import { Icon } from './Icon';
 
+const FOCUSABLE = 'button:not(:disabled), [href], input:not([type="hidden"]), select, textarea, summary, [tabindex]:not([tabindex="-1"])';
+
+/** A bottom sheet: takes keyboard focus while open, keeps Tab inside, closes on Escape, and gives focus back when it closes. */
 export function SheetFrame({ children, label }: { children: ReactNode; label: string }) {
   const { actions } = useRemy();
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    ref.current?.focus();
+    return () => opener?.focus?.();
+  }, []);
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      actions.closeSheet();
+      return;
+    }
+    if (e.key !== 'Tab' || !ref.current) return;
+    const all = [...ref.current.querySelectorAll<HTMLElement>(FOCUSABLE)];
+    if (!all.length) return;
+    const first = all[0];
+    const last = all[all.length - 1];
+    if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
   return (
     <div className="scrim" onClick={(e) => e.target === e.currentTarget && actions.closeSheet()}>
-      <div className="sheet" role="dialog" aria-modal="true" aria-label={label}>
+      <div className="sheet" role="dialog" aria-modal="true" aria-label={label} tabIndex={-1} ref={ref} onKeyDown={onKeyDown}>
         <div className="grab" />
+        <button type="button" className="iconbtn sheet-close" aria-label="Close" onClick={actions.closeSheet}>
+          <Icon name="x" size={20} />
+        </button>
         {children}
       </div>
     </div>
@@ -42,7 +73,7 @@ function ReplaceSheet({ arg }: { arg: SheetArg }) {
 
   return (
     <SheetFrame label={title}>
-      <h3>{title}</h3>
+      <h2 className="sheet-title">{title}</h2>
       {current && <p className="hint">Currently: {current.short}</p>}
       {reject && current && (
         <section className="sec">
@@ -128,7 +159,7 @@ function MoveSheet({ arg }: { arg: SheetArg }) {
   const r = R[plan[d].meals[slot]!.r!];
   return (
     <SheetFrame label={`Move ${r.short}`}>
-      <h3>Move {r.short}</h3>
+      <h2 className="sheet-title">Move {r.short}</h2>
       <p className="hint">Swap it with the {SLOT_SHORT[slot].toLowerCase()} on another day.</p>
       <div className="list gap-top-lg">
         {plan.map((day, i) => {
@@ -169,7 +200,7 @@ function SideSheet({ arg }: { arg: SheetArg }) {
   const title = `Add a side · ${DAY_FULL[plan[d].d]} ${SLOT_SHORT[slot].toLowerCase()}`;
   return (
     <SheetFrame label={title}>
-      <h3>{title}</h3>
+      <h2 className="sheet-title">{title}</h2>
       <p className="hint">With {r.short}. Only foods you accept, checked against your safety rules and storage days.</p>
       {m.side && (
         <div className="sideline gap-top-lg">

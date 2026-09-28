@@ -28,7 +28,7 @@ export function Prep() {
   return (
     <>
       <Header title="Prep day" sub={`${DAY_FULL[(str(A.prepday) || 'Sun') as Day]} · 1:00 PM start`} />
-      <main className="body">
+      <main className="body" tabIndex={0}>
         {over > 0 ? (
           <div className="warnline top-gap roomy">
             <Icon name="info" size={18} />

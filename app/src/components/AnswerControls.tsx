@@ -82,7 +82,7 @@ function Single({ q, answers, draft, pick }: Pick<Props, 'q' | 'answers' | 'draf
       ) : (
         <div className="opts" role="radiogroup" aria-label={q.say(answers)}>
           {opts.map((o) => (
-            <button key={o.v} type="button" className="opt" role="radio" aria-checked={v === o.v} aria-pressed={v === o.v} onClick={() => pick(o.v)}>
+            <button key={o.v} type="button" className="opt" role="radio" aria-checked={v === o.v} onClick={() => pick(o.v)}>
               <span className="dot">{v === o.v && <Icon name="check" size={12} />}</span>
               <span>
                 {o.v}
@@ -193,7 +193,7 @@ function Rate({ q, answers, draft, setDraft }: Pick<Props, 'q' | 'answers' | 'dr
               {FOODS[f].n}
               {never.includes(FOODS[f].n.toLowerCase()) && r[f] === 'never' && <span className="hint"> · from your never list</span>}
             </div>
-            <div className="levels" role="radiogroup" aria-label={FOODS[f].n}>
+            <div className="levels" role="group" aria-label={FOODS[f].n}>
               {LEVELS.map((l) => (
                 <button key={l.id} type="button" className={`l-${l.id}`} aria-pressed={r[f] === l.id} onClick={() => set(f, l.id)}>
                   {l.label}

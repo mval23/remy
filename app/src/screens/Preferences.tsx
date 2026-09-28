@@ -33,7 +33,7 @@ export function Preferences() {
   return (
     <>
       <Header
-        title="Preferences"
+        title="Profile"
         sub="What Remy knows, and how to change it"
         right={
           <button type="button" className="iconbtn" aria-label="Sync and install" onClick={() => actions.go('account')}>
@@ -43,19 +43,19 @@ export function Preferences() {
       />
       <main className="body">
         <div className="safety top-gap">
-          <h3>
+          <h2>
             <Icon name="lock" size={18} /> Safety rules (locked)
-          </h3>
+          </h2>
           {hasSafety ? (
             <div className="chips">
               {safety.allergies.map((x) => (
-                <span className="chip" key={x}>{x} · allergy</span>
+                <span className="chip" key={x}>{x} allergy</span>
               ))}
               {safety.diet.map((x) => (
                 <span className="chip" key={x}>{x}</span>
               ))}
               {safety.intolerances.map((x) => (
-                <span className="chip" key={x}>{x} · intolerance</span>
+                <span className="chip" key={x}>{x} intolerance</span>
               ))}
             </div>
           ) : (
@@ -196,12 +196,12 @@ export function Preferences() {
         )}
 
         <section className="sec">
-          <h2>Profile</h2>
+          <h2>More</h2>
           <div className="list">
             <RowButton icon="list" title="Full taste profile" sub="Every answer, with confidence levels" onClick={() => actions.go('summary')} />
             <RowButton icon="heart" title="Nutrition balance" sub="Balance checks, estimates, targets, progress" onClick={() => actions.go('nutrition')} />
             <RowButton icon="chat" title="Change an interview answer" sub="Jump to any question" onClick={() => actions.openSheet('map')} />
-            <RowButton icon="clock" title="Reminders" sub="Thawing, check-in and prep day" onClick={() => actions.go('reminders')} />
+            <RowButton icon="bell" title="Reminders" sub="Thawing, check-in and prep day" onClick={() => actions.go('reminders')} />
             <RowButton icon="cloud" title="Sync & install" sub={sync.signedIn ? `Signed in as ${sync.email}` : 'Use Remy on your phone and computer'} onClick={() => actions.go('account')} />
           </div>
         </section>
