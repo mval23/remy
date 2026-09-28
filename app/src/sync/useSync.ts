@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { InterviewState } from '../interview/types';
 import { loadStamps, type PlanState } from '../storage/db';
 import { reconcile } from './merge';
-import { deleteRow, fetchRow, pushRow, sendSignInEmail, signOut, supabase, syncConfigured, verifyCode } from './supabase';
+import { createAccount, deleteRow, fetchRow, pushRow, sendPasswordReset, setNewPassword, signIn, signOut, supabase, syncConfigured } from './supabase';
 
 export type SyncStatus = 'off' | 'signedOut' | 'syncing' | 'synced' | 'offline' | 'error';
 
@@ -28,6 +28,8 @@ export function useSync(opts: Options) {
   const [status, setStatus] = useState<SyncStatus>(syncConfigured ? 'signedOut' : 'off');
   const [lastSynced, setLastSynced] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** Arrived from a password-reset email: ask for a new password. */
+  const [recovery, setRecovery] = useState(false);
   const latest = useRef(opts);
   latest.current = opts;
   const running = useRef(false);
@@ -42,7 +44,10 @@ export function useSync(opts: Options) {
     void pending.then((sb) => {
       if (cancelled) return;
       void sb.auth.getSession().then(({ data }) => setSession(data.session));
-      const { data } = sb.auth.onAuthStateChange((_event, s) => setSession(s));
+      const { data } = sb.auth.onAuthStateChange((event, s) => {
+        setSession(s);
+        if (event === 'PASSWORD_RECOVERY') setRecovery(true);
+      });
       unsubscribe = () => data.subscription.unsubscribe();
     });
     return () => {
@@ -127,8 +132,15 @@ export function useSync(opts: Options) {
     error,
     syncNow,
     schedule,
-    sendCode: sendSignInEmail,
-    verify: verifyCode,
+    recovery,
+    createAccount,
+    signIn,
+    sendPasswordReset,
+    setNewPassword: async (password: string) => {
+      await setNewPassword(password);
+      setRecovery(false);
+    },
+    cancelRecovery: () => setRecovery(false),
     signOut: async () => {
       await signOut();
       setLastSynced(null);
