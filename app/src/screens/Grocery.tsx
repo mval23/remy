@@ -109,12 +109,19 @@ export function Grocery() {
               </p>
             </div>
             <section className="msec">
-              <SecHead title="Bag the meat by prep day" aside="then freeze it" />
+              <SecHead title="Meat bags" aside="one per prep day" />
               {weeks.map((wk, i) => {
                 const d = weekDates(A, planState.weekStartedAt, i, shop, monthly);
                 const meat = meatOf(wk, A);
                 return meat.length ? (
-                  <Lead key={i} k={`${prepDay.slice(0, 3)} ${shortDate(d.prep)}`} v={meat.map((x) => `${x.n.replace(/^(boneless|lean) /i, '').toLowerCase()} ${x.qtyText}`).join(' · ')} wrap />
+                  <div className="bag" key={i}>
+                    <span className="slot-label">
+                      Bag {i + 1} · {prepDay} {shortDate(d.prep)}
+                    </span>
+                    {meat.map((x) => (
+                      <Lead key={x.k} k={x.n.replace(/^(boneless|lean) /i, '').replace(/^./, (c) => c.toUpperCase())} v={x.qtyText} />
+                    ))}
+                  </div>
                 ) : null;
               })}
               <p className="lead-note gap-top">

@@ -211,7 +211,7 @@ export function Prep() {
           </section>
 
           <section className="msec">
-            <SecHead title="Order of service" aside={`fastest order · ${doneCount} of ${timeline.length} done`} />
+            <SecHead title="Order of service" aside={`${doneCount} of ${timeline.length} done`} />
             <div className="steps-flat">
               {timeline.map((step) => (
                 <StepRow
