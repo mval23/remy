@@ -128,4 +128,9 @@ export const ING: Record<string, Ingredient> = {
   paprika: { n: 'Sweet paprika', u: 'tsp', pk: 20, pp: 2.99, pkn: '45 g jar', sec: 'Pantry & sauces', pan: 'Basic spices', m: [0, 1, 0] },
   herbs: { n: 'Dried Italian herbs', u: 'tsp', pk: 25, pp: 2.99, pkn: '20 g jar', sec: 'Pantry & sauces', pan: 'Basic spices', m: [0, 1, 0] },
   cinnamon: { n: 'Ground cinnamon', u: 'tsp', pk: 20, pp: 2.99, pkn: '45 g jar', sec: 'Pantry & sauces', pan: 'Baking basics', m: [0, 1, 0] },
+
+  /* For the healthy bowls and light Colombian dinners. */
+  quinoa: { n: 'Quinoa', u: 'g', pk: 450, pp: 4.99, pkn: '450 g bag', sec: 'Bakery & grains', pan: 'Quinoa', m: [14, 64, 6] },
+  // Per mango, about 200 g of fruit.
+  mango: { n: 'Mangos', u: '', p: 1.29, sec: 'Produce', m: [1.6, 30, 0.8] },
 };

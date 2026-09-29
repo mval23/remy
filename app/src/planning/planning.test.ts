@@ -175,9 +175,9 @@ describe('planner', () => {
   });
 
   it('refuses moves that would break fridge safety', () => {
-    const plan = planFor(SAMPLE);
-    // Teriyaki (fridge 4 days, doesn't freeze) can't move to day 6.
-    expect(plan[0].meals.Lunch?.r).toBe('teriyaki');
+    // The mango chicken bowl (fridge 4 days, doesn't freeze) can't move to day 6.
+    const plan = replaceMeal(planFor(SAMPLE), 0, 'Lunch', 'bowl_mango');
+    expect(plan[0].meals.Lunch?.r).toBe('bowl_mango');
     expect(moveBlocker(plan, 0, 5, 'Lunch')).toContain('fridge limit');
     expect(moveBlocker(plan, 0, 1, 'Lunch')).toBeNull();
     const swapped = swapMeals(plan, 0, 3, 'Lunch');
@@ -284,7 +284,7 @@ describe('grocery list', () => {
   it('merges the same ingredient across recipes and moves pantry items to “at home”', () => {
     const items = groceryList(planFor(SAMPLE), SAMPLE, emptyGroceryEdits());
     const rice = items.find((x) => x.k === 'rice');
-    expect(rice?.from).toEqual(expect.arrayContaining(['Teriyaki bowl', 'Chicken burritos']));
+    expect(rice?.from).toEqual(expect.arrayContaining(['Calentado', 'Chicken burritos']));
     expect(rice?.home).toBe(true);
     expect(items.find((x) => x.k === 'thighs')?.home).toBe(false);
   });
