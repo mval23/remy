@@ -9,7 +9,7 @@ import { check, matches, storage, windowMinutes } from '../planning/rules';
 import { duration, schedule } from '../planning/schedule';
 import { goalsOf, hasGoals, weekAverage } from '../planning/goals';
 import { str } from '../interview/helpers';
-import { DAY_FULL, SLOT_SHORT, type Variety } from '../planning/types';
+import { DAY_FULL, DAYS, SLOT_SHORT, type Day, type Variety } from '../planning/types';
 import { useRemy, type SheetArg } from '../store';
 import { AiIdea } from './AiIdea';
 import { StoragePill } from './Chrome';
@@ -62,11 +62,11 @@ export function SheetFrame({ children, label }: { children: ReactNode; label: st
 const ORDERS: [OptionOrder, string][] = [['match', 'Best match'], ['light', 'Lightest'], ['protein', 'Most protein'], ['quick', 'Quickest']];
 
 function ReplaceSheet({ arg }: { arg: SheetArg }) {
-  const { planState, ctx, actions } = useRemy();
+  const { planState, ctx, actions, viewPlan } = useRemy();
   const [why, setWhy] = useState<string | null>(null);
   const [food, setFood] = useState<string | null>(null);
   const [order, setOrder] = useState<OptionOrder>('match');
-  const plan = planState.plan!;
+  const plan = viewPlan!;
   const { d, slot, reject } = arg;
   const day = plan[d];
   const current = day.meals[slot]?.r ? R[day.meals[slot]!.r!] : null;
@@ -196,8 +196,8 @@ function ReplaceSheet({ arg }: { arg: SheetArg }) {
 }
 
 function MoveSheet({ arg }: { arg: SheetArg }) {
-  const { planState, actions } = useRemy();
-  const plan = planState.plan!;
+  const { actions, viewPlan } = useRemy();
+  const plan = viewPlan!;
   const { d, slot } = arg;
   const r = R[plan[d].meals[slot]!.r!];
   return (
@@ -239,8 +239,8 @@ function MoveSheet({ arg }: { arg: SheetArg }) {
 }
 
 function SideSheet({ arg }: { arg: SheetArg }) {
-  const { planState, ctx, actions } = useRemy();
-  const plan = planState.plan!;
+  const { planState, ctx, actions, viewPlan } = useRemy();
+  const plan = viewPlan!;
   const { d, slot } = arg;
   const m = plan[d].meals[slot]!;
   const r = R[m.r!];
@@ -306,8 +306,8 @@ function SideSheet({ arg }: { arg: SheetArg }) {
 
 /** "⋯" on a meal: everything besides approving it. Each choice opens its own sheet. */
 function MealSheet({ arg }: { arg: SheetArg }) {
-  const { planState, actions } = useRemy();
-  const plan = planState.plan!;
+  const { actions, viewPlan } = useRemy();
+  const plan = viewPlan!;
   const { d, slot } = arg;
   const m = plan[d].meals[slot]!;
   const r = R[m.r!];
@@ -337,10 +337,29 @@ function MealSheet({ arg }: { arg: SheetArg }) {
 
 const VARIETIES: Variety[] = ['favorites', 'balanced', 'variety'];
 
+/** Pick a weekday, or none. */
+function DayChips({ label, value, onPick }: { label: string; value: Day | null; onPick: (d: Day | null) => void }) {
+  return (
+    <div className="day-chips">
+      <p className="strong">{label}</p>
+      <div className="chips tight" role="group" aria-label={label}>
+        {DAYS.map((d) => (
+          <button type="button" key={d} className="chip" aria-pressed={value === d} onClick={() => onPick(d)}>
+            {d}
+          </button>
+        ))}
+        <button type="button" className="chip" aria-pressed={value === null} onClick={() => onPick(null)}>
+          None
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /** The week's settings, moved off the day view: how much variety, a new menu, and goals. */
 function MenuSettingsSheet() {
-  const { planState, ctx, actions } = useRemy();
-  const plan = planState.plan!;
+  const { planState, ctx, actions, viewPlan } = useRemy();
+  const plan = viewPlan!;
   const sc = schedule(plan, ctx.A);
   const [, windowMax] = windowMinutes(ctx.A);
   const approvals = approvalCounts(plan);
@@ -364,6 +383,19 @@ function MenuSettingsSheet() {
           More variety means more dishes and a longer prep day.{' '}
           {sc.total > windowMax ? <span className="pill p-warn">Over {window}</span> : <span className="pill p-ok">Fits {window}</span>}
         </p>
+      </section>
+      <section className="msec">
+        <SecHead title="Shopping days" />
+        <p className="lead-note">Remy puts them on the month calendar, dates your grocery lists, and reminds you when to move the meat from the freezer to the fridge.</p>
+        <DayChips
+          label="Monthly shop: meat to freeze, and staples"
+          value={planState.shopDays.month}
+          onPick={(d) => {
+            actions.setShopDays({ month: d });
+            if (d && planState.shopping !== 'monthly') actions.setShopping('monthly');
+          }}
+        />
+        <DayChips label="Weekly shop: fruit, vegetables, dairy and bread" value={planState.shopDays.fresh} onPick={(d) => actions.setShopDays({ fresh: d })} />
       </section>
       <section className="msec">
         <SecHead title="New menu" />
@@ -390,11 +422,11 @@ function MenuSettingsSheet() {
 }
 
 export function PlanSheets() {
-  const { ui, planState } = useRemy();
-  if (!planState.plan) return null;
+  const { ui, viewPlan } = useRemy();
+  if (!viewPlan) return null;
   if (ui.sheet === 'menuSettings') return <MenuSettingsSheet />;
   if (!ui.sheetArg) return null;
-  const m = planState.plan[ui.sheetArg.d]?.meals[ui.sheetArg.slot];
+  const m = viewPlan[ui.sheetArg.d]?.meals[ui.sheetArg.slot];
   if (ui.sheet === 'meal' && m?.r) return <MealSheet arg={ui.sheetArg} />;
   if (ui.sheet === 'replace') return <ReplaceSheet arg={ui.sheetArg} />;
   if (ui.sheet === 'move' && m?.r) return <MoveSheet arg={ui.sheetArg} />;

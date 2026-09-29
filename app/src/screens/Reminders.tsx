@@ -3,12 +3,13 @@ import { BottomNav, Header } from '../components/Chrome';
 import { Icon } from '../components/Icon';
 import { toIcs } from '../reminders/ics';
 import { disablePush, enablePush, pushState, sendTest, type PushState } from '../reminders/push';
-import { upcomingReminders, type ReminderKind } from '../reminders/reminders';
+import { upcomingReminders, type ReminderSettings } from '../reminders/reminders';
 import { useRemy } from '../store';
 
-const KINDS: [ReminderKind, string, string][] = [
+const KINDS: [keyof Pick<ReminderSettings, 'prep' | 'thaw' | 'checkin' | 'shop'>, string, string][] = [
   ['prep', 'Prep day', 'The morning you cook, with how long it’ll take'],
-  ['thaw', 'Thaw tonight', 'The evening before frozen meals need the fridge'],
+  ['shop', 'Shopping days', 'The morning of your monthly shop and your weekly fresh-food shop'],
+  ['thaw', 'Thaw tonight', 'The evening frozen meals, or the meat for prep day, need the fridge'],
   ['checkin', 'Weekly check-in', 'The day before prep day, so next week’s grocery list is ready to shop'],
 ];
 
@@ -23,7 +24,7 @@ export function Reminders() {
     void pushState().then(setPush);
   }, []);
   if (!planState.plan) return null;
-  const list = upcomingReminders(planState.plan, ctx.A, planState.weekStartedAt, s);
+  const list = upcomingReminders(planState.plan, ctx.A, planState.weekStartedAt, s, new Date(), { ahead: planState.ahead, shopDays: planState.shopDays, monthly: planState.shopping === 'monthly' });
 
   const turnOn = async () => {
     setPush('working');
@@ -68,14 +69,14 @@ export function Reminders() {
 
   return (
     <>
-      <Header title="Reminders" sub="Thawing, check-in and prep day" back="prefs" />
+      <Header title="Reminders" sub="Shopping, thawing, check-in and prep day" back="prefs" />
       <main className="body">
         <section className="sec">
           <h2>What to remind you about</h2>
           <div className="list">
             {KINDS.map(([k, title, sub]) => (
               <label className="li li-check" key={k}>
-                <input type="checkbox" checked={s[k]} onChange={(e) => actions.setReminders({ [k]: e.target.checked })} />
+                <input type="checkbox" checked={s[k] !== false} onChange={(e) => actions.setReminders({ [k]: e.target.checked })} />
                 <div className="grow">
                   <div className="t">{title}</div>
                   <div className="s">{sub}</div>
@@ -101,7 +102,7 @@ export function Reminders() {
             {list.length === 0 && <div className="empty">Nothing left to remind you about this week. After your check-in, next week’s reminders appear here.</div>}
             {list.map((r) => (
               <div className="li" key={r.tag}>
-                <span className="c-basil"><Icon name={r.kind === 'thaw' ? 'snow' : r.kind === 'prep' ? 'clock' : 'heart'} size={18} /></span>
+                <span className="c-basil"><Icon name={r.kind === 'thaw' || r.kind === 'meat' ? 'snow' : r.kind === 'prep' ? 'clock' : r.kind === 'shop' ? 'cart' : 'heart'} size={18} /></span>
                 <div className="grow">
                   <div className="t">{r.title}</div>
                   <div className="s">

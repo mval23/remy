@@ -1,4 +1,5 @@
 import { allRatings, listText } from '../interview/helpers';
+import { approvedCount, planAhead } from '../planning/ahead';
 import { FOOD_GROUP_A, FOODS } from '../interview/questions';
 import type { Answers } from '../interview/types';
 import { R, SIDE_IDS } from '../planning/data/recipes';
@@ -278,12 +279,18 @@ export function applyCheckin(state: PlanState, A: Answers, at = Date.now()): Che
   // This week's meals become "recent", so the new week rotates some of them out.
   const recent = state.plan ? mealsToRate(state.plan).map((m) => m.id) : [];
   const ctx = context(A, adj, hungry, recent);
-  let plan = buildPlan(variety, ctx).plan;
+  // Next week comes from the weeks planned ahead: meals approved early stay, the drafts follow what Remy just learned.
+  const next = state.ahead?.[0];
+  const keptAhead = next ? approvedCount(next) : 0;
+  let plan = buildPlan(variety, ctx, next).plan;
   if (trial) plan = placeTrial(plan, trial);
   if (lowEnergy) plan = plan.map((day, i) => (dayNutrition(day, hungry).light ? fillLightDay(day, i, ctx) : day));
   // Daily goals the person set: fit the new week toward them.
   const goals = goalsOf(state.nutrition);
   if (hasGoals(goals)) plan = fitToGoals(plan, ctx, goals).plan;
+  if (keptAhead) changes.push(`Keep the ${keptAhead} meal${keptAhead > 1 ? 's' : ''} you approved ahead for next week`);
+  // The rest of the month moves up a week, and a new week is drafted at the end.
+  const ahead = state.ahead?.length ? planAhead(plan, state.ahead.slice(1), variety, ctx, goals, state.ahead.length) : [];
   const fresh = mealsToRate(plan).filter((m) => !recent.includes(m.id)).map((m) => R[m.id].short);
   if (recent.length && fresh.length) changes.push(`New next week: ${listText(fresh)}`);
   const before = state.plan ? schedule(state.plan, A).total : 0;
@@ -295,6 +302,7 @@ export function applyCheckin(state: PlanState, A: Answers, at = Date.now()): Che
     next: {
       ...state,
       plan,
+      ahead,
       variety,
       day: 0,
       weekStartedAt: at,

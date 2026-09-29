@@ -1,22 +1,27 @@
 import type { Answers } from '../interview/types';
 import { listText } from '../interview/helpers';
-import { at, dateOfDay } from '../planning/calendar';
+import { at, dateOfDay, monthRunDate, weekDates, type ShopDays } from '../planning/calendar';
+import { meatOf } from '../planning/month';
 import { R } from '../planning/data/recipes';
 import { storage } from '../planning/rules';
 import { duration, schedule } from '../planning/schedule';
-import { SLOTS, type WeekPlan } from '../planning/types';
+import { DAY_FULL, DAYS, SLOTS, type WeekPlan } from '../planning/types';
 
 /**
  * Reminders for the planned week. Pure: the same list feeds phone notifications and the calendar file.
  * - Prep day: the morning the week's food is cooked (the day before plan day 0).
  * - Thaw: the evening before a day with frozen meals that thaw overnight.
  * - Check-in: the morning of the day before the next prep day, so the new grocery list is ready to shop.
+ * - Shopping (with shopping days set): the morning of the monthly shop and of this week's fresh-food shop.
+ * - Meat: two evenings before a prep day whose meat was bought days earlier and frozen, to thaw it in the fridge.
  */
 
 export interface ReminderSettings {
   prep: boolean;
   thaw: boolean;
   checkin: boolean;
+  /** Shopping-day mornings (missing on older copies = on). */
+  shop?: boolean;
   /** "HH:MM" for prep-day and check-in reminders. */
   morning: string;
   /** "HH:MM" for thaw reminders. */
@@ -27,7 +32,7 @@ export interface ReminderSettings {
 
 export const defaultReminderSettings = (): ReminderSettings => ({ prep: true, thaw: true, checkin: true, morning: '09:00', evening: '20:00', push: false });
 
-export type ReminderKind = 'prep' | 'thaw' | 'checkin';
+export type ReminderKind = 'prep' | 'thaw' | 'checkin' | 'shop' | 'meat';
 
 export interface Reminder {
   kind: ReminderKind;
@@ -56,7 +61,15 @@ export function thawFor(plan: WeekPlan, i: number): string[] {
 const dateKey = (d: Date) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 
 /** Reminders still ahead of `now`, in time order. */
-export function upcomingReminders(plan: WeekPlan, A: Answers, weekStartedAt: number, s: ReminderSettings, now = new Date()): Reminder[] {
+export interface MonthOptions {
+  /** The weeks planned after this one. */
+  ahead?: WeekPlan[];
+  shopDays?: ShopDays;
+  /** Shopping monthly for meat and staples. */
+  monthly?: boolean;
+}
+
+export function upcomingReminders(plan: WeekPlan, A: Answers, weekStartedAt: number, s: ReminderSettings, now = new Date(), month: MonthOptions = {}): Reminder[] {
   const out: Reminder[] = [];
   const add = (kind: ReminderKind, when: Date, title: string, body: string, url: string) => {
     if (when.getTime() > now.getTime()) out.push({ kind, at: when.getTime(), title, body, url, tag: `${kind}-${dateKey(when)}` });
@@ -73,6 +86,26 @@ export function upcomingReminders(plan: WeekPlan, A: Answers, weekStartedAt: num
     }
   if (s.checkin)
     add('checkin', at(dateOfDay(A, weekStartedAt, 5, now), s.morning), 'Weekly check-in', 'Rate this week’s meals, then Remy plans next week and your grocery list. About 2 minutes.', 'checkin');
+
+  const shop = month.shopDays;
+  if (shop) {
+    const monthly = !!month.monthly;
+    const weeks = [plan, ...(month.ahead ?? [])];
+    const prepName = DAY_FULL[DAYS[(dateOfDay(A, weekStartedAt, -1, now).getDay() + 6) % 7]];
+    if (s.shop !== false) {
+      const run = monthly ? monthRunDate(A, weekStartedAt, shop, now) : null;
+      if (run) add('shop', at(run, s.morning), 'Monthly shop', `Meat for ${weeks.length} weeks and staples. Freeze the meat when you get home, in bags labeled by prep day.`, 'grocery');
+      const fresh = weekDates(A, weekStartedAt, 0, shop, monthly, now).fresh;
+      if (fresh) add('shop', at(fresh, s.morning), 'Shopping day', `Fresh food for ${prepName}’s prep. Your list is ready.`, 'grocery');
+    }
+    if (s.thaw)
+      weeks.forEach((wk, w) => {
+        const d = weekDates(A, weekStartedAt, w, shop, monthly, now);
+        const items = meatOf(wk, A);
+        if (d.thaw && items.length)
+          add('meat', at(d.thaw, s.evening), 'Tonight: thaw the meat', `For ${prepName}’s prep, move ${listText(items.map((x) => `${x.qtyText} ${x.n.toLowerCase()}`))} from the freezer to the fridge.`, 'home');
+      });
+  }
 
   return out.sort((a, b) => a.at - b.at);
 }

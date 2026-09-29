@@ -6,9 +6,11 @@ import { arr, listText, str } from '../interview/helpers';
 import { ING, SECTION_ORDER } from '../planning/data/ingredients';
 import { goalsOf } from '../planning/goals';
 import { costEstimate, groceryList, type GroceryEdits, type GroceryItem } from '../planning/grocery';
-import { buysMonthly, forecastWeeks, freezeOnArrival, monthList, MONTH_WEEKS } from '../planning/month';
+import { buysMonthly, forecastWeeks, freezeOnArrival, meatOf, monthList, MONTH_WEEKS } from '../planning/month';
+import { dayDate, monthRunDate, shortDate, weekDates } from '../planning/calendar';
 import { defaultVariety } from '../planning/rules';
 import { DAY_FULL, type Day } from '../planning/types';
+import { weekStatus } from '../planning/ahead';
 import { useRemy } from '../store';
 
 type Edit = (fn: (g: GroceryEdits) => GroceryEdits) => void;
@@ -25,9 +27,13 @@ export function Grocery() {
   // Shopping monthly: staples come off the weekly list and go on the month's list.
   const staplesThisWeek = monthly ? weekItems.filter((x) => !x.custom && buysMonthly(x.k) && !x.home) : [];
   const weekly = monthly ? weekItems.filter((x) => x.custom || !buysMonthly(x.k)) : weekItems;
-  const month = monthly
-    ? monthList(forecastWeeks(planState.plan, planState.variety ?? defaultVariety(A), ctx, goalsOf(planState.nutrition)), A, planState.month.edits)
-    : [];
+  // The month: this week and the weeks planned ahead (older saved data without them: a forecast).
+  const weeks = planState.ahead.length ? [planState.plan, ...planState.ahead] : forecastWeeks(planState.plan, planState.variety ?? defaultVariety(A), ctx, goalsOf(planState.nutrition));
+  const month = monthly ? monthList(weeks, A, planState.month.edits) : [];
+  const shop = planState.shopDays;
+  const wd = weekDates(A, planState.weekStartedAt, 0, shop, monthly);
+  const run = monthly ? monthRunDate(A, planState.weekStartedAt, shop) : null;
+  const drafts = planState.ahead.filter((w) => weekStatus(w) !== 'approved').length;
   const weekCost = costEstimate(weekly, A);
   const monthCost = costEstimate(month, A);
   const toBuy = weekly.filter((x) => !x.home).length;
@@ -40,17 +46,30 @@ export function Grocery() {
         {monthly && (
           <div className="seg top-gap" role="group" aria-label="Which list">
             <button type="button" aria-pressed={tab === 'week'} onClick={() => setTab('week')}>
-              This week
+              This week{wd.fresh ? ` · ${dayDate(wd.fresh)}` : ''}
             </button>
             <button type="button" aria-pressed={tab === 'month'} onClick={() => setTab('month')}>
-              This month
+              This month{run ? ` · ${dayDate(run)}` : ''}
             </button>
           </div>
         )}
 
         {view === 'week' ? (
           <>
-            <Mast kicker={`For ${prepDay} prep`} icon="cart" title="This week" sub={`${toBuy} to buy${monthly ? ', staples come from your monthly shop' : ''}`} />
+            <Mast
+              kicker={`${wd.fresh ? `${dayDate(wd.fresh)} · ` : ''}for ${prepDay} ${shortDate(wd.prep)} prep`}
+              icon="cart"
+              title="This week"
+              sub={`${toBuy} to buy${monthly ? ', staples come from your monthly shop' : ''}`}
+            />
+            {!monthly && wd.thaw && meatOf(planState.plan, A).length > 0 && (
+              <p className="warnline">
+                <Icon name="snow" size={16} />
+                <span>
+                  Raw meat keeps 1–2 days in the fridge: <b>freeze it when you get home</b> and move it to the fridge on <b>{dayDate(wd.thaw)} evening</b>, so it’s thawed for prep day.
+                </span>
+              </p>
+            )}
             <ListView items={weekly} edits={planState.groceries} edit={actions.groceryEdit} cost={weekCost} monthlyShare={monthly && monthCost.show ? monthCost.low / MONTH_WEEKS : 0} />
             {staplesThisWeek.length > 0 && (
               <section className="msec">
@@ -74,16 +93,35 @@ export function Grocery() {
           </>
         ) : (
           <>
-            <Mast kicker={`Staples for ${MONTH_WEEKS} weeks`} icon="cart" title="This month" sub={`${month.filter((x) => !x.home).length} to buy in one go`} />
+            <Mast
+              kicker={`${run ? `${dayDate(run)} · ` : ''}meat and staples for ${weeks.length} weeks`}
+              icon="cart"
+              title="This month"
+              sub={`${month.filter((x) => !x.home).length} to buy in one go`}
+            />
             <div className="gap-top-lg">
               <p className="lead-note">
-                An estimate from this week’s plan and how Remy rotates meals over the next {MONTH_WEEKS} weeks. Check-ins can change later weeks, so treat it as a guide; staples keep, and
-                anything left over carries into next month.
-              </p>
-              <p className="lead-note">
-                <b>When you get home:</b> freeze meat and fish in weekly bags (label them with the date). Keep potatoes somewhere cool and dark, not in the fridge.
+                From the {weeks.length} weeks on your calendar.
+                {drafts > 0
+                  ? ` ${drafts} of them ${drafts > 1 ? 'are drafts' : 'is a draft'}, and check-ins can still change them: approve them before you shop so this list stays the same.`
+                  : ' All of them are approved, so this list won’t change.'}{' '}
+                Staples keep, and anything left over carries into next month.
               </p>
             </div>
+            <section className="msec">
+              <SecHead title="Bag the meat by prep day" aside="then freeze it" />
+              {weeks.map((wk, i) => {
+                const d = weekDates(A, planState.weekStartedAt, i, shop, monthly);
+                const meat = meatOf(wk, A);
+                return meat.length ? (
+                  <Lead key={i} k={`${prepDay.slice(0, 3)} ${shortDate(d.prep)}`} v={meat.map((x) => `${x.n.replace(/^(boneless|lean) /i, '').toLowerCase()} ${x.qtyText}`).join(' · ')} wrap />
+                ) : null;
+              })}
+              <p className="lead-note gap-top">
+                <b>When you get home:</b> freeze each bag flat, labeled with its prep day. Remy reminds you two evenings before each prep day to move that bag to the fridge; about 24
+                hours thaws 2 kg. Keep potatoes somewhere cool and dark, not in the fridge.
+              </p>
+            </section>
             <ListView items={month} edits={planState.month.edits} edit={actions.monthEdit} cost={monthCost} period="month" />
             <button type="button" className="btn ghost wide gap-top-lg" onClick={actions.newMonth}>
               <Icon name="cal" size={17} /> Start a new month

@@ -250,3 +250,37 @@ button.menu-dish:hover { background: var(--surface-2); }
 .macro-tiles b { font-family: var(--f-display); font-size: var(--fs-l); font-weight: 800; font-variant-numeric: tabular-nums; }
 .macro-tiles span { color: var(--ink-3); font-size: var(--fs-xs); }
 .why-line { text-align: center; font-family: var(--f-display); font-weight: 600; font-size: var(--fs-l); line-height: 1.35; color: var(--ink-2); margin: 16px 8px 0; font-style: italic; }
+
+/* Plan: Week | Month, and the arrows between the weeks planned ahead. */
+.plan-switch { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; }
+.plan-switch .seg { align-self: center; min-width: 220px; }
+.week-step { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.week-label { display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
+.week-label b { font-family: var(--f-display); font-size: var(--fs-l); }
+.week-label small { color: var(--ink-3); font-size: var(--fs-s); }
+.week-step .iconbtn:disabled { opacity: 0.3; }
+
+/* The month calendar: Monday first, one row per week, a shade per planned week. */
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; margin-top: 14px; }
+.cal-dow { text-align: center; font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); padding-bottom: 2px; }
+.cal-day { min-height: 56px; border: 1.5px solid transparent; border-radius: var(--r-s); padding: 4px 3px; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; background: var(--surface); color: var(--ink); text-align: left; font: inherit; }
+.cal-day.wk1 { background: var(--surface-2); }
+.cal-day.off { background: transparent; color: var(--ink-3); }
+.cal-day.today { border-color: var(--basil); }
+.cal-day.today .n { color: var(--basil); }
+.cal-day.prep { box-shadow: inset 0 0 0 2px var(--citrus); }
+.cal-day .n { font-family: var(--f-display); font-weight: 700; font-size: var(--fs-m); line-height: 1; }
+.cal-day .m { font-size: var(--fs-s); line-height: 1.1; letter-spacing: -1px; word-break: break-all; }
+button.cal-day:hover { border-color: var(--line-2); }
+.cal-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 12px; margin-top: 10px; color: var(--ink-2); font-size: var(--fs-s); }
+.day-chips { margin-top: 12px; }
+.day-chips .chips { margin-top: 6px; }
+.day-chips .chip { min-width: 52px; justify-content: center; }
+
+/* Home: today and the next six days, each with its job. */
+.day-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-top: 6px; }
+.day-strip button { border: 0; border-radius: var(--r-s); background: var(--surface); padding: 6px 0 5px; display: flex; flex-direction: column; align-items: center; gap: 1px; color: var(--ink); min-height: 44px; }
+.day-strip button.today { background: var(--basil-soft); color: var(--basil-ink); }
+.day-strip small { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-3); }
+.day-strip b { font-family: var(--f-display); font-size: var(--fs-l); line-height: 1.1; }
+.day-strip span { font-size: var(--fs-s); line-height: 1.2; letter-spacing: -1px; }

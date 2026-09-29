@@ -9,12 +9,22 @@ import { costEstimate, groceryList } from '../planning/grocery';
 import { buysMonthly } from '../planning/month';
 import { balanceOn, dayNutrition, estimatesOn, mealNutrition } from '../planning/nutrition';
 import { approvalCounts, menuCountText } from '../planning/planner';
-import { dayIndexOn } from '../planning/calendar';
+import { dayDate, dayIndexOn, monthCalendar, nextJobs, type DayMark, type Job } from '../planning/calendar';
 import { storage } from '../planning/rules';
 import { clockTime, duration, packingCounts, schedule } from '../planning/schedule';
 import { DAY_FULL, DAYS, SLOT_SHORT, SLOTS, type Day } from '../planning/types';
 import { thawFor, upcomingReminders } from '../reminders/reminders';
 import { useRemy } from '../store';
+
+const STRIP: Record<DayMark, [string, string]> = {
+  month: ['🥩', 'monthly shop'],
+  fresh: ['🥬', 'fresh food'],
+  thaw: ['❄️', 'thaw tonight'],
+  prep: ['🍳', 'prep day'],
+  out: ['🍽️', 'eating out'],
+};
+const JOBS: Record<Job, string> = { month: 'Monthly shop', fresh: 'Shopping day', thaw: 'Thaw the meat', prep: 'Prep day' };
+const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
 
 export function Home() {
   const { planState, ctx, actions } = useRemy();
@@ -52,9 +62,19 @@ export function Home() {
   // The check-in matters most on the last day of the week, before the next prep day.
   const due = checkinDue(A, planState.weekStartedAt);
   const nums = estimatesOn(planState.nutrition, A);
-  const nextReminder = upcomingReminders(plan, A, planState.weekStartedAt, planState.reminders)[0];
+  const nextReminder = upcomingReminders(plan, A, planState.weekStartedAt, planState.reminders, new Date(), { ahead: planState.ahead, shopDays: planState.shopDays, monthly: planState.shopping === 'monthly' })[0];
 
   const dn = dayNutrition(day, ctx.hungry);
+  // The month's calendar: today and the next six days, and what's left to do before prep day.
+  const monthlyShop = planState.shopping === 'monthly';
+  const shopSet = !!(planState.shopDays.fresh || (monthlyShop && planState.shopDays.month));
+  const weeks = [plan, ...planState.ahead];
+  const outs = weeks.map((w) => w.map((d) => Object.values(d.meals).some((m) => m?.out)));
+  const todayMid = new Date(new Date().setHours(0, 0, 0, 0));
+  const strip = monthCalendar(A, planState.weekStartedAt, weeks.length, planState.shopDays, monthlyShop, outs)
+    .filter((d) => d.date >= todayMid)
+    .slice(0, 7);
+  const jobs = nextJobs(A, planState.weekStartedAt, planState.shopDays, monthlyShop);
   // Storage is said once when every meal comes from the fridge; otherwise only the exceptions get a label.
   const allFridge = SLOTS.every((s) => {
     const m = day.meals[s];
@@ -69,14 +89,35 @@ export function Home() {
       <main className="body wide">
         <div className="cols">
           <div>
+            <div className="day-strip" aria-label="The next seven days">
+              {strip.map((d) => (
+                <button type="button" key={d.date.getTime()} className={d.today ? 'today' : undefined} onClick={() => actions.go('planner')} aria-label={`${dayDate(d.date)}${d.marks.length ? `: ${d.marks.map((m) => STRIP[m][1]).join(', ')}` : ''}`}>
+                  <small>{dayDate(d.date).slice(0, 3)}</small>
+                  <b>{d.date.getDate()}</b>
+                  <span aria-hidden="true">{d.marks.map((m) => STRIP[m][0]).join('') || '·'}</span>
+                </button>
+              ))}
+            </div>
             {upcoming && !isPrepDay && (
-              <ChefNote kicker={`Next up · ${prepDay}`} icon="clock">
-                <h2 className="next-title">Prep day</h2>
+              <ChefNote kicker={`Next up · ${jobs[0] ? (sameDay(jobs[0].date, new Date()) ? 'today' : dayDate(jobs[0].date)) : prepDay}`} icon="clock">
+                <h2 className="next-title">{JOBS[jobs[0]?.job ?? 'prep']}</h2>
                 <div className="lead-note">
-                  {duration(sc.total)} of cooking, 1:00 to about {clockTime(sc.total)} · {menuCountText(plan)}
+                  Prep day: {duration(sc.total)} of cooking, 1:00 to about {clockTime(sc.total)} · {menuCountText(plan)}
                 </div>
-                <Lead k="1. Shop" v={checked ? `${checked} of ${toBuy.length} checked` : `${toBuy.length} items`} />
-                <Lead k="2. Cook" v={duration(sc.total)} />
+                {jobs.length > 1 || shopSet ? (
+                  jobs.map((j) => (
+                    <Lead
+                      key={j.job}
+                      k={j.job === 'fresh' ? `Fresh food · ${checked ? `${checked} of ${toBuy.length} checked` : `${toBuy.length} items`}` : j.job === 'month' ? 'Monthly shop · meat and staples' : j.job === 'thaw' ? 'Move the meat to the fridge, evening' : `Prep day · ${duration(sc.total)}`}
+                      v={dayDate(j.date)}
+                    />
+                  ))
+                ) : (
+                  <>
+                    <Lead k="1. Shop" v={checked ? `${checked} of ${toBuy.length} checked` : `${toBuy.length} items`} />
+                    <Lead k="2. Cook" v={duration(sc.total)} />
+                  </>
+                )}
                 <div className="row">
                   <button type="button" className="btn grow" onClick={() => actions.go('grocery')}>
                     <Icon name="cart" size={17} /> Grocery list
