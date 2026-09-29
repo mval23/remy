@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BottomNav, Header } from '../components/Chrome';
 import { Icon } from '../components/Icon';
+import { dayDate } from '../planning/calendar';
 import { toIcs } from '../reminders/ics';
 import { disablePush, enablePush, pushState, sendTest, type PushState } from '../reminders/push';
 import { upcomingReminders, type ReminderSettings } from '../reminders/reminders';
@@ -13,7 +14,8 @@ const KINDS: [keyof Pick<ReminderSettings, 'prep' | 'thaw' | 'checkin' | 'shop'>
   ['checkin', 'Weekly check-in', 'The day before prep day, so next week’s grocery list is ready to shop'],
 ];
 
-const when = (ms: number) => new Date(ms).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+/** "Wed 30 Sep, 9:00 AM": the same date style as the rest of the app. */
+const when = (ms: number) => `${dayDate(new Date(ms))}, ${new Date(ms).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
 
 /** Choose reminders, get them as phone notifications, or add them to a calendar. */
 export function Reminders() {
