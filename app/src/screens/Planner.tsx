@@ -4,7 +4,7 @@ import { Icon } from '../components/Icon';
 import { str } from '../interview/helpers';
 import { fraction } from '../planning/grocery';
 import { R } from '../planning/data/recipes';
-import { heatShort } from '../planning/method';
+import { heatNote, heatShort } from '../planning/method';
 import { balanceOn, dayNutrition, estimatesOn, mealNutrition, proteinTarget } from '../planning/nutrition';
 import { approvalCounts, dayApproved, portions } from '../planning/planner';
 import { storage } from '../planning/rules';
@@ -174,10 +174,10 @@ export function Planner() {
     const main = mealNutrition({ ...m, side: undefined });
     const side = m.side ? R[m.side] : null;
     // How to eat it goes next to the course heading, said once.
-    const how = (st.k === 'freezer' && r.thaw ? r.thaw : r.reheat).split('.')[0];
+    const how = heatNote(st.k === 'freezer' && r.thaw ? r.thaw : r.reheat);
     return (
       <section className="course" key={slot}>
-        {head(`${how}.`)}
+        {head(how)}
         <div className="dish">
           <span className="dish-emoji" aria-hidden="true">{r.e}</span>
           <div className="dish-body">

@@ -192,6 +192,21 @@ export function heatShort(reheat: string): string {
   return 'fresh';
 }
 
+/**
+ * How to eat a dish, as one short line beside its course heading: "Eat cold, straight from the fridge.",
+ * "Microwave 3–4 minutes, stirring halfway, until steaming (74°C).". Dishes made or put together on the day say
+ * so ("Made fresh, 8 minutes.") instead of the whole method, and long first sentences stop at their first comma.
+ * The full instructions stay on the recipe page.
+ */
+export function heatNote(text: string): string {
+  const s = text.split('.')[0].trim();
+  const fresh = /^(on the (?:night|day)|each morning|make it fresh|cooked fresh|eat fresh)(?:,\s*(\d+ minutes))?/i.exec(s);
+  if (fresh) return `Made fresh${fresh[2] ? `, ${fresh[2]}` : ''}.`;
+  let note = s.length > 70 ? s.split(',')[0] : s;
+  if (note.length > 70) note = note.replace(/\s*\([^)]*\)/g, '');
+  return `${note}.`;
+}
+
 /** The equipment list sorted the way a kitchen is: pans and pots, bowls, then tools. Empty groups are left out. */
 export function gearGroups(gear: string[]): { name: string; items: string[] }[] {
   const pans = gear.filter((g) => /\b(pans?|pots?|dish)\b/.test(g));

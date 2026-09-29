@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { listText, str } from '../interview/helpers';
 import { checkinDue, mealsToRate, noticeSuggestion } from '../learning/learning';
 import { R } from '../planning/data/recipes';
+import { heatNote } from '../planning/method';
 import { costEstimate, groceryList } from '../planning/grocery';
 import { buysMonthly } from '../planning/month';
 import { balanceOn, dayNutrition, estimatesOn, mealNutrition } from '../planning/nutrition';
@@ -117,7 +118,7 @@ export function Home() {
                     </button>
                     {m.side && <span className="menu-how">with {R[m.side].short.toLowerCase()}</span>}
                     <span className="menu-how">
-                      {(st.k === 'freezer' && r.thaw ? r.thaw : r.reheat).split(/[.,;:]/)[0]}
+                      {heatNote(st.k === 'freezer' && r.thaw ? r.thaw : r.reheat).split(/[.,;:]/)[0]}
                       {nums && mn ? ` · ${mn.kcal.toLocaleString('en-US')} kcal` : ''}
                     </span>
                     {st.k !== 'fridge' && <StoragePill st={st} />}
