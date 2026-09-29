@@ -5,6 +5,8 @@ import { FOOD_GROUP_A, FOODS, Q, QBY } from './interview/questions';
 import { emptyInterview, type AnswerValue, type InterviewState, type Level, type Question } from './interview/types';
 import { answerSuggestion, applyCheckin, forgetAllLearned, forgetLearned, learnFromRejection, noticeSuggestion } from './learning/learning';
 import type { CheckinDraft, Noticed } from './learning/types';
+import { planAhead } from './planning/ahead';
+import type { ShopDays } from './planning/calendar';
 import { R, registerAiRecipes } from './planning/data/recipes';
 import { WEEKS } from './planning/data/weeks';
 import { fitToGoals, goalsOf, hasGoals } from './planning/goals';
@@ -69,6 +71,10 @@ export interface UiState {
   sheetFood: string | null;
   /** A backup file that was read and is waiting for confirmation. */
   pendingImport: Backup | null;
+  /** Week shown in the planner: 0 = this week, 1… = the weeks planned ahead. */
+  week: number;
+  /** The planner shows one week day by day, or the month on a calendar. */
+  planView: 'week' | 'month';
 }
 
 export interface RejectReason {
@@ -79,7 +85,7 @@ export interface RejectReason {
 
 const initialUi = (screen: Screen = 'welcome'): UiState => ({
   screen, editReturn: null, lastAnswered: null, drafts: {}, sheet: null, sheetArg: null, toast: null, recipeId: null, recipeBack: 'planner',
-  sheetFood: null, pendingImport: null, prepView: 'timeline',
+  sheetFood: null, pendingImport: null, prepView: 'timeline', week: 0, planView: 'week',
 });
 
 /** The screen named in ?open=… (from a tapped reminder), once; the address is then tidied. */
@@ -101,6 +107,12 @@ const fitted = (plan: WeekPlan, s: InterviewState, p: PlanState): WeekPlan => {
   return hasGoals(goals) ? fitToGoals(plan, planContext(s, p), goals).plan : plan;
 };
 const pct = (x: number) => `${Math.round(x * 100)}%`;
+
+/** A week of the month: 0 = this week, 1… = the weeks planned ahead. */
+const weekOf = (p: PlanState, w: number): WeekPlan | null => (w === 0 ? p.plan : (p.ahead[w - 1] ?? null));
+const withWeek = (p: PlanState, w: number, plan: WeekPlan): PlanState => (w === 0 ? { ...p, plan } : { ...p, ahead: p.ahead.map((x, i) => (i === w - 1 ? plan : x)) });
+/** The weeks after `plan`, redrafted from the rules: meals approved ahead stay. */
+const aheadFor = (plan: WeekPlan, s: InterviewState, p: PlanState, variety: Variety) => planAhead(plan, p.ahead, variety, planContext(s, p), goalsOf(p.nutrition));
 
 function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
   const [interview, setInterview] = useState<InterviewState>(initial.interview);
@@ -148,7 +160,11 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
   const reminderKey = useRef('');
   useEffect(() => {
     if (!sync.signedIn || !planState.reminders.push || !planState.plan) return;
-    const list = upcomingReminders(planState.plan, activeAnswers(interview), planState.weekStartedAt, planState.reminders);
+    const list = upcomingReminders(planState.plan, activeAnswers(interview), planState.weekStartedAt, planState.reminders, new Date(), {
+      ahead: planState.ahead,
+      shopDays: planState.shopDays,
+      monthly: planState.shopping === 'monthly',
+    });
     const key = JSON.stringify(list);
     if (key === reminderKey.current) return;
     const t = window.setTimeout(() => {
@@ -161,10 +177,16 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
         });
     }, 2000);
     return () => window.clearTimeout(t);
-  }, [sync.signedIn, planState.plan, planState.reminders, planState.weekStartedAt, interview]);
+  }, [sync.signedIn, planState.plan, planState.ahead, planState.shopDays, planState.shopping, planState.reminders, planState.weekStartedAt, interview]);
   useEffect(() => {
     if (sync.signedIn && planState.reminders.push) void refreshSubscription().catch(() => {});
   }, [sync.signedIn]);
+
+  // A week without weeks planned ahead (older saved data, a backup, the cloud copy): draft them.
+  useEffect(() => {
+    if (!planState.plan || planState.ahead.length || !interview.confirmed) return;
+    setPlanState((p) => (p.plan && !p.ahead.length ? { ...p, ahead: aheadFor(p.plan, interview, p, p.variety ?? defaultVariety(activeAnswers(interview))) } : p));
+  }, [planState.plan, planState.ahead.length, interview.confirmed]);
 
   // Save after every change (not the values just loaded), then schedule an upload for local changes.
   useEffect(() => {
@@ -182,7 +204,13 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
 
   const patchUi = (p: Partial<UiState>) => setUi((u) => ({ ...u, ...p }));
   const patchPlan = (p: Partial<PlanState>) => setPlanState((s) => ({ ...s, ...p }));
-  const updatePlan = (fn: (plan: WeekPlan) => WeekPlan) => setPlanState((s) => (s.plan ? { ...s, plan: fn(s.plan) } : s));
+  /** Change the week in view in the planner (this week or one ahead). */
+  const updatePlan = (fn: (plan: WeekPlan) => WeekPlan) =>
+    setPlanState((s) => {
+      const cur = weekOf(s, ui.week);
+      return cur ? withWeek(s, ui.week, fn(cur)) : s;
+    });
+  const viewPlan = weekOf(planState, ui.week);
   const toast = (msg: string) => {
     patchUi({ toast: msg });
     window.clearTimeout(toastTimer.current);
@@ -198,8 +226,10 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
   /** After a profile change, rebuild unapproved meals so the plan follows the new answers. */
   const refreshPlan = (s: InterviewState, p: PlanState = planState) => {
     if (!s.confirmed || !p.plan) return;
-    const { plan, changed } = buildPlan(p.variety ?? defaultVariety(activeAnswers(s)), planContext(s, p), p.plan);
-    setPlanState({ ...p, plan: fitted(plan, s, p) });
+    const variety = p.variety ?? defaultVariety(activeAnswers(s));
+    const { plan, changed } = buildPlan(variety, planContext(s, p), p.plan);
+    const week = fitted(plan, s, p);
+    setPlanState({ ...p, plan: week, ahead: p.ahead.length ? aheadFor(week, s, p, variety) : p.ahead });
     if (changed) toast(`Plan updated: ${changed} meal${changed > 1 ? 's' : ''} changed`);
   };
 
@@ -288,7 +318,10 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
       const variety = defaultVariety(activeAnswers(s));
       setInterview(s);
       // The first week is cooked on the next prep day; reminders and “today” follow that date.
-      setPlanState((p) => ({ ...p, variety, day: 0, weekStartedAt: Date.now(), plan: fitted(buildPlan(variety, planContext(s, p)).plan, s, p) }));
+      setPlanState((p) => {
+        const plan = fitted(buildPlan(variety, planContext(s, p)).plan, s, p);
+        return { ...p, variety, day: 0, weekStartedAt: Date.now(), plan, ahead: planAhead(plan, [], variety, planContext(s, p), goalsOf(p.nutrition)) };
+      });
       patchUi({ screen: 'planner' });
       toast('Your week is ready. Review each meal.');
     },
@@ -313,28 +346,37 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
 
     /* ---------- planner ---------- */
     selectDay: (d: number) => patchPlan({ day: d }),
+    /** Show another week of the month in the planner (0 = this week). */
+    selectWeek: (w: number) => patchUi({ week: Math.max(0, Math.min(w, planState.ahead.length)) }),
+    setPlanView: (planView: UiState['planView']) => patchUi({ planView }),
+    /** From the month calendar: open a week's day in the planner. */
+    openDay: (w: number, i: number) => {
+      patchUi({ week: w, planView: 'week', sheet: null });
+      patchPlan({ day: i });
+    },
+    setShopDays: (patch: Partial<ShopDays>) => setPlanState((s) => ({ ...s, shopDays: { ...s.shopDays, ...patch } })),
     setVariety: (v: Variety) => {
       const kept = planState.plan ? planState.plan.flatMap((d) => Object.values(d.meals)).filter((m) => m?.ok).length : 0;
       const plan = fitted(buildPlan(v, planContext(interview, planState), planState.plan).plan, interview, planState);
-      patchPlan({ variety: v, plan });
+      patchPlan({ variety: v, plan, ahead: planState.ahead.length ? aheadFor(plan, interview, planState, v) : planState.ahead });
       toast(kept ? `${WEEKS[v].label}: kept ${kept} approved meal${kept > 1 ? 's' : ''}, rebuilt the rest` : `${WEEKS[v].label}: plan rebuilt`);
     },
     /** A different menu for every meal that isn't approved; tap again for another option. */
     regenerate: () => {
-      if (!planState.plan) return;
+      if (!viewPlan) return;
       const seed = shuffles.current++;
       const variety = planState.variety ?? defaultVariety(activeAnswers(interview));
-      const { plan, changed } = regenerate(variety, planContext(interview, planState), planState.plan, seed);
-      const kept = planState.plan.flatMap((d) => Object.values(d.meals)).filter((m) => m?.ok).length;
-      patchPlan({ plan: fitted(plan, interview, planState) });
+      const { plan, changed } = regenerate(variety, planContext(interview, planState), viewPlan, seed);
+      const kept = viewPlan.flatMap((d) => Object.values(d.meals)).filter((m) => m?.ok).length;
+      setPlanState(withWeek(planState, ui.week, fitted(plan, interview, planState)));
       toast(changed ? `New menu: ${changed} meal${changed > 1 ? 's' : ''} changed${kept ? `, ${kept} approved kept` : ''}. Tap again for another.` : 'Nothing else fits your rules for these meals');
     },
     /** Fit this week to the daily goals now (new weeks are fitted automatically). */
     fitGoals: () => {
       const goals = goalsOf(planState.nutrition);
-      if (!planState.plan || !hasGoals(goals)) return;
-      const r = fitToGoals(planState.plan, planContext(interview, planState), goals);
-      patchPlan({ plan: r.plan });
+      if (!viewPlan || !hasGoals(goals)) return;
+      const r = fitToGoals(viewPlan, planContext(interview, planState), goals);
+      setPlanState(withWeek(planState, ui.week, r.plan));
       const parts = [
         r.swapped && `${r.swapped} meal${r.swapped > 1 ? 's' : ''} swapped`,
         r.sides && `${r.sides} protein side${r.sides > 1 ? 's' : ''} added`,
@@ -358,8 +400,10 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
     replace: (d: number, slot: Slot, recipeId: string, reason?: RejectReason, keep?: Recipe) => {
       const base = keep ? { ...planState, aiRecipes: { ...planState.aiRecipes, [keep.id]: keep } } : planState;
       if (keep) registerAiRecipes(base.aiRecipes);
-      const old = base.plan?.[d].meals[slot]?.r;
-      let p: PlanState = { ...base, plan: base.plan && replaceMeal(base.plan, d, slot, recipeId) };
+      const cur = weekOf(base, ui.week);
+      if (!cur) return;
+      const old = cur[d].meals[slot]?.r;
+      let p: PlanState = withWeek(base, ui.week, replaceMeal(cur, d, slot, recipeId));
       if (old && reason) p = learnFromRejection(p, old, reason.why);
       if (reason?.food) {
         const s = setRating(interview, reason.food, 'dislike');
@@ -389,16 +433,16 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
       toast(sideId ? `Added ${R[sideId].short.toLowerCase()}` : 'Side removed');
     },
     balance: (days: number[]) => {
-      if (!planState.plan) return;
+      if (!viewPlan) return;
       const ctx = planContext(interview, planState);
       let added = 0;
-      const plan = planState.plan.map((day, i) => {
+      const plan = viewPlan.map((day, i) => {
         if (!days.includes(i)) return day;
         const r = balanceDay(day, i, ctx);
         added += r.added;
         return r.day;
       });
-      patchPlan({ plan });
+      setPlanState(withWeek(planState, ui.week, plan));
       toast(added ? `Added ${added} side${added > 1 ? 's' : ''}. Remove any you don’t want.` : 'Nothing more fits your foods');
     },
     openRecipe: (id: string) => patchUi({ recipeId: id, recipeBack: ui.screen === 'recipe' ? ui.recipeBack : ui.screen, screen: 'recipe', sheet: null }),
@@ -536,7 +580,7 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
   };
 
   const ctx = planContext(interview, planState);
-  return { interview, planState, ui, ctx, actions, sync };
+  return { interview, planState, viewPlan, ui, ctx, actions, sync };
 }
 
 type Remy = ReturnType<typeof useRemyState>;
@@ -559,7 +603,7 @@ export function RemyProvider({ children, fallback }: { children: ReactNode; fall
         plan = { ...plan, variety, plan: buildPlan(variety, planContext(interview, plan)).plan };
       }
       // Recipes deleted from the menu since the plan was made are swapped out.
-      if (plan.plan) plan = { ...plan, plan: dropRemoved(plan.plan, planContext(interview, plan)).plan };
+      if (plan.plan) plan = { ...plan, plan: dropRemoved(plan.plan, planContext(interview, plan)).plan, ahead: plan.ahead.map((w) => dropRemoved(w, planContext(interview, plan)).plan) };
       setInitial({ interview, plan });
     });
   }, []);

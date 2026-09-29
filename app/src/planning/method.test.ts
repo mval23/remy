@@ -3,7 +3,7 @@ import { activeAnswers, fillWithSamples } from '../interview/engine';
 import { emptyInterview } from '../interview/types';
 import { ING } from './data/ingredients';
 import { R } from './data/recipes';
-import { batchesFor, gearGroups, gearList, heatShort, ingredientName, isDetailed, partsText, placeholders, recipeSteps, renderLine, scaledIngredients, setupLines, timelineSteps } from './method';
+import { batchesFor, gearGroups, gearList, heatNote, heatShort, ingredientName, isDetailed, partsText, placeholders, recipeSteps, renderLine, scaledIngredients, setupLines, timelineSteps } from './method';
 import { buildPlan, dayApproved, handsOnMinutes, menuCount, menuCountText, replaceMeal, sortOptions } from './planner';
 import { context, matches, matchReasons } from './rules';
 import { schedule } from './schedule';
@@ -194,5 +194,18 @@ describe('ordering replacement options', () => {
     for (let i = 1; i < pro.length; i++) expect(pro[i].pro).toBeLessThanOrEqual(pro[i - 1].pro);
     const quick = sortOptions(list, 'quick');
     for (let i = 1; i < quick.length; i++) expect(handsOnMinutes(quick[i])).toBeGreaterThanOrEqual(handsOnMinutes(quick[i - 1]));
+  });
+});
+
+describe('how to eat it, beside the course heading', () => {
+  it('keeps the note short: the first sentence, or "Made fresh" for dishes put together on the day', () => {
+    expect(heatNote('Eat cold, straight from the fridge. If you want it warm, microwave 60–90 seconds.')).toBe('Eat cold, straight from the fridge.');
+    expect(heatNote('On the day: mash half an avocado with lime juice and salt, spread on 2 slices of bread.')).toBe('Made fresh.');
+    expect(heatNote('On the night, 8 minutes: microwave a portion of chicken 90 seconds.')).toBe('Made fresh, 8 minutes.');
+    expect(heatNote('Microwave the rice and chicken 2 minutes until 74°C, then add the cold salad and tzatziki, and a squeeze of lime.')).toBe('Microwave the rice and chicken 2 minutes until 74°C.');
+  });
+
+  it('gives every library recipe a note of at most about 70 characters', () => {
+    for (const r of Object.values(R)) expect(heatNote(r.reheat).length, r.id).toBeLessThanOrEqual(72);
   });
 });

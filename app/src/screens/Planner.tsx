@@ -1,10 +1,13 @@
 import { BottomNav, Header, StoragePill } from '../components/Chrome';
 import { describe, DishLine, Leader, MacroLine, Mast } from '../components/Dish';
 import { Icon } from '../components/Icon';
+import { MonthView } from '../components/MonthView';
+import { weekStatus } from '../planning/ahead';
+import { dayDate, rangeText, shortDate, weekDates } from '../planning/calendar';
 import { str } from '../interview/helpers';
 import { fraction } from '../planning/grocery';
 import { R } from '../planning/data/recipes';
-import { heatShort } from '../planning/method';
+import { heatNote, heatShort } from '../planning/method';
 import { balanceOn, dayNutrition, estimatesOn, mealNutrition, proteinTarget } from '../planning/nutrition';
 import { approvalCounts, dayApproved, portions } from '../planning/planner';
 import { storage } from '../planning/rules';
@@ -17,10 +20,20 @@ import { useRemy } from '../store';
  * Change (side, replace, move, not this). The day's total closes it like a bill.
  */
 export function Planner() {
-  const { planState, ctx, actions } = useRemy();
-  const plan = planState.plan;
-  if (!plan) return null;
+  const { planState, viewPlan, ui, ctx, actions } = useRemy();
+  const plan = viewPlan;
+  if (!plan || !planState.plan) return null;
   const A = ctx.A;
+  const w = ui.week;
+  const month = ui.planView === 'month';
+  const wd = weekDates(A, planState.weekStartedAt, w, planState.shopDays, planState.shopping === 'monthly');
+  const dateOf = (i: number) => {
+    const x = new Date(wd.start);
+    x.setDate(x.getDate() + i);
+    return x;
+  };
+  const status = weekStatus(plan);
+  const weeks = planState.ahead.length + 1;
   const d = Math.min(planState.day, 6);
   const day = plan[d];
   const pc = portions(plan);
@@ -37,7 +50,7 @@ export function Planner() {
   return (
     <>
       <Header
-        title="Your week"
+        title={month ? 'Your month' : 'Your week'}
         right={
           <button type="button" className="iconbtn" aria-label="Menu settings: variety and new menu" onClick={() => actions.openSheet('menuSettings')}>
             <Icon name="sliders" size={22} />
@@ -45,15 +58,44 @@ export function Planner() {
         }
       />
       <main className="body wide">
+        <div className="plan-switch">
+          <div className="seg" role="group" aria-label="Show">
+            <button type="button" aria-pressed={!month} onClick={() => actions.setPlanView('week')}>
+              Week
+            </button>
+            <button type="button" aria-pressed={month} onClick={() => actions.setPlanView('month')}>
+              Month
+            </button>
+          </div>
+          {!month && weeks > 1 && (
+            <div className="week-step">
+              <button type="button" className="iconbtn" aria-label="Previous week" disabled={w === 0} onClick={() => actions.selectWeek(w - 1)}>
+                <Icon name="left" size={20} />
+              </button>
+              <span className="week-label">
+                <b>{w === 0 ? 'This week' : rangeText(wd.start, wd.end)}</b>
+                <small>{w === 0 ? rangeText(wd.start, wd.end) : status === 'approved' ? '✓ Approved' : status === 'some' ? 'Partly approved' : 'Draft'}</small>
+              </span>
+              <button type="button" className="iconbtn" aria-label="Next week" disabled={w >= weeks - 1} onClick={() => actions.selectWeek(w + 1)}>
+                <Icon name="right" size={20} />
+              </button>
+            </div>
+          )}
+        </div>
+        {month ? (
+          <MonthView />
+        ) : (
+          <>
         <div className="daytabs" role="group" aria-label="Day">
           {plan.map((x, i) => {
             const done = dayApproved(x);
             return (
-              <button key={x.d} type="button" aria-pressed={i === d} aria-label={`${DAY_FULL[x.d]}${done ? ', approved' : ''}`} onClick={() => actions.selectDay(i)}>
+              <button key={x.d} type="button" aria-pressed={i === d} aria-label={`${dayDate(dateOf(i))}${done ? ', approved' : ''}`} onClick={() => actions.selectDay(i)}>
                 {x.d}
                 <small className={done ? 'c-basil' : undefined}>
                   {balance && !dayNutrition(x, ctx.hungry).ok && <span className="dot-warn" aria-label="needs balance">● </span>}
-                  {done ? '✓ done' : `day ${i + 1}`}
+                  {done ? '✓ ' : ''}
+                  {shortDate(dateOf(i))}
                 </small>
               </button>
             );
@@ -61,10 +103,10 @@ export function Planner() {
         </div>
 
         <Mast
-          kicker={`Remy’s kitchen · day ${d + 1} after prep`}
+          kicker={`${shortDate(dateOf(d))} · day ${d + 1} after prep`}
           title={DAY_FULL[day.d]}
           compact
-          sub={allFridge ? `Everything from the fridge, made ${prepDay}.` : `Made ${prepDay}. From the fridge unless marked.`}
+          sub={allFridge ? `Everything from the fridge, made ${prepDay} ${shortDate(wd.prep)}.` : `Made ${prepDay} ${shortDate(wd.prep)}. From the fridge unless marked.`}
         >
           {balance && (
             <p className="mast-checks">
@@ -129,6 +171,8 @@ export function Planner() {
             Approve week
           </button>
         </div>
+          </>
+        )}
       </main>
       <BottomNav />
     </>
@@ -174,10 +218,10 @@ export function Planner() {
     const main = mealNutrition({ ...m, side: undefined });
     const side = m.side ? R[m.side] : null;
     // How to eat it goes next to the course heading, said once.
-    const how = (st.k === 'freezer' && r.thaw ? r.thaw : r.reheat).split('.')[0];
+    const how = heatNote(st.k === 'freezer' && r.thaw ? r.thaw : r.reheat);
     return (
       <section className="course" key={slot}>
-        {head(`${how}.`)}
+        {head(how)}
         <div className="dish">
           <span className="dish-emoji" aria-hidden="true">{r.e}</span>
           <div className="dish-body">

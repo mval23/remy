@@ -1,7 +1,7 @@
 import type { Answers } from '../interview/types';
 import { ING } from './data/ingredients';
 import { fitToGoals, hasGoals, type Goals } from './goals';
-import { ingredientTotals, toItems, type GroceryEdits, type GroceryItem, type Totals } from './grocery';
+import { emptyGroceryEdits, ingredientTotals, toItems, type GroceryEdits, type GroceryItem, type Totals } from './grocery';
 import { buildPlan, eachMeal } from './planner';
 import type { PlanContext } from './rules';
 import type { Variety, WeekPlan } from './types';
@@ -66,4 +66,13 @@ export function monthList(weeks: WeekPlan[], A: Answers, edits: GroceryEdits): G
     }
   }
   return toItems(sum, A, edits);
+}
+
+/** A week's meat (bought on the monthly shop and frozen until then): name and amount, largest first. */
+export function meatOf(plan: WeekPlan, A: Answers): { k: string; n: string; q: number; qtyText: string }[] {
+  const t = ingredientTotals(plan);
+  return toItems({ total: Object.fromEntries(Object.entries(t.total).filter(([k]) => freezeOnArrival(k))), from: t.from }, A, emptyGroceryEdits())
+    .filter((x) => x.q)
+    .map((x) => ({ k: x.k, n: x.n, q: x.q!, qtyText: x.qtyText }))
+    .sort((a, b) => (ING[b.k].u === 'g' ? b.q : 0) - (ING[a.k].u === 'g' ? a.q : 0));
 }

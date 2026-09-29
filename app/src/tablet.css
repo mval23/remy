@@ -68,8 +68,8 @@
 
   .masonry.aisles { columns: 3; }
 
-  /* Plan: the day's meals sit in two columns, like a printed menu. */
-  .courses { columns: 2; column-gap: 48px; }
-  .courses > .course { break-inside: avoid; }
-  .course + .course { border-top: 0; }
+  /* Plan: the day's courses side by side in reading order (Breakfast | Lunch, Snack | Dinner, Sweet), like the
+     recipe menu page. Each row lines up, and every course has the same rule above it. */
+  .courses { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 48px; align-items: start; }
+  .courses > .course { border-top: 1px solid var(--line); }
 }

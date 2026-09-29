@@ -1,6 +1,7 @@
 import { emptyCheckin, type CheckinDraft, type LearnedItem, type Noticed, type ProgressEntry, type SweetPortion } from '../learning/types';
 import { emptyGroceryEdits, type GroceryEdits } from '../planning/grocery';
 import type { ShopMode } from '../planning/month';
+import { noShopDays, type ShopDays } from '../planning/calendar';
 import { defaultNutrition, type NutritionSettings } from '../planning/nutrition';
 import type { Recipe, Variety, WeekPlan } from '../planning/types';
 import { migrateRecipe } from '../planning/units';
@@ -9,6 +10,8 @@ import { defaultReminderSettings, type ReminderSettings } from '../reminders/rem
 /** Everything about the current week and what Remy has learned, apart from the interview. */
 export interface PlanState {
   plan: WeekPlan | null;
+  /** The weeks planned after this one (a month ahead with this one). Approved meals stay; the rest are drafts. */
+  ahead: WeekPlan[];
   variety: Variety | null;
   /** Day selected in the planner (0–6). */
   day: number;
@@ -48,12 +51,15 @@ export interface PlanState {
   shopping: ShopMode;
   /** The monthly shop: when it started and the user's edits (check-offs carry across weeks until a new month). */
   month: { startedAt: number; edits: GroceryEdits };
+  /** Shopping days: the monthly shop (meat and staples) and the weekly fresh-food shop. */
+  shopDays: ShopDays;
   /** Set once saved AI recipes are in metric units; missing on data from earlier versions. */
   units?: 'metric';
 }
 
 export const emptyPlanState = (): PlanState => ({
   plan: null,
+  ahead: [],
   variety: null,
   day: 0,
   recent: [],
@@ -75,6 +81,7 @@ export const emptyPlanState = (): PlanState => ({
   prepDone: { week: 0, done: {} },
   shopping: 'weekly',
   month: { startedAt: 0, edits: emptyGroceryEdits() },
+  shopDays: noShopDays(),
 });
 
 /**
