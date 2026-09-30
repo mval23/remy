@@ -133,4 +133,9 @@ export const ING: Record<string, Ingredient> = {
   quinoa: { n: 'Quinoa', u: 'g', pk: 450, pp: 4.99, pkn: '450 g bag', sec: 'Bakery & grains', pan: 'Quinoa', m: [14, 64, 6] },
   // Per mango, about 200 g of fruit.
   mango: { n: 'Mangos', u: '', p: 1.29, sec: 'Produce', m: [1.6, 30, 0.8] },
+
+  /* For the fruit snacks. */
+  blueberries: { n: 'Blueberries', u: 'g', pk: 125, pp: 2.99, pkn: '125 g punnet', sec: 'Produce', f: 'berries', m: [0.7, 14.5, 0.3] },
+  // Per pineapple, about 900 g of fruit.
+  pineapple: { n: 'Pineapples', u: '', p: 2.49, sec: 'Produce', m: [4.5, 118, 1] },
 };

@@ -105,6 +105,16 @@ describe('storage safety', () => {
     expect(storage(R.popcorn, 6).k).toBe('room');
   });
 
+  it('plans just-fruit snacks on about half the days, each stored safely', () => {
+    for (const v of ['favorites', 'balanced', 'variety'] as Variety[]) {
+      const fruit = planFor(SAMPLE, v).filter((d) => d.meals['Afternoon snack']?.r?.startsWith('fruit_') || d.meals['Afternoon snack']?.r === 'mangobiche');
+      expect(fruit.length, v).toBeGreaterThanOrEqual(3);
+    }
+    expect(storage(R.fruit_mango, 4).k).toBe('freezer');
+    expect(storage(R.fruit_grapes, 1).k).toBe('freezer');
+    expect(storage(R.fruit_blueberries, 7).k).toBe('fridge');
+  });
+
   it('never plans a meal past its safe fridge time, in any template', () => {
     for (const v of ['favorites', 'balanced', 'variety'] as Variety[]) {
       planFor(SAMPLE, v).forEach((day, i) => {
