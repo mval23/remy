@@ -30,7 +30,7 @@ const BOILED_EGGS: Task = {
 };
 const TACO_PREP: Task = {
   t: 'Season chicken with mild taco spices', l: 'hands', m: 5, key: 'tacoprep', gear: ['sheet pan', 'baking paper'],
-  how: ['Line a sheet pan with baking paper.', 'Toss {thighs} with {taco} and {oil} until evenly coated.', 'Spread in one layer with space between the pieces.'],
+  how: ['Line a sheet pan with baking paper.', 'Toss {chickenbreast} with {taco} and {oil} until evenly coated.', 'Spread in one layer with space between the pieces.'],
 };
 /* Pollo desmechado en hogao: shredded chicken in a smooth tomato and green onion hogao, for arepas and sandwiches. */
 const POLLO_DESMECHADO: Task = {
@@ -43,7 +43,7 @@ const POLLO_DESMECHADO: Task = {
 };
 const TACO_ROAST: Task = {
   t: 'Roast taco chicken', l: 'oven', m: 22, temp: 220, key: 'tacochicken',
-  how: ['Roast at 220°C for 20–22 minutes, until the thickest piece reaches 74°C inside, with no pink in the middle.', 'Rest 5 minutes, then shred with two forks.'],
+  how: ['Roast at 220°C for 18–22 minutes, until the thickest piece reaches 74°C inside, with no pink in the middle. Check at 18 minutes: breast dries out if it goes much past 74°C.', 'Rest 5 minutes so the juices settle, then shred with two forks.'],
 };
 
 /**
@@ -102,25 +102,25 @@ const MEALS: Record<string, RecipeInput> = {
   teriyaki: {
     name: 'Teriyaki chicken rice bowls', short: 'Teriyaki bowl', slot: 'Lunch', e: '🍱', serves: 3, fridge: 4, freezer: 0,
     foods: { chicken: 1, rice: 1, broccoli: 'Roasted until crispy', carrots: 1 }, sauces: ['Teriyaki'],
-    ing: [['thighs', 570], ['rice', 190], ['broccoli', 2], ['carrots', 3], ['teriyaki', 120], ['oil', 1]],
+    ing: [['chickenbreast', 570], ['rice', 190], ['broccoli', 2], ['carrots', 3], ['teriyaki', 120], ['oil', 1]],
     why: ['Chicken and rice, both rated Love', 'Teriyaki is on your sauce list', 'Broccoli roasted until crispy, the one way you said works'],
     note: 'Not frozen: the broccoli softens after freezing, and you said mushy is a no.',
-    steps: ['Toss chicken with half the teriyaki sauce.', 'Cut broccoli into small florets and carrots into coins; toss with oil and salt.', 'Roast chicken and vegetables on 2 pans at 220°C for 22–25 minutes, until the broccoli edges are crisp and chicken reaches 74°C.', 'Slice chicken, brush with the remaining sauce, and portion with rice into 3 containers.'],
+    steps: ['Toss chicken with half the teriyaki sauce.', 'Cut broccoli into small florets and carrots into coins; toss with oil and salt.', 'Roast the vegetables at 220°C for 8 minutes, then add the chicken on a second pan and roast both 15–17 minutes more, until the broccoli edges are crisp and the chicken reaches 74°C.', 'Slice chicken, brush with the remaining sauce, and portion with rice into 3 containers.'],
     reheat: 'Microwave 2–3 minutes, stirring halfway, until steaming (74°C). Sprinkle a teaspoon of water over the rice first.',
     tasks: [
       RICE_TASK,
-      { t: 'Marinate the chicken in teriyaki', l: 'hands', m: 6, gear: ['mixing bowl'], how: ['Cut {thighs} into large bite-size pieces.', 'Toss with {teriyaki*0.5} in a bowl. Keep the other {teriyaki*0.5:q} for glazing.'] },
+      { t: 'Marinate the chicken in teriyaki', l: 'hands', m: 6, gear: ['mixing bowl'], how: ['Cut {chickenbreast} into large bite-size pieces.', 'Toss with {teriyaki*0.5} in a bowl. Keep the other {teriyaki*0.5:q} for glazing.'] },
       { t: 'Cut broccoli and carrots for roasting', l: 'hands', m: 10, gear: ['2 sheet pans', 'baking paper'], how: ['Line 2 sheet pans with baking paper.', 'Cut {broccoli} into small florets; small ones get crisper edges.', 'Peel {carrots} and slice into 1 cm coins.', 'Toss the vegetables with {oil} and a pinch of salt on one pan, in a single layer.'] },
-      { t: 'Roast teriyaki chicken + crispy broccoli & carrots (2 pans)', l: 'oven', m: 25, temp: 220, pans: 2, how: ['Spread the chicken on the second pan.', 'Roast both pans at 220°C for 22–25 minutes, swapping shelves halfway, until the broccoli edges are dark and crisp and the chicken reaches 74°C inside.'] },
+      { t: 'Roast teriyaki chicken + crispy broccoli & carrots (2 pans)', l: 'oven', m: 25, temp: 220, pans: 2, how: ['Roast the vegetable pan at 220°C for 8 minutes.', 'Spread the chicken on the second pan and add it to the oven. Roast both 15–17 minutes more, swapping shelves halfway, until the broccoli edges are dark and crisp and the chicken reaches 74°C inside. Check the biggest piece at 15 minutes: breast dries out if overcooked.'] },
       { t: 'Glaze and portion teriyaki bowls', l: 'hands', m: 8, end: true, gear: ['containers'], how: ['Brush the chicken with the rest of the sauce.', 'Divide between {portions} containers: half chicken and vegetables, a quarter rice (about {rice*3:g} cooked rice in total).', 'Cool with the lids off for 20 minutes, then close and refrigerate.'] },
     ],
-    subs: [['chicken thighs', 'turkey', 'turkey'], ['broccoli', 'green beans', 'greenbeans'], ['jasmine rice', 'pasta', 'pasta']],
+    subs: [['chicken breast', 'turkey', 'turkey'], ['broccoli', 'green beans', 'greenbeans'], ['jasmine rice', 'pasta', 'pasta']],
     prod: 1.5, plate: 'In each container: half chicken and crispy vegetables, a quarter rice (about 140 g cooked).',
   },
   burritos: {
     name: 'Freezer chicken & cheese burritos', short: 'Chicken burritos', slot: 'Lunch', e: '🌯', serves: 4, fridge: 3, freezer: 3,
     foods: { chicken: 1, rice: 1, cheese: 1, corn: 1 }, sauces: ['Mild salsa'],
-    ing: [['tortillas', 4], ['thighs', 570], ['rice', 140], ['cheddar', 110], ['salsa', 190], ['taco', 2], ['corn', 150], ['oil', 1]],
+    ing: [['tortillas', 4], ['chickenbreast', 570], ['rice', 140], ['cheddar', 110], ['salsa', 190], ['taco', 2], ['corn', 150], ['oil', 1]],
     why: ['A take-anywhere version of your favorite chicken burrito bowl', 'Freezes well, so Thursday–Sunday lunches stay safe', 'Mild salsa matches your spice level'],
     steps: ['Season chicken with taco seasoning and roast at 220°C for 20–22 minutes.', 'Shred chicken and mix with rice, corn and salsa.', 'Fill each tortilla with filling and cheese, roll tightly, wrap in foil, freeze flat.'],
     reheat: 'From frozen: remove foil, wrap in a damp paper towel, microwave 2 minutes, flip, then 1–2 minutes more until 74°C in the center.', thaw: 'Optional: move to the fridge the night before for a 90-second reheat.',
@@ -128,15 +128,15 @@ const MEALS: Record<string, RecipeInput> = {
       RICE_TASK,
       TACO_PREP,
       TACO_ROAST,
-      { t: 'Fill and wrap the burritos', l: 'hands', m: 15, end: true, gear: ['mixing bowl', 'foil'], how: ['In a large bowl, mix {thighs*0.75:g} of the shredded chicken with {rice*3:g} cooked rice, {corn} (thawed) and {salsa}.', 'Warm {tortillas} in the microwave for 20 seconds so they fold without cracking.', 'Divide the filling between them, top each with some of {cheddar}, fold in the sides and roll up tightly.', 'Wrap each in foil and freeze flat. Keep tomorrow’s burrito in the fridge.'] },
+      { t: 'Fill and wrap the burritos', l: 'hands', m: 15, end: true, gear: ['mixing bowl', 'foil'], how: ['In a large bowl, mix {chickenbreast*0.75:g} of the shredded chicken with {rice*3:g} cooked rice, {corn} (thawed) and {salsa}.', 'Warm {tortillas} in the microwave for 20 seconds so they fold without cracking.', 'Divide the filling between them, top each with some of {cheddar}, fold in the sides and roll up tightly.', 'Wrap each in foil and freeze flat. Keep tomorrow’s burrito in the fridge.'] },
     ],
-    subs: [['chicken thighs', 'ground beef', 'beef'], ['corn', 'leave it out']],
+    subs: [['chicken breast', 'ground beef', 'beef'], ['corn', 'leave it out']],
     prod: 0.5, plate: 'One burrito is one portion. A fruit or corn side covers produce.',
   },
   bbqbowl: {
     name: 'BBQ chicken & cheesy rice bowls', short: 'BBQ chicken bowl', slot: 'Lunch', e: '🍗', serves: 3, fridge: 4, freezer: 3,
     foods: { chicken: 1, rice: 1, cheese: 1, corn: 1 }, sauces: ['BBQ'],
-    ing: [['thighs', 570], ['rice', 190], ['bbq', 120], ['cheddar', 85], ['corn', 150]],
+    ing: [['chickenbreast', 570], ['rice', 190], ['bbq', 120], ['cheddar', 85], ['corn', 150]],
     why: ['BBQ is one of your sauces, and you like smoky flavors', 'Chicken, rice and cheese: all rated Love'],
     steps: ['Roast chicken at 220°C for 22 minutes, then toss in BBQ sauce.', 'Stir cheese into hot rice. Portion with chicken and corn.'],
     reheat: 'Microwave 2–3 minutes until 74°C.', thaw: 'Move to the fridge the night before.',
@@ -194,7 +194,7 @@ const MEALS: Record<string, RecipeInput> = {
   quesadilla: {
     name: 'Cheesy chicken quesadillas', short: 'Chicken quesadillas', slot: 'Dinner', e: '🫓', serves: 2, fridge: 3, freezer: 3,
     foods: { chicken: 1, cheese: 1 }, sauces: ['Mild salsa'],
-    ing: [['thighs', 340], ['tortillas', 2], ['cheddar', 70], ['salsa', 65], ['taco', 1], ['oil', 1]],
+    ing: [['chickenbreast', 340], ['tortillas', 2], ['cheddar', 70], ['salsa', 65], ['taco', 1], ['oil', 1]],
     why: ['Reuses the taco chicken, so it doesn’t feel like leftovers', 'Cheesy and mild, two things you picked'],
     note: 'Cook-fresh night: 8 minutes in a pan or air fryer.',
     steps: ['Fill a tortilla with taco chicken and cheese, fold.', 'Cook in a dry pan 2–3 minutes per side, or air-fry 6 minutes at 190°C.'],
@@ -202,7 +202,7 @@ const MEALS: Record<string, RecipeInput> = {
     tasks: [
       TACO_PREP,
       TACO_ROAST,
-      { t: 'Bag taco chicken for quesadillas; freeze', l: 'hands', m: 3, end: true, gear: ['freezer bag'], how: ['Put {thighs*0.75:g} of the shredded chicken in a freezer bag, press it flat and freeze.', 'Keep {tortillas}, {cheddar} and {salsa} for the night you make them.'] },
+      { t: 'Bag taco chicken for quesadillas; freeze', l: 'hands', m: 3, end: true, gear: ['freezer bag'], how: ['Put {chickenbreast*0.75:g} of the shredded chicken in a freezer bag, press it flat and freeze.', 'Keep {tortillas}, {cheddar} and {salsa} for the night you make them.'] },
     ],
     prod: 0, plate: 'One large quesadilla, cut into 4, with salsa.',
   },
@@ -383,10 +383,10 @@ const MEALS: Record<string, RecipeInput> = {
   hmchicken: {
     name: 'Honey-mustard chicken & crispy potatoes', short: 'Honey-mustard chicken', slot: 'Lunch', e: '🍯', serves: 3, fridge: 4, freezer: 0,
     foods: { chicken: 1, potatoes: 1, carrots: 1 }, sauces: ['Honey mustard'],
-    ing: [['thighs', 570], ['potatoes', 680], ['carrots', 3], ['honeymustard', 80], ['oil', 2]],
+    ing: [['chickenbreast', 570], ['potatoes', 680], ['carrots', 3], ['honeymustard', 80], ['oil', 2]],
     why: ['Sheet-pan chicken with crispy potatoes', 'Sweet-savory honey mustard'],
     note: 'Not frozen: crispy potatoes go soft after freezing. Re-crisp them in the air fryer.',
-    steps: ['Cut potatoes into cubes and carrots into coins; toss with oil and salt.', 'Toss chicken with half the honey mustard.', 'Roast everything on 2 pans at 220°C for 28–30 minutes, until the potatoes are crisp and the chicken reaches 74°C. Brush with the rest of the sauce.'],
+    steps: ['Cut potatoes into cubes and carrots into coins; toss with oil and salt.', 'Toss chicken with half the honey mustard.', 'Roast the potatoes and carrots at 220°C for 12 minutes, then add the chicken on a second pan and roast both 16–18 minutes more, until the potatoes are crisp and the chicken reaches 74°C. Brush with the rest of the sauce.'],
     reheat: 'Air fryer 190°C for 6 minutes to re-crisp, or microwave 2 minutes until 74°C.',
     tasks: [{ t: 'Cut potatoes and carrots; sauce the chicken', l: 'hands', m: 12 }, { t: 'Roast honey-mustard chicken and potatoes', l: 'oven', m: 30, temp: 220, pans: 2 }, { t: 'Portion 3 honey-mustard containers', l: 'hands', m: 5, end: true }],
     subs: [['carrots', 'green beans', 'greenbeans']],
@@ -395,7 +395,7 @@ const MEALS: Record<string, RecipeInput> = {
   friedrice: {
     name: 'Chicken fried rice', short: 'Chicken fried rice', slot: 'Lunch', e: '🍳', serves: 4, fridge: 4, freezer: 2,
     foods: { chicken: 1, rice: 1, eggs: 'Scrambled', carrots: 'Finely chopped, cooked soft', corn: 1 },
-    ing: [['thighs', 450], ['rice', 190], ['eggs', 2], ['carrots', 2], ['corn', 75], ['soy', 3], ['oil', 2], ['garlic', 2]],
+    ing: [['chickenbreast', 450], ['rice', 190], ['eggs', 2], ['carrots', 2], ['corn', 75], ['soy', 3], ['oil', 2], ['garlic', 2]],
     why: ['Chicken and rice with a mild soy flavor', 'Carrots are chopped small and cooked soft'],
     steps: ['Cook the rice and spread it out to cool (day-old texture fries best).', 'Stir-fry diced chicken until cooked through, then the carrots, corn and garlic.', 'Push aside, scramble the eggs, then add the rice and soy sauce and fry 3 minutes.'],
     reheat: 'Microwave 2 minutes, stirring halfway, until 74°C.', thaw: 'Move to the fridge the night before.',
@@ -564,13 +564,13 @@ const MEALS: Record<string, RecipeInput> = {
   arrozconpollo: {
     name: 'Colombian arroz con pollo', short: 'Arroz con pollo', slot: 'Lunch', e: '🍛', serves: 4, fridge: 4, freezer: 2,
     foods: { chicken: 1, rice: 1, onions: 'Finely chopped, cooked soft', peppers: 'Finely chopped, cooked soft', carrots: 'Finely chopped, cooked soft' },
-    ing: [['thighs', 570], ['cumin', 1], ['paprika', 1], ['onion', 1], ['peppers', 1], ['carrots', 2], ['garlic', 2], ['oil', 1], ['rice', 280], ['chickenbroth', 480], ['peas', 150]],
+    ing: [['chickenbreast', 570], ['cumin', 1], ['paprika', 1], ['onion', 1], ['peppers', 1], ['carrots', 2], ['garlic', 2], ['oil', 1], ['rice', 280], ['chickenbroth', 480], ['peas', 150]],
     why: ['A Colombian Sunday favorite: chicken and rice cooked together in one pot', 'The vegetables are chopped small and cooked soft into the rice', 'Mild spices: cumin and paprika, no heat'],
-    steps: ['Season bite-size chicken with cumin, paprika and salt; brown it.', 'Soften chopped onion, pepper, carrot and garlic, then add rice and broth.', 'Cover and cook on low 18 minutes, stir in peas and rest 5 minutes.'],
+    steps: ['Season bite-size chicken with cumin, paprika and salt; brown it and set it aside.', 'Soften chopped onion, pepper, carrot and garlic, then add rice and broth.', 'Cover and cook on low 8 minutes, add the chicken back for 10 minutes more, then stir in peas and rest 5 minutes.'],
     reheat: 'Sprinkle with a teaspoon of water and microwave 2–3 minutes, stirring halfway, until steaming (74°C).', thaw: 'Move to the fridge the night before.',
     tasks: [
-      { t: 'Chop vegetables and season chicken for arroz con pollo', l: 'hands', m: 12, how: ['Cut {thighs} into bite-size pieces and toss with {cumin}, {paprika} and a pinch of salt.', 'Finely chop {onion}, {peppers}, {carrots} and {garlic}.'] },
-      { t: 'Cook arroz con pollo', l: 'stove', m: 35, gear: ['large deep pan with a lid', 'sieve'], how: ['Brown the chicken in {oil} over medium-high heat, 5 minutes. Add the chopped vegetables and cook 5 minutes, until soft.', 'Stir in {rice} (rinsed) and {chickenbroth}, and bring to a boil.', 'Cover, turn the heat to low and cook 18 minutes, until the rice is tender and the chicken reaches 74°C.', 'Scatter {peas} on top, cover again and rest 5 minutes off the heat, then fluff.'] },
+      { t: 'Chop vegetables and season chicken for arroz con pollo', l: 'hands', m: 12, how: ['Cut {chickenbreast} into bite-size pieces and toss with {cumin}, {paprika} and a pinch of salt.', 'Finely chop {onion}, {peppers}, {carrots} and {garlic}.'] },
+      { t: 'Cook arroz con pollo', l: 'stove', m: 35, gear: ['large deep pan with a lid', 'sieve'], how: ['Brown the chicken in {oil} over medium-high heat, 4 minutes, then lift it onto a plate. Cook the chopped vegetables in the same pan 5 minutes, until soft.', 'Stir in {rice} (rinsed) and {chickenbroth}, and bring to a boil.', 'Cover, turn the heat to low and cook 8 minutes. Lay the chicken on top, cover again and cook 10 minutes more, until the rice is tender and the chicken reaches 74°C.', 'Scatter {peas} on top, cover again and rest 5 minutes off the heat, then fluff.'] },
       { t: 'Portion arroz con pollo', l: 'hands', m: 5, end: true, gear: ['containers'], how: ['Spread on a tray to cool quickly, then divide between {portions} containers and refrigerate within an hour.'] },
     ],
     prod: 1.25, plate: 'About 380 g. Avocado slices on the side are traditional.',
@@ -796,14 +796,14 @@ const MEALS: Record<string, RecipeInput> = {
   sudado: {
     name: 'Colombian chicken sudado (tomato-braised chicken & potatoes)', short: 'Chicken sudado', slot: 'Lunch', e: '🍗', serves: 4, fridge: 4, freezer: 3,
     foods: { chicken: 1, potatoes: 1, rice: 1, tomatoes: 'Finely chopped, cooked soft', onions: 'Finely chopped, cooked soft' },
-    ing: [['tomatoes', 3], ['onion', 1], ['garlic', 2], ['potatoes', 450], ['oil', 1], ['cumin', 1], ['paprika', 1], ['thighs', 680], ['rice', 190]],
+    ing: [['tomatoes', 3], ['onion', 1], ['garlic', 2], ['potatoes', 450], ['oil', 1], ['cumin', 1], ['paprika', 1], ['chickenbreast', 680], ['rice', 190]],
     why: ['Colombian home cooking: chicken slowly braised in hogao', 'Tomato and onion cook down into a smooth sauce', 'Served with rice, the Colombian way'],
-    steps: ['Cook chopped tomato, onion and garlic with cumin and paprika until soft.', 'Add chicken, potato chunks and a little water; cover and simmer 30 minutes.', 'Serve with rice.'],
+    steps: ['Cook chopped tomato, onion and garlic with cumin and paprika until soft.', 'Add potato chunks and a little water; cover and simmer 15 minutes, then add the chicken for 12–15 minutes more.', 'Serve with rice.'],
     reheat: 'Microwave 2–3 minutes, stirring halfway, until steaming (74°C).', thaw: 'Move to the fridge the night before.',
     tasks: [
       RICE_TASK,
       { t: 'Chop hogao and potatoes for sudado', l: 'hands', m: 10, how: ['Finely chop {tomatoes}, {onion} and {garlic}.', 'Peel {potatoes} and cut into large chunks.'] },
-      { t: 'Braise chicken sudado', l: 'stove', m: 40, gear: ['large deep pan with a lid'], how: ['Cook the tomato, onion and garlic in {oil} with {cumin} and {paprika} over medium heat for 8 minutes, until soft.', 'Add {thighs} and the potatoes with 250 ml water and a pinch of salt. Cover and simmer 30 minutes, until the potatoes are tender and the chicken reaches 74°C.'] },
+      { t: 'Braise chicken sudado', l: 'stove', m: 40, gear: ['large deep pan with a lid'], how: ['Cook the tomato, onion and garlic in {oil} with {cumin} and {paprika} over medium heat for 8 minutes, until soft.', 'Add the potatoes with 250 ml water and a pinch of salt, cover and simmer 15 minutes.', 'Cut {chickenbreast} into large chunks, tuck them into the sauce, cover and simmer 12–15 minutes more, until the potatoes are tender and the chicken reaches 74°C.'] },
       { t: 'Portion chicken sudado', l: 'hands', m: 5, end: true, gear: ['containers'], how: ['Divide the chicken, potatoes and sauce between {portions} containers with rice (about {rice*3:g} cooked in total). Cool, then refrigerate or freeze.'] },
     ],
     prod: 1, plate: 'Chicken and potatoes in sauce, with about 140 g cooked rice.',
@@ -998,7 +998,7 @@ const MEALS: Record<string, RecipeInput> = {
   nachos: {
     name: 'Loaded chicken nachos with fresh guacamole', short: 'Chicken nachos', slot: 'Dinner', e: '🌮', serves: 4, fridge: 4, freezer: 0,
     foods: { chicken: 1, cheese: 1, corn: 1, avocado: 'Mashed', tomatoes: 'Raw' }, sauces: ['Mild salsa'],
-    ing: [['thighs', 450], ['taco', 2], ['oil', 1], ['corn', 150], ['tortillachips', 150], ['cheddar', 85], ['salsa', 130], ['sourcream', 90], ['avocados', 1.5], ['tomatoes', 1], ['limes', 1]],
+    ing: [['chickenbreast', 450], ['taco', 2], ['oil', 1], ['corn', 150], ['tortillachips', 150], ['cheddar', 85], ['salsa', 130], ['sourcream', 90], ['avocados', 1.5], ['tomatoes', 1], ['limes', 1]],
     why: ['Loaded nachos with taco chicken, melted cheese and guacamole', 'The chicken is roasted on prep day; the nachos bake in 8 minutes', 'Mild: taco spices, no chili heat'],
     note: 'Cook-fresh night: 8 minutes in the oven, plus 3 minutes for the guacamole.',
     steps: ['Roast taco-seasoned chicken and shred it on prep day.', 'On the night, bake chips with chicken, corn and cheese for 8 minutes.', 'Top with guacamole, salsa and sour cream.'],
@@ -1006,7 +1006,7 @@ const MEALS: Record<string, RecipeInput> = {
     tasks: [
       TACO_PREP,
       TACO_ROAST,
-      { t: 'Box the nachos toppings', l: 'hands', m: 4, end: true, gear: ['containers'], how: ['Box the shredded chicken (about {thighs*0.75:g}) with {corn} for the fridge.', 'Keep {tortillachips}, {cheddar}, {salsa} and {sourcream} for the nights you make them, and {avocados}, {tomatoes} and {limes} for fresh guacamole.'] },
+      { t: 'Box the nachos toppings', l: 'hands', m: 4, end: true, gear: ['containers'], how: ['Box the shredded chicken (about {chickenbreast*0.75:g}) with {corn} for the fridge.', 'Keep {tortillachips}, {cheddar}, {salsa} and {sourcream} for the nights you make them, and {avocados}, {tomatoes} and {limes} for fresh guacamole.'] },
     ],
     prod: 1, plate: 'A quarter of the tray, with guacamole, salsa and sour cream.',
   },
@@ -1014,14 +1014,14 @@ const MEALS: Record<string, RecipeInput> = {
   sancocho: {
     name: 'Sancocho de pollo', short: 'Sancocho', slot: 'Lunch', e: '🍲', serves: 6, fridge: 4, freezer: 3,
     foods: { chicken: 1, potatoes: 1, corn: 1, rice: 1, onions: 'Finely chopped, cooked soft', avocado: 'Raw' },
-    ing: [['potatoes', 600], ['greenplantains', 2], ['scallions', 4], ['garlic', 3], ['thighs', 900], ['cumin', 1], ['chickenbroth', 1900], ['yuca', 450], ['corn', 300], ['rice', 190], ['avocados', 2], ['limes', 1]],
+    ing: [['potatoes', 600], ['greenplantains', 2], ['scallions', 4], ['garlic', 3], ['chickenbreast', 900], ['cumin', 1], ['chickenbroth', 1900], ['yuca', 450], ['corn', 300], ['rice', 190], ['avocados', 2], ['limes', 1]],
     why: ['Colombia’s Sunday soup: chicken, yuca, green plantain, potato and corn', 'Served the proper way, with rice, avocado and lime', 'Freezes well for the end of the week'],
-    steps: ['Simmer chicken with green onion, garlic and cumin in broth.', 'Add green plantain and yuca, then potatoes and corn, until everything is tender.', 'Serve with rice, avocado and lime.'],
+    steps: ['Simmer green plantain and yuca with green onion, garlic and cumin in broth.', 'Add potatoes, corn and whole chicken breasts, and simmer until everything is tender.', 'Serve with rice, avocado and lime.'],
     reheat: 'Microwave 3–4 minutes, stirring halfway, until steaming (74°C). Serve with rice, avocado and a squeeze of lime.', thaw: 'Move to the fridge the night before.',
     tasks: [
       RICE_TASK,
       { t: 'Chop vegetables for sancocho', l: 'hands', m: 12, how: ['Peel and cut {potatoes} into chunks.', 'Peel {greenplantains} (score the skin lengthwise and pull it off) and cut into 4 cm pieces.', 'Chop {scallions} and {garlic}.'] },
-      { t: 'Simmer the sancocho', l: 'stove', m: 50, gear: ['large pot'], how: ['Put {thighs}, the green onion, garlic, {cumin} and {chickenbroth} in the pot and simmer 15 minutes.', 'Add the green plantain and {yuca} (no need to thaw) and simmer 15 minutes.', 'Add the potatoes and {corn}, and simmer 20 minutes more, until everything is tender and the chicken reaches 74°C. Season with salt and pull the chicken into large pieces.'] },
+      { t: 'Simmer the sancocho', l: 'stove', m: 50, gear: ['large pot'], how: ['Put the green onion, garlic, {cumin} and {chickenbroth} in the pot with the green plantain and {yuca} (no need to thaw), and simmer 20 minutes.', 'Add the potatoes, {corn} and {chickenbreast} (whole), and simmer 20 minutes more, until everything is tender and the chicken reaches 74°C.', 'Lift out the chicken, pull it into large pieces and return it. Season with salt.'] },
       { t: 'Portion sancocho', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Cool the soup in shallow containers, then divide into {portions} portions with rice (about {rice*3:g} cooked in total) on the side.', 'Keep {avocados} and {limes} to serve.'] },
     ],
     prod: 1, plate: 'One big bowl, with a small bowl of rice and some avocado.',

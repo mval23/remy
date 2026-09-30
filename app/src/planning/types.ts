@@ -35,6 +35,8 @@ export interface Ingredient {
   f?: string;
   /** Grams of protein, carbs and fat per 100 g or 100 ml (for g/ml units), otherwise per one unit. Rough values. */
   m?: [number, number, number];
+  /** Kept so older saved recipes still read; library recipes don't use it and the AI isn't offered it. */
+  retired?: boolean;
 }
 
 export interface Task {
@@ -52,7 +54,7 @@ export interface Task {
   end?: boolean;
   /**
    * Detailed instructions, one step per line. Amounts come from the recipe’s ingredients, scaled to the week:
-   * {k} = amount and name ("570 g boneless chicken thighs"), {k:q} = amount only ("570 g"),
+   * {k} = amount and name ("570 g boneless chicken breasts"), {k:q} = amount only ("570 g"),
    * {k*0.5} or {k*0.5:q} = a share of it, {k*1.6:ml} = the amount in another unit (e.g. water for rice).
    */
   how?: string[];

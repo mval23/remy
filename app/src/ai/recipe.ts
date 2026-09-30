@@ -34,7 +34,7 @@ const SLOT_HINT: Record<Slot, string> = {
 
 /** The JSON shape the model must answer in. */
 export function recipeSchema() {
-  const ingKeys = Object.keys(ING);
+  const ingKeys = Object.keys(ING).filter((k) => !ING[k].retired);
   return {
     type: 'object',
     properties: {
@@ -136,6 +136,7 @@ export function profileForAi(A: Answers): string {
 
 export function ingredientList(): string {
   return Object.entries(ING)
+    .filter(([, g]) => !g.retired)
     .map(([k, g]) => `${k}: ${g.n}${g.u ? ` (${g.u})` : ' (count)'}`)
     .join('\n');
 }

@@ -64,10 +64,10 @@ describe('detailed instructions', () => {
   });
 
   it('scales amounts with the batches made this week', () => {
-    const one = partsText(renderLine('Toss {thighs} with {taco} and {oil}.', [{ r: R.burritos, batches: 1 }]));
-    const two = partsText(renderLine('Toss {thighs} with {taco} and {oil}.', [{ r: R.burritos, batches: 2 }]));
-    expect(one).toBe('Toss 570 g boneless chicken thighs with 2 tbsp taco seasoning and 1 tbsp olive oil.');
-    expect(two).toBe('Toss 1.1 kg boneless chicken thighs with 4 tbsp taco seasoning and 2 tbsp olive oil.');
+    const one = partsText(renderLine('Toss {chickenbreast} with {taco} and {oil}.', [{ r: R.burritos, batches: 1 }]));
+    const two = partsText(renderLine('Toss {chickenbreast} with {taco} and {oil}.', [{ r: R.burritos, batches: 2 }]));
+    expect(one).toBe('Toss 570 g boneless chicken breasts with 2 tbsp taco seasoning and 1 tbsp olive oil.');
+    expect(two).toBe('Toss 1.1 kg boneless chicken breasts with 4 tbsp taco seasoning and 2 tbsp olive oil.');
   });
 
   it('supports shares, other units and portions', () => {

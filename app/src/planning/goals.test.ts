@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { activeAnswers, fillWithSamples } from '../interview/engine';
 import { emptyInterview, type Answers } from '../interview/types';
 import { R } from './data/recipes';
+import { ING } from './data/ingredients';
 import { fitToGoals, goalsOf, SCALE_MAX, SCALE_MIN, weekAverage } from './goals';
 import { emptyGroceryEdits, groceryList } from './grocery';
 import { buysMonthly, forecastWeeks, monthList, MONTH_WEEKS } from './month';
@@ -70,13 +71,14 @@ describe('daily goals', () => {
   });
 
   it('cooks and shops for the smaller portions', () => {
-    const fit = fitToGoals(week(), ctx, { kcal: 1500, pro: null });
+    const fit = fitToGoals(week(), ctx, { kcal: 1600, pro: null });
     expect(fit.scale).toBeLessThan(1);
     // The same meals at full portions, for comparison.
     const full = fit.plan.map((d) => ({ ...d, meals: Object.fromEntries(Object.entries(d.meals).map(([k, m]) => [k, m && { ...m, x: undefined }])) }));
     const q = (p: WeekPlan, k: string) => groceryList(p, SAMPLE, emptyGroceryEdits()).find((x) => x.k === k)!.q!;
     const dinner = [...recipes(fit.plan)].find((id) => R[id].slot === 'Dinner')!;
-    const k = R[dinner].ing[0][0];
+    // The dinner's biggest ingredient weighed in grams, so rounding to whole units can't hide the change.
+    const k = R[dinner].ing.filter(([x]) => ING[x].u === 'g').sort((x, y) => y[1] - x[1])[0][0];
     expect(q(fit.plan, k)).toBeLessThan(q(full, k));
     expect(q(fit.plan, k)).toBeGreaterThanOrEqual(q(full, k) * SCALE_MIN - 1);
   });

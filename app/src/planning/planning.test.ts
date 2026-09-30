@@ -296,13 +296,13 @@ describe('grocery list', () => {
     const rice = items.find((x) => x.k === 'rice');
     expect(rice?.from).toEqual(expect.arrayContaining(['Calentado', 'Chicken burritos']));
     expect(rice?.home).toBe(true);
-    expect(items.find((x) => x.k === 'thighs')?.home).toBe(false);
+    expect(items.find((x) => x.k === 'chickenbreast')?.home).toBe(false);
   });
 
   it('applies edits: checked, deleted, custom items', () => {
-    const edits = { ...emptyGroceryEdits(), deleted: { thighs: true }, custom: [{ id: 'c1', n: 'Paper towels', sec: 'Other', q: '1 roll' }] };
+    const edits = { ...emptyGroceryEdits(), deleted: { chickenbreast: true }, custom: [{ id: 'c1', n: 'Paper towels', sec: 'Other', q: '1 roll' }] };
     const items = groceryList(planFor(SAMPLE), SAMPLE, edits);
-    expect(items.some((x) => x.k === 'thighs')).toBe(false);
+    expect(items.some((x) => x.k === 'chickenbreast')).toBe(false);
     expect(items.find((x) => x.k === 'c1')).toMatchObject({ custom: true, qtyText: '1 roll', cost: null });
   });
 
