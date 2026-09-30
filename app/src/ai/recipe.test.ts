@@ -9,7 +9,7 @@ import { macrosOf } from '../planning/macros';
 import { buildPlan, replaceMeal } from '../planning/planner';
 import { context } from '../planning/rules';
 import { schedule } from '../planning/schedule';
-import { profileForAi, recipePrompt, recipeSchema, safeOnDay, toRecipe } from './recipe';
+import { ingredientList, profileForAi, recipePrompt, recipeSchema, safeOnDay, toRecipe } from './recipe';
 
 const SAMPLE: Answers = activeAnswers(fillWithSamples(emptyInterview()));
 const with_ = (patch: Answers): Answers => ({ ...SAMPLE, ...patch });
@@ -22,7 +22,7 @@ const good = (patch: Record<string, unknown> = {}) => ({
   why: ['Chicken and rice, both rated Love', 'Honey mustard is one of your sauces'],
   serves: 4,
   ingredients: [
-    { key: 'thighs', qty: 1.5 },
+    { key: 'chickenbreast', qty: 1.5 },
     { key: 'rice', qty: 1 },
     { key: 'broccoli', qty: 2 },
     { key: 'honeymustard', qty: 0.5 },
@@ -58,7 +58,8 @@ describe('what is sent to the AI', () => {
 
   it('lists only ingredients Remy knows, and the schema allows only those keys', () => {
     const schema = recipeSchema() as { properties: { ingredients: { items: { properties: { key: { enum: string[] } } } } } };
-    expect(schema.properties.ingredients.items.properties.key.enum.sort()).toEqual(Object.keys(ING).sort());
+    expect(schema.properties.ingredients.items.properties.key.enum.sort()).toEqual(Object.keys(ING).filter((k) => !ING[k].retired).sort());
+    expect(ingredientList()).not.toContain('thighs');
     expect(profileForAi(SAMPLE)).toContain('Never (avoid completely)');
   });
 
@@ -79,7 +80,7 @@ describe('checking AI recipes', () => {
   });
 
   it('rejects ingredients Remy doesn’t know, since they can’t be allergy-checked', () => {
-    const r = toRecipe(good({ ingredients: [{ key: 'thighs', qty: 1 }, { key: 'mystery_sauce', qty: 1 }] }), SAMPLE, 'Lunch', 'ai_x');
+    const r = toRecipe(good({ ingredients: [{ key: 'chickenbreast', qty: 1 }, { key: 'mystery_sauce', qty: 1 }] }), SAMPLE, 'Lunch', 'ai_x');
     expect(r).toMatchObject({ ok: false, reason: expect.stringContaining('safety-checked') });
   });
 
@@ -87,12 +88,12 @@ describe('checking AI recipes', () => {
     expect(toRecipe(good({ ingredients: [{ key: 'shrimp', qty: 1 }, { key: 'rice', qty: 1 }] }), SAMPLE, 'Dinner', 'ai_x').ok).toBe(false);
     expect(toRecipe(good({ ingredients: [{ key: 'beef', qty: 1 }, { key: 'oyster', qty: 0.25 }] }), SAMPLE, 'Dinner', 'ai_x').ok).toBe(false);
     const dairyFree = with_({ allergies: ['Milk / dairy'] });
-    expect(toRecipe(good({ ingredients: [{ key: 'thighs', qty: 1 }, { key: 'cheddar', qty: 1 }] }), dairyFree, 'Dinner', 'ai_x').ok).toBe(false);
+    expect(toRecipe(good({ ingredients: [{ key: 'chickenbreast', qty: 1 }, { key: 'cheddar', qty: 1 }] }), dairyFree, 'Dinner', 'ai_x').ok).toBe(false);
   });
 
   it('works out foods from the ingredients, so a disliked food can’t be left unmentioned', () => {
     // Zucchini is rated Dislike in the sample; the model doesn't mention it in "preparations".
-    const r = toRecipe(good({ ingredients: [{ key: 'thighs', qty: 1 }, { key: 'zucchini', qty: 2 }], preparations: [] }), SAMPLE, 'Dinner', 'ai_x');
+    const r = toRecipe(good({ ingredients: [{ key: 'chickenbreast', qty: 1 }, { key: 'zucchini', qty: 2 }], preparations: [] }), SAMPLE, 'Dinner', 'ai_x');
     expect(r.ok).toBe(false);
   });
 

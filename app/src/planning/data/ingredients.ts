@@ -8,7 +8,8 @@ export const SECTION_ORDER = ['Produce', 'Meat', 'Dairy & eggs', 'Bakery & grain
  * Prices are rough US supermarket estimates (USD): `p` per unit when sold loose, or `pp` per pack of `pk` units.
  */
 export const ING: Record<string, Ingredient> = {
-  thighs: { n: 'Boneless chicken thighs', u: 'g', p: 0.0077, sec: 'Meat', alg: ['meat'], f: 'chicken', m: [19.7, 0, 5.9] },
+  // The owner doesn't like thighs: kept only so older saved and AI recipes still read, never offered to the AI.
+  thighs: { n: 'Boneless chicken thighs', u: 'g', p: 0.0077, sec: 'Meat', alg: ['meat'], f: 'chicken', m: [19.7, 0, 5.9], retired: true },
   tenders: { n: 'Chicken breast tenders', u: 'g', p: 0.011, sec: 'Meat', alg: ['meat'], f: 'chicken', m: [22.5, 0, 2.6] },
   beef: { n: 'Lean ground beef', u: 'g', p: 0.0121, sec: 'Meat', alg: ['meat', 'beef'], f: 'beef', m: [20, 0, 10] },
   turkey: { n: 'Ground turkey', u: 'g', p: 0.011, sec: 'Meat', alg: ['meat'], f: 'turkey', m: [19, 0, 8] },
