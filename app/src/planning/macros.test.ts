@@ -24,7 +24,9 @@ describe('calories and macros', () => {
   it('keeps every meal and side in a believable range', () => {
     for (const id of MEAL_IDS) {
       const r = R[id];
-      const [lo, hi] = r.slot === 'Lunch' || r.slot === 'Dinner' ? [250, 950] : r.slot === 'Breakfast' ? [150, 650] : [80, 450];
+      // A snack that is just fruit (every ingredient from Produce) can be as light as a cup of strawberries.
+      const fruitOnly = r.ing.every(([k]) => ING[k].sec === 'Produce');
+      const [lo, hi] = r.slot === 'Lunch' || r.slot === 'Dinner' ? [250, 950] : r.slot === 'Breakfast' ? [150, 650] : [fruitOnly ? 40 : 80, 450];
       expect(r.kcal, id).toBeGreaterThanOrEqual(lo);
       expect(r.kcal, id).toBeLessThanOrEqual(hi);
     }
