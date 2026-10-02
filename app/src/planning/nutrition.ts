@@ -1,6 +1,6 @@
 import type { Answers } from '../interview/types';
 import { R, SIDE_IDS } from './data/recipes';
-import { check, score, storage, type PlanContext } from './rules';
+import { check, kosherClash, score, storage, type PlanContext } from './rules';
 import type { Meal, PlanDay, Recipe, Slot } from './types';
 import { SLOTS } from './types';
 
@@ -101,10 +101,10 @@ export function kcalRange(n: number): string {
   return `${f(n * 0.9)}–${f(n * 1.1)}`;
 }
 
-/** Sides that fit a slot on a given day: allowed foods only, safe for that day, best matches first. */
-export function sideOptions(ctx: PlanContext, dayIndex: number, slot: Slot, kind?: 'protein' | 'produce'): Recipe[] {
+/** Sides that fit a slot on a given day: allowed foods only, safe for that day, best matches first. `main` = the meal's recipe, for Kosher (no dairy side with meat). */
+export function sideOptions(ctx: PlanContext, dayIndex: number, slot: Slot, kind?: 'protein' | 'produce', main?: string | null): Recipe[] {
   return SIDE_IDS.map((id) => R[id])
-    .filter((s) => s.for?.includes(slot) && (!kind || s.kind === kind) && check(s, ctx.A).ok && storage(s, dayIndex + 1).k !== 'unsafe')
+    .filter((s) => s.for?.includes(slot) && (!kind || s.kind === kind) && check(s, ctx.A).ok && storage(s, dayIndex + 1).k !== 'unsafe' && !kosherClash(ctx.A, main ? R[main] : undefined, s))
     .map((s) => ({ s, sc: score(s, ctx) + (slot === 'Dinner' && s.veg ? 1 : 0) + (s.best?.includes(slot) ? 2 : 0) }))
     .sort((a, b) => b.sc - a.sc)
     .map((x) => x.s);
@@ -124,7 +124,7 @@ export function balanceDay(day: PlanDay, dayIndex: number, ctx: PlanContext): { 
     if (!m?.r || m.side) continue;
     const target = proteinTarget(slot, ctx.hungry);
     if (target && (mealNutrition(m)?.pro ?? 0) < target) {
-      const o = sideOptions(ctx, dayIndex, slot, 'protein')[0];
+      const o = sideOptions(ctx, dayIndex, slot, 'protein', m.r)[0];
       if (o) {
         m.side = o.id;
         added++;
@@ -136,7 +136,7 @@ export function balanceDay(day: PlanDay, dayIndex: number, ctx: PlanContext): { 
     const m = meals[slot];
     if (!m?.r || m.side) continue;
     const used = Object.values(meals).map((x) => x?.side).filter(Boolean);
-    const o = sideOptions(ctx, dayIndex, slot, 'produce').find((x) => !used.includes(x.id));
+    const o = sideOptions(ctx, dayIndex, slot, 'produce', m.r).find((x) => !used.includes(x.id));
     if (o) {
       m.side = o.id;
       added++;

@@ -34,6 +34,15 @@ export interface Ingredient {
   sec: string;
   /** Allergen and diet tags, e.g. 'shellfish', 'dairy', 'meat'. */
   alg?: string[];
+  /**
+   * Allergens it often carries by cross-contact or depending on the brand (sesame on buns, gluten in oats).
+   * Blocked only for people who chose the stricter allergy rule; Remy can't see factory lines.
+   */
+  may?: string[];
+  /** Hidden components, so typed-in allergies match them ("egg", "mustard" in mayonnaise). */
+  parts?: string[];
+  /** What to check on the package. `for` = the tags that make it matter (allergy, diet or 'halal' / 'kosher'); none = everyone. */
+  label?: { note: string; for?: string[] }[];
   /** Pantry answer that means the user already has it. */
   pan?: string;
   /** Food key from the interview ratings. */

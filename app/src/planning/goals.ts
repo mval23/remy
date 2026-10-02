@@ -147,7 +147,7 @@ function addProtein(plan: WeekPlan, ctx: PlanContext, goal: number | null): numb
       if (dayNutrition(day, ctx.hungry).pro >= goal) return;
       const m = day.meals[slot];
       if (!m?.r || m.ok || m.side) continue;
-      const side = sideOptions(ctx, i, slot, 'protein').sort((a, b) => b.pro / b.kcal - a.pro / a.kcal)[0];
+      const side = sideOptions(ctx, i, slot, 'protein', m.r).sort((a, b) => b.pro / b.kcal - a.pro / a.kcal)[0];
       if (!side) continue;
       m.side = side.id;
       added++;

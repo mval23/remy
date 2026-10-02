@@ -212,6 +212,7 @@ function ListView({
               {x.from.join(', ')}
               {x.packs && ` · ${x.packs}`}
             </span>
+            {x.checks.length > 0 && <span className="from label-check">Check the label: {x.checks.join('; ')}</span>}
           </button>
           {cost.show && <span className="price">{x.cost !== null ? `$${x.cost.toFixed(2)}` : ''}</span>}
         </div>
