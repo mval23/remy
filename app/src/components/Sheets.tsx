@@ -2,6 +2,7 @@ import { activeAnswers, firstOpen, formatAnswer, isAnswered, sectionStats, seque
 import { allRatings, listText } from '../interview/helpers';
 import { FOODS, LEVELS } from '../interview/questions';
 import { useRemy } from '../store';
+import { EstimateSheet } from './EstimateSheet';
 import { Icon } from './Icon';
 import { PlanSheets, SheetFrame } from './PlanSheets';
 
@@ -185,6 +186,7 @@ export function Sheets() {
   if (ui.sheet === 'confirmForget') return <ConfirmForget />;
   if (ui.sheet === 'confirmImport') return <ConfirmImport />;
   if (ui.sheet === 'food') return <FoodLevel />;
+  if (ui.sheet === 'estimate') return <EstimateSheet />;
   return <PlanSheets />;
 }
 

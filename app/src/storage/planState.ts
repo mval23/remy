@@ -89,7 +89,7 @@ export const emptyPlanState = (): PlanState => ({
  * and convert AI recipes saved in US units before Remy went metric.
  */
 export function normalizePlanState(p: Partial<PlanState> | null | undefined): PlanState {
-  const s: PlanState = { ...emptyPlanState(), ...p };
+  const s: PlanState = { ...emptyPlanState(), ...p, nutrition: { ...defaultNutrition(), ...p?.nutrition } };
   if (s.units === 'metric') return s;
   return { ...s, units: 'metric', aiRecipes: Object.fromEntries(Object.entries(s.aiRecipes).map(([id, r]) => [id, migrateRecipe(r)])) };
 }

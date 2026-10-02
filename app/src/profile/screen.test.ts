@@ -40,7 +40,7 @@ describe('health and age screen', () => {
   it('leaves the sample profile exactly as it was', () => {
     expect(riskFlags(SAMPLE)).toEqual([]);
     expect(noWeightLoss(SAMPLE)).toBe(false);
-    expect(goalsOf({ kcal: '1700', pro: '110' }, SAMPLE)).toEqual({ kcal: 1700, pro: 110 });
+    expect(goalsOf({ kcal: '1700', pro: '110' }, SAMPLE)).toEqual({ kcal: 1700, pro: 110, floor: 1200 });
   });
 
   it('knows which recipes carry a food-safety risk, and which cook it away', () => {
@@ -70,7 +70,7 @@ describe('health and age screen', () => {
 
   it('turns off goals, fitting and weight tracking in refer mode', () => {
     const A = sampleWith({ health: ['Pregnancy'], progress: 'Add an optional weekly weight', pace: 'Detailed', calories: '1300' });
-    expect(goalsOf({ kcal: '1300', pro: '100' }, A)).toEqual({ kcal: null, pro: null });
+    expect(goalsOf({ kcal: '1300', pro: '100' }, A)).toMatchObject({ kcal: null, pro: null });
     expect(weightOn(A)).toBe(false);
     expect(A.pace).toBeUndefined();
     expect(A.calories).toBeUndefined();

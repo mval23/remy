@@ -147,6 +147,20 @@ export function Summary() {
                 <span>{str(A.calories)} kcal is below what Remy plans on its own (about 1,200 a day). Keep it only if a doctor or dietitian set it for you.</span>
               </div>
             )}
+            {s.confirmed && (A.pace === 'Some structure' || A.pace === 'Detailed') && !noWeightLoss(A) && planState.nutrition.from !== 'estimate' && (
+              <div className="row gap-top">
+                <button
+                  type="button"
+                  className="linkbtn"
+                  onClick={() => {
+                    actions.go('nutrition');
+                    actions.openSheet('estimate');
+                  }}
+                >
+                  <Icon name="heart" size={15} /> Want a starting estimate for calories and protein?
+                </button>
+              </div>
+            )}
           </section>
 
           <section className="sec">

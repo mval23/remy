@@ -1,4 +1,5 @@
 import { emptyInterview, type InterviewState } from '../interview/types';
+import { emptyBody, type BodyProfile } from '../planning/energy';
 import { normalizePlanState, type PlanState } from './planState';
 
 /**
@@ -7,13 +8,15 @@ import { normalizePlanState, type PlanState } from './planState';
  */
 export interface Backup {
   app: 'remy';
-  version: 1;
+  /** 2 added the device-only health details; version 1 files still restore. */
+  version: 2;
   exportedAt: number;
   interview: InterviewState;
   plan: PlanState;
+  health: BodyProfile;
 }
 
-export const makeBackup = (interview: InterviewState, plan: PlanState, at = Date.now()): Backup => ({ app: 'remy', version: 1, exportedAt: at, interview, plan });
+export const makeBackup = (interview: InterviewState, plan: PlanState, health: BodyProfile = emptyBody(), at = Date.now()): Backup => ({ app: 'remy', version: 2, exportedAt: at, interview, plan, health });
 
 export function backupFileName(at = Date.now()): string {
   const d = new Date(at);
@@ -32,17 +35,18 @@ export function readBackup(text: string): { ok: true; backup: Backup } | { ok: f
     return { ok: false, reason: 'That file isn’t a Remy backup. Choose the .json file Remy saved.' };
   }
   if (!isObject(data) || data.app !== 'remy') return { ok: false, reason: 'That file isn’t a Remy backup. Choose the .json file Remy saved.' };
-  if (typeof data.version !== 'number' || data.version > 1) return { ok: false, reason: 'This backup comes from a newer version of Remy. Reload the app to update it, then try again.' };
+  if (typeof data.version !== 'number' || data.version > 2) return { ok: false, reason: 'This backup comes from a newer version of Remy. Reload the app to update it, then try again.' };
   if (!isObject(data.interview) || !isObject(data.interview.answers)) return { ok: false, reason: 'This backup is missing your interview answers, so it can’t be restored.' };
   if (data.plan !== undefined && data.plan !== null && !isObject(data.plan)) return { ok: false, reason: 'This backup’s meal plan is damaged, so it can’t be restored.' };
   return {
     ok: true,
     backup: {
       app: 'remy',
-      version: 1,
+      version: 2,
       exportedAt: typeof data.exportedAt === 'number' ? data.exportedAt : 0,
       interview: { ...emptyInterview(), ...(data.interview as Partial<InterviewState>) },
       plan: normalizePlanState(data.plan as Partial<PlanState> | null),
+      health: { ...emptyBody(), ...(isObject(data.health) ? (data.health as Partial<BodyProfile>) : {}) },
     },
   };
 }

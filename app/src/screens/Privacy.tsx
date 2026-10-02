@@ -33,6 +33,10 @@ export function Privacy() {
               Weight, age group and health answers are optional. If you give them, they stay in your data and are never sent to the AI. Some health answers turn off
               weight-loss planning and leave out a few foods that need extra care.
             </p>
+            <p className="hint">
+              If you ask for a daily estimate, your age, height, weight and activity are kept only on this device: they aren’t synced to your account or sent to the AI.
+              Backup files include them, and “Delete my details” on the estimate removes them.
+            </p>
           </div>
         </section>
 
