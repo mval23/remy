@@ -132,7 +132,8 @@ describe('saved AI recipes', () => {
     const r = toRecipe(good(), SAMPLE, 'Lunch', 'ai_saved');
     if (!r.ok) throw new Error(r.reason);
     registerAiRecipes({ ai_saved: r.recipe });
-    expect(R.ai_saved).toBe(r.recipe);
+    // Registered with its numbers worked out from the ingredients, like library recipes.
+    expect(R.ai_saved).toEqual(r.recipe);
     expect(MEAL_IDS).toContain('ai_saved');
 
     const plan = replaceMeal(buildPlan('balanced', context(SAMPLE)).plan, 0, 'Lunch', 'ai_saved');

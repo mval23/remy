@@ -5,7 +5,7 @@ import { SLOTS } from '../types';
 import slotList from './slots.json';
 
 /** kcal, protein, carbs and fat are added up from the ingredients (macros.ts), so recipes don’t list them. */
-type RecipeInput = Omit<Recipe, 'id' | 'kcal' | 'pro' | 'carb' | 'fat'>;
+type RecipeInput = Omit<Recipe, 'id' | 'kcal' | 'pro' | 'carb' | 'fat' | 'fiber'>;
 
 /*
  * Tasks shared by several recipes (same \`key\`): one pot of rice or one tray of taco chicken covers them all,
@@ -1538,8 +1538,8 @@ export function registerAiRecipes(saved: Record<string, Recipe>): void {
   for (const id of Object.keys(R)) if (id.startsWith('ai_') && !saved[id]) delete R[id];
   for (let i = MEAL_IDS.length - 1; i >= 0; i--) if (MEAL_IDS[i].startsWith('ai_') && !saved[MEAL_IDS[i]]) MEAL_IDS.splice(i, 1);
   for (const [id, r] of Object.entries(saved)) {
-    // Saved before carbs and fat existed (kcal and protein were the model’s guess): work them out from the ingredients.
-    R[id] = r.carb === undefined ? withMacros(r) : r;
+    // Always worked out from the ingredients, like library recipes, so saved recipes follow the current nutrition data.
+    R[id] = withMacros(r);
     if (!MEAL_IDS.includes(id)) MEAL_IDS.push(id);
   }
 }

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { ingredientName } from '../planning/method';
-import type { Macros } from '../planning/macros';
+import type { MacroShown } from '../planning/macros';
 import type { Recipe } from '../planning/types';
 import { Icon, type IconName } from './Icon';
 import { macroText } from './Macros';
@@ -21,7 +21,7 @@ export function describe(r: Recipe): string {
 export const Leader = () => <span className="leader" aria-hidden="true" />;
 
 /** "17 g protein · 72 g carbs · 7 g fat", numbers in bold. */
-export function MacroLine({ n, note }: { n: Macros; note?: string }) {
+export function MacroLine({ n, note }: { n: MacroShown; note?: string }) {
   return (
     <p className="macro-line" aria-label={`About ${macroText(n)}${note ? `, ${note}` : ''}`}>
       <b>{n.pro} g</b> protein · <b>{n.carb} g</b> carbs · <b>{n.fat} g</b> fat{note ? ` · ${note}` : ''}

@@ -21,6 +21,25 @@ export const DAY_FULL: Record<Day, string> = {
   Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday',
 };
 
+/** Nutrients per 100 g/ml or per unit. Sugar, saturated fat and sodium come with matched data. */
+export interface Nutrients {
+  pro: number;
+  carb: number;
+  fat: number;
+  fiber: number;
+  sugar?: number;
+  satFat?: number;
+  sodiumMg?: number;
+}
+
+/** A nutrient source: a USDA FoodData Central food (`id` = its FDC ID) or the label of the package the owner buys. */
+export interface NutrientSource {
+  kind: 'fdc' | 'label';
+  id?: string;
+  /** e.g. 'FDC SR Legacy 2018-04' or 'label 2026-10'. */
+  version: string;
+}
+
 export interface Ingredient {
   n: string;
   /** Unit for quantities ('' means a count). */
@@ -47,8 +66,17 @@ export interface Ingredient {
   pan?: string;
   /** Food key from the interview ratings. */
   f?: string;
-  /** Grams of protein, carbs and fat per 100 g or 100 ml (for g/ml units), otherwise per one unit. Rough values. */
-  m?: [number, number, number];
+  /**
+   * Grams of protein, carbohydrate (total, fiber included), fat and fiber per 100 g or 100 ml (for g/ml units),
+   * otherwise per one unit. Where they come from is in `src`.
+   */
+  m: Nutrients;
+  /** Where the nutrient values come from. Missing = Remy's rough estimate (USDA-style values from memory, not yet matched). */
+  src?: NutrientSource;
+  /** Grams per unit, for anything not measured in g or ml: the edible part of produce, drained weight of beans and tuna. */
+  gpu?: number;
+  /** How the amount is measured: raw meat and potatoes, dry grains and pasta, drained cans. Missing = as sold. */
+  state?: 'raw' | 'dry' | 'drained';
   /** Kept so older saved recipes still read; library recipes don't use it and the AI isn't offered it. */
   retired?: boolean;
   /** Food-safety risks this ingredient brings to any recipe, unless the recipe cooks them away (`Recipe.cooks`). */
@@ -134,6 +162,8 @@ export interface Recipe {
   carb: number;
   /** Fat grams per portion (estimate). */
   fat: number;
+  /** Fiber grams per portion (estimate, one decimal). */
+  fiber: number;
   /** Fruit and vegetable servings per portion. */
   prod: number;
   /** Portion guidance in plain words. */

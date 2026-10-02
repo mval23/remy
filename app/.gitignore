@@ -1,3 +1,6 @@
 node_modules
 dist
 *.local
+
+# FoodData Central search output (working file; the chosen IDs live in fdc-ids.json)
+scripts/fdc-candidates.md
