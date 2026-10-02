@@ -30,8 +30,10 @@ export interface NutritionSettings {
   from: 'typed' | 'estimate';
   /** The estimate's floor (kcal), so fitting never goes under it; null for typed targets (1,200 applies). */
   floor: number | null;
+  /** When a check-in last changed an estimate-based target (ms), so changes come at most every 2 weeks. */
+  adjustedAt: number;
 }
-export const defaultNutrition = (): NutritionSettings => ({ nums: null, kcal: '', pro: '', from: 'typed', floor: null });
+export const defaultNutrition = (): NutritionSettings => ({ nums: null, kcal: '', pro: '', from: 'typed', floor: null, adjustedAt: 0 });
 
 export const balanceOn = (A: Answers) => A.balance !== 'No thanks';
 export const estimatesOn = (s: NutritionSettings, A: Answers) => s.nums === true || (s.nums !== false && A.pace === 'Detailed');

@@ -35,6 +35,8 @@ export function Recipe() {
   const scale = oneBatch ? 1 : batches * size;
   const handsOn = r.tasks.filter((t) => t.l === 'hands').reduce((s, t) => s + t.m, 0);
   const nums = estimatesOn(planState.nutrition, A);
+  // About 8% of an estimate-based daily target (audit, section 5). A suggestion only: sweets are never shrunk.
+  const sweetBudget = planState.nutrition.from === 'estimate' && Number(planState.nutrition.kcal) ? Math.round((0.08 * Number(planState.nutrition.kcal)) / 10) * 10 : null;
   const target = proteinTarget(r.slot, ctx.hungry);
   const found = matchReasons(r, A).filter((x) => !r.why.slice(1).some((w) => w.toLowerCase().startsWith(x.name.toLowerCase())));
 
@@ -223,6 +225,12 @@ export function Recipe() {
                         : 'You said this portion felt like too much, so cut it a little smaller. Any extra keeps for another day.'}
                     </>
                   )}
+                </p>
+              )}
+              {nums && r.slot === 'Evening sweet' && sweetBudget && r.kcal > sweetBudget * 1.25 && (
+                <p className="lead-note">
+                  Your estimate leaves about {sweetBudget} kcal for the evening sweet. This one is about {r.kcal}, so a smaller piece fits if you like; it stays in
+                  the plan either way.
                 </p>
               )}
               {nums ? (

@@ -3,7 +3,7 @@ import { activeAnswers, fillWithSamples } from '../interview/engine';
 import { emptyInterview, type Answers } from '../interview/types';
 import { R } from './data/recipes';
 import { ING } from './data/ingredients';
-import { fitToGoals, goalsOf, SCALE_MAX, SCALE_MIN, weekAverage } from './goals';
+import { DAY_BAND, fitToGoals, goalsOf, SCALE_MAX, SCALE_MIN, weekAverage } from './goals';
 import { emptyGroceryEdits, groceryList } from './grocery';
 import { buysMonthly, forecastWeeks, monthList, MONTH_WEEKS } from './month';
 import { dayNutrition } from './nutrition';
@@ -54,6 +54,36 @@ describe('daily goals', () => {
     const floored = fitToGoals(week(), ctx, { kcal: 1300, pro: null, floor: 1900 });
     expect(floored.kcal).toBeGreaterThan(typed.kcal);
     expect(Math.abs(floored.kcal - 1900)).toBeLessThan(Math.abs(floored.kcal - 1300));
+  });
+
+  it('never scales dishes portioned as whole items, and uses 10% steps', () => {
+    for (const goal of [1350, 1700, 2650]) {
+      const fit = fitToGoals(week(), ctx, { kcal: goal, pro: null });
+      eachMeal(fit.plan, (m) => {
+        if (!m.x) return;
+        expect(R[m.r!].whole, m.r!).toBeFalsy();
+        expect([0.8, 0.9, 1.1, 1.2]).toContain(m.x);
+      });
+    }
+  });
+
+  it('brings nearly every day within 12% of the target, never under the floor, and leaves approved meals alone', () => {
+    let inBand = 0, total = 0;
+    for (const v of ['favorites', 'balanced', 'variety'] as const) {
+      const fit = fitToGoals(buildPlan(v, ctx).plan, ctx, { kcal: 1700, pro: null, floor: 1500 });
+      for (const d of fit.plan.map((x) => dayNutrition(x, false)).filter((x) => !x.out)) {
+        total++;
+        if (d.kcal >= 1700 * (1 - DAY_BAND) && d.kcal <= 1700 * (1 + DAY_BAND)) inBand++;
+        expect(d.kcal).toBeGreaterThanOrEqual(1500);
+        expect(d.kcal).toBeLessThanOrEqual(1700 * 1.2);
+      }
+    }
+    expect(inBand / total).toBeGreaterThanOrEqual(0.9);
+    // An approved snack stays, even when it keeps its day high.
+    const start = buildPlan('balanced', ctx).plan;
+    start[0].meals['Afternoon snack'] = { ...start[0].meals['Afternoon snack']!, ok: true };
+    const fit = fitToGoals(start, ctx, { kcal: 1700, pro: null, floor: 1500 });
+    expect(fit.plan[0].meals['Afternoon snack']).toEqual(start[0].meals['Afternoon snack']);
   });
 
   it('raises a week toward a higher goal, with portions at most 20% bigger', () => {

@@ -133,6 +133,8 @@ export interface Recipe {
   e: string;
   /** Portions per batch. */
   serves: number;
+  /** Portioned as whole items (a burrito, a fillet, a sandwich): never scaled to fit goals, since 80% of a tortilla isn't a thing. */
+  whole?: boolean;
   /** Safe days in the fridge after prep day. */
   fridge: number;
   /** Months in the freezer for best quality (0 = don't freeze). */

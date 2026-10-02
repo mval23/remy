@@ -16,7 +16,9 @@ export interface LearnedItem {
   recipe?: string;
   adj?: number;
   /** Other effects to reverse on delete. */
-  effect?: 'hungry' | 'sweetPortion' | 'trial' | 'noticed';
+  effect?: 'hungry' | 'sweetPortion' | 'trial' | 'noticed' | 'target';
+  /** Daily calorie change for a 'target' item, reversed on delete. */
+  kcal?: number;
   /** The food a trial or “stop asking” item is about. */
   food?: string;
 }

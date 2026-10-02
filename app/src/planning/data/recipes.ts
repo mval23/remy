@@ -79,7 +79,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'Two squares are one portion.',
   },
   eggbites: {
-    name: 'Cheesy egg & potato bites', short: 'Egg & potato bites', slot: 'Breakfast', e: '🧁', serves: 6, fridge: 4, freezer: 2,
+    name: 'Cheesy egg & potato bites', short: 'Egg & potato bites', slot: 'Breakfast', e: '🧁', serves: 6, whole: true, fridge: 4, freezer: 2,
     foods: { eggs: 'Baked into something', potatoes: 1, cheese: 1 },
     ing: [['eggs', 8], ['potatoes', 450], ['cheddar', 110], ['milk', 60]],
     why: ['Eggs baked into something, one of the ways you said works', 'Cheese and potatoes, both rated Love'],
@@ -118,7 +118,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'In each container: half chicken and crispy vegetables, a quarter rice (about 140 g cooked).',
   },
   burritos: {
-    name: 'Freezer chicken & cheese burritos', short: 'Chicken burritos', slot: 'Lunch', e: '🌯', serves: 4, fridge: 3, freezer: 3,
+    name: 'Freezer chicken & cheese burritos', short: 'Chicken burritos', slot: 'Lunch', e: '🌯', serves: 4, whole: true, fridge: 3, freezer: 3,
     foods: { chicken: 1, rice: 1, cheese: 1, corn: 1 }, sauces: ['Mild salsa'],
     ing: [['tortillas', 4], ['chickenbreast', 570], ['rice', 140], ['cheddar', 110], ['salsa', 190], ['taco', 2], ['corn', 150], ['oil', 1]],
     why: ['A take-anywhere version of your favorite chicken burrito bowl', 'Freezes well, so Thursday–Sunday lunches stay safe', 'Mild salsa matches your spice level'],
@@ -174,7 +174,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'About 150 g cooked pasta with 250 ml sauce. The vegetables are already in the sauce.',
   },
   tenders: {
-    name: 'Crispy parmesan chicken tenders & potato wedges', short: 'Crispy tenders & wedges', slot: 'Dinner', e: '🍟', serves: 2, fridge: 1, freezer: 3,
+    name: 'Crispy parmesan chicken tenders & potato wedges', short: 'Crispy tenders & wedges', slot: 'Dinner', e: '🍟', serves: 2, whole: true, fridge: 1, freezer: 3,
     foods: { chicken: 1, potatoes: 1, cheese: 1, eggs: 'Baked into something' }, sauces: ['Honey mustard', 'Ranch'],
     ing: [['tenders', 450], ['panko', 50], ['parmesan', 30], ['eggs', 1], ['potatoes', 400], ['oil', 1.5], ['honeymustard', 60]],
     why: ['Chicken tenders are on your favorites list', 'Air-fried fresh, because you said crispy food reheats badly', 'Honey mustard for dipping, one of your sauces'],
@@ -192,7 +192,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'About 4 tenders and a handful of wedges. A vegetable side rounds it out.',
   },
   quesadilla: {
-    name: 'Cheesy chicken quesadillas', short: 'Chicken quesadillas', slot: 'Dinner', e: '🫓', serves: 2, fridge: 3, freezer: 3,
+    name: 'Cheesy chicken quesadillas', short: 'Chicken quesadillas', slot: 'Dinner', e: '🫓', serves: 2, whole: true, fridge: 3, freezer: 3,
     foods: { chicken: 1, cheese: 1 }, sauces: ['Mild salsa'],
     ing: [['chickenbreast', 340], ['tortillas', 2], ['cheddar', 70], ['salsa', 65], ['taco', 1], ['oil', 1]],
     why: ['Reuses the taco chicken, so it doesn’t feel like leftovers', 'Cheesy and mild, two things you picked'],
@@ -228,7 +228,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'About 140 g shrimp with 140 g cooked rice.',
   },
   salmon: {
-    name: 'Honey-soy glazed salmon', short: 'Honey-soy salmon', slot: 'Dinner', e: '🐟', serves: 3, fridge: 3, freezer: 2,
+    name: 'Honey-soy glazed salmon', short: 'Honey-soy salmon', slot: 'Dinner', e: '🐟', serves: 3, whole: true, fridge: 3, freezer: 2,
     foods: { salmon: 1, rice: 1 },
     ing: [['salmon', 450], ['soy', 3], ['honey', 2], ['rice', 140]],
     why: ['Sweet-savory glaze'],
@@ -327,7 +327,7 @@ const MEALS: Record<string, RecipeInput> = {
   },
   /* ---------- more choices, so weeks can rotate ---------- */
   bfburritos: {
-    name: 'Freezer breakfast burritos', short: 'Breakfast burritos', slot: 'Breakfast', e: '🌯', serves: 6, fridge: 3, freezer: 3,
+    name: 'Freezer breakfast burritos', short: 'Breakfast burritos', slot: 'Breakfast', e: '🌯', serves: 6, whole: true, fridge: 3, freezer: 3,
     foods: { eggs: 'Scrambled', potatoes: 1, cheese: 1 }, sauces: ['Mild salsa'],
     ing: [['eggs', 10], ['potatoes', 450], ['cheddar', 170], ['tortillas', 6], ['salsa', 130], ['oil', 1]],
     why: ['Scrambled eggs, potatoes and cheese, wrapped to go', 'Freezes well, so late-week breakfasts stay safe'],
@@ -338,7 +338,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'One burrito is one portion.',
   },
   muffins: {
-    name: 'Banana chocolate-chip muffins', short: 'Banana muffins', slot: 'Breakfast', e: '🧁', serves: 12, fridge: 4, freezer: 3,
+    name: 'Banana chocolate-chip muffins', short: 'Banana muffins', slot: 'Breakfast', e: '🧁', serves: 12, whole: true, fridge: 4, freezer: 3,
     foods: { bananas: 1, eggs: 'Baked into something' }, sweet: ['Chocolate'],
     ing: [['bananas', 3], ['flour', 220], ['eggs', 2], ['sugar', 100], ['butter', 85], ['bakingpowder', 2], ['milk', 120], ['chips', 85], ['vanilla', 1]],
     why: ['A sweet breakfast you can grab on the way out', 'Uses up ripe bananas'],
@@ -424,7 +424,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'About {grams} g. A vegetable side covers produce.',
   },
   meatloaves: {
-    name: 'Mini BBQ meatloaves & mashed potatoes', short: 'Mini meatloaves', slot: 'Dinner', e: '🥔', serves: 4, fridge: 4, freezer: 3,
+    name: 'Mini BBQ meatloaves & mashed potatoes', short: 'Mini meatloaves', slot: 'Dinner', e: '🥔', serves: 4, whole: true, fridge: 4, freezer: 3,
     foods: { beef: 1, eggs: 'Baked into something', onions: 'Finely chopped, cooked soft', potatoes: 'Mashed' }, sauces: ['BBQ'],
     ing: [['beef', 570], ['panko', 30], ['eggs', 1], ['bbq', 120], ['onion', 0.25], ['potatoes', 910], ['milk', 120], ['butter', 40]],
     why: ['Comfort food with a sweet BBQ glaze', 'Baked in a muffin tin, so every portion is the same size'],
@@ -434,7 +434,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'Two mini meatloaves with about 150 g mash.',
   },
   beanquesadilla: {
-    name: 'Black bean & corn quesadillas', short: 'Bean & corn quesadillas', slot: 'Dinner', e: '🫘', serves: 4, fridge: 4, freezer: 2,
+    name: 'Black bean & corn quesadillas', short: 'Bean & corn quesadillas', slot: 'Dinner', e: '🫘', serves: 4, whole: true, fridge: 4, freezer: 2,
     foods: { beans: 1, corn: 1, cheese: 1 }, sauces: ['Mild salsa'],
     ing: [['beanscan', 1], ['corn', 150], ['cheddar', 170], ['tortillas', 4], ['salsa', 130], ['taco', 1]],
     why: ['A meat-free dinner that’s still cheesy and filling', 'Cooked fresh on the night, so it stays crisp'],
@@ -498,7 +498,7 @@ const MEALS: Record<string, RecipeInput> = {
   /* ---------- Colombian, Mexican, Italian, American, and lighter dinners (all written out in full, all mild) ---------- */
   /* breakfast */
   arepas: {
-    name: 'Colombian cheese arepas', short: 'Cheese arepas', slot: 'Breakfast', e: '🫓', serves: 4, fridge: 4, freezer: 3,
+    name: 'Colombian cheese arepas', short: 'Cheese arepas', slot: 'Breakfast', e: '🫓', serves: 4, whole: true, fridge: 4, freezer: 3,
     foods: { cheese: 1 },
     ing: [['arepaflour', 250], ['mozzarella', 110], ['butter', 20]],
     why: ['A Colombian breakfast classic: crisp outside, soft and cheesy inside', 'Freezes well, so late-week breakfasts are still fresh', 'Pairs with scrambled eggs for more protein'],
@@ -513,7 +513,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'Two arepas. Add scrambled eggs or a yogurt cup for protein.',
   },
   bfsandwich: {
-    name: 'Turkey sausage & egg muffin sandwiches', short: 'Egg muffin sandwiches', slot: 'Breakfast', e: '🥪', serves: 6, fridge: 3, freezer: 2,
+    name: 'Turkey sausage & egg muffin sandwiches', short: 'Egg muffin sandwiches', slot: 'Breakfast', e: '🥪', serves: 6, whole: true, fridge: 3, freezer: 2,
     foods: { eggs: 'Baked into something', turkey: 1, cheese: 1 },
     ing: [['eggs', 6], ['milk', 60], ['cheddar', 85], ['turkeysausage', 6], ['englishmuffins', 6]],
     why: ['A diner-style breakfast sandwich you can grab and heat', 'About 20 g of protein to start the day', 'Freezes flat, so late-week breakfasts stay safe'],
@@ -544,7 +544,7 @@ const MEALS: Record<string, RecipeInput> = {
   },
 
   pericos: {
-    name: 'Huevos pericos with arepa', short: 'Pericos & arepa', slot: 'Breakfast', e: '🍳', serves: 4, fridge: 4, freezer: 3,
+    name: 'Huevos pericos with arepa', short: 'Pericos & arepa', slot: 'Breakfast', e: '🍳', serves: 4, whole: true, fridge: 4, freezer: 3,
     foods: { eggs: 'Scrambled', tomatoes: 'Finely chopped, cooked soft', onions: 'Finely chopped, cooked soft', cheese: 1 },
     ing: [['arepaflour', 200], ['butter', 15], ['tomatoes', 2], ['scallions', 3], ['oil', 1], ['eggs', 8], ['quesofresco', 60]],
     why: ['The Colombian breakfast: eggs scrambled with tomato and green onion, and an arepa', 'Arepas and hogao are ready; the eggs take 5 minutes in the morning', 'About 20 g of protein'],
@@ -689,7 +689,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'Half chicken and hogao, a quarter rice, and half an avocado.',
   },
   sandwich: {
-    name: 'Chicken, avocado & cheese sandwiches', short: 'Chicken avocado sandwich', slot: 'Lunch', e: '🥪', serves: 4, fridge: 4, freezer: 0, cold: true,
+    name: 'Chicken, avocado & cheese sandwiches', short: 'Chicken avocado sandwich', slot: 'Lunch', e: '🥪', serves: 4, whole: true, fridge: 4, freezer: 0, cold: true,
     foods: { chicken: 1, cheese: 1, avocado: 'Mashed', tomatoes: 'Raw' },
     ing: [['chickenbreast', 450], ['herbs', 1], ['oil', 1], ['cheeseblock', 110], ['tomatoes', 2], ['lettuce', 1], ['bread', 8], ['avocados', 2], ['limes', 1]],
     why: ['A proper sandwich: roast chicken, cheese, tomato, lettuce and smashed avocado', 'The chicken is roasted on prep day; the sandwich takes 3 minutes', 'Packed apart, so the bread never goes soggy'],
@@ -704,7 +704,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'One sandwich (2 slices of bread).',
   },
   wraps: {
-    name: 'Chicken ranch wraps', short: 'Chicken ranch wraps', slot: 'Lunch', e: '🌯', serves: 4, fridge: 4, freezer: 0, cold: true,
+    name: 'Chicken ranch wraps', short: 'Chicken ranch wraps', slot: 'Lunch', e: '🌯', serves: 4, whole: true, fridge: 4, freezer: 0, cold: true,
     foods: { chicken: 1, cheese: 1, tomatoes: 'Raw' }, sauces: ['Ranch'],
     ing: [['chickenbreast', 570], ['paprika', 1], ['oil', 1], ['lettuce', 1], ['tomatoes', 2], ['cheddar', 85], ['ranch', 120], ['tortillas', 4]],
     why: ['Smoky roast chicken, crunchy lettuce and ranch in a soft tortilla', 'Roll one in 2 minutes; the fillings are ready', 'Good cold, or with the chicken warmed'],
@@ -752,7 +752,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'Salmon, rice, cucumber and half an avocado.',
   },
   tunaavocado: {
-    name: 'Tuna-stuffed avocados', short: 'Tuna-stuffed avocado', slot: 'Lunch', e: '🥑', serves: 2, fridge: 3, freezer: 0, cold: true,
+    name: 'Tuna-stuffed avocados', short: 'Tuna-stuffed avocado', slot: 'Lunch', e: '🥑', serves: 2, whole: true, fridge: 3, freezer: 0, cold: true,
     foods: { tuna: 1, avocado: 'Raw', tomatoes: 'Raw', corn: 1 },
     ing: [['tuna', 2], ['mayo', 2], ['limes', 1], ['tomatoes', 1], ['corn', 100], ['avocados', 2]],
     why: ['Light, fresh and ready in 2 minutes', 'Tuna and avocado: protein and healthy fats', 'No cooking at all'],
@@ -809,7 +809,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'Chicken and potatoes in sauce, with about 140 g cooked rice.',
   },
   enchiladas: {
-    name: 'Mild chicken enchiladas', short: 'Chicken enchiladas', slot: 'Dinner', e: '🫔', serves: 4, fridge: 4, freezer: 3,
+    name: 'Mild chicken enchiladas', short: 'Chicken enchiladas', slot: 'Dinner', e: '🫔', serves: 4, whole: true, fridge: 4, freezer: 3,
     foods: { chicken: 1, cheese: 1 },
     ing: [['chickenbreast', 570], ['corntortillas', 8], ['enchilada', 560], ['cheddar', 170]],
     why: ['Rolled, sauced and baked: Mexican comfort food', 'Mild red sauce, no chili heat', 'Freezes and reheats well'],
@@ -855,7 +855,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'One piece, about a 10 cm square. Green beans or a salad on the side covers produce.',
   },
   chickenparm: {
-    name: 'Baked chicken parmesan with spaghetti', short: 'Chicken parmesan', slot: 'Dinner', e: '🍝', serves: 4, fridge: 4, freezer: 3,
+    name: 'Baked chicken parmesan with spaghetti', short: 'Chicken parmesan', slot: 'Dinner', e: '🍝', serves: 4, whole: true, fridge: 4, freezer: 3,
     foods: { chicken: 1, pasta: 1, cheese: 1, tomatoes: 'Blended into a sauce', eggs: 'Baked into something' }, sauces: ['Marinara'],
     ing: [['chickenbreast', 680], ['eggs', 1], ['panko', 90], ['parmesan', 45], ['oil', 1], ['marinara', 1], ['mozzarella', 110], ['spaghetti', 340]],
     why: ['Crispy baked, not fried, with melted mozzarella', 'An Italian-American favorite with marinara', 'About 50 g of protein per plate'],
@@ -885,7 +885,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'One big bowl, about {grams} g. Add string cheese or eggs on the side to make it more filling.',
   },
   turkeyburgers: {
-    name: 'Turkey burgers & sweet potato wedges', short: 'Turkey burgers', slot: 'Dinner', e: '🍔', serves: 4, fridge: 3, freezer: 3,
+    name: 'Turkey burgers & sweet potato wedges', short: 'Turkey burgers', slot: 'Dinner', e: '🍔', serves: 4, whole: true, fridge: 3, freezer: 3,
     foods: { turkey: 1, cheese: 1, eggs: 'Baked into something' },
     ing: [['turkey', 570], ['panko', 30], ['eggs', 1], ['sweetpotatoes', 680], ['oil', 2], ['paprika', 1], ['cheddar', 85], ['buns', 4]],
     why: ['An American classic, made leaner with turkey', 'Sweet potato wedges baked on the same oven run', 'Cheese melted on top'],
@@ -900,7 +900,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'One burger on a bun with a handful of wedges.',
   },
   lemonsalmon: {
-    name: 'Lemon-baked salmon with crispy potatoes & green beans', short: 'Lemon salmon', slot: 'Dinner', e: '🐟', serves: 3, fridge: 3, freezer: 0,
+    name: 'Lemon-baked salmon with crispy potatoes & green beans', short: 'Lemon salmon', slot: 'Dinner', e: '🐟', serves: 3, whole: true, fridge: 3, freezer: 0,
     foods: { salmon: 1, potatoes: 1, greenbeans: 'Roasted until crispy' },
     ing: [['potatoes', 450], ['oil', 2], ['salmon', 450], ['greenbeans', 240], ['butter', 20], ['herbs', 1], ['garlic', 1], ['lemons', 1]],
     why: ['Light and simple: salmon with lemon, butter and herbs', 'Crispy potatoes and green beans, all on two pans', 'One of the lightest dinners in the library'],
@@ -915,7 +915,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'One fillet, a handful of potatoes, and green beans.',
   },
   tunamelt: {
-    name: 'Tuna melts on English muffins', short: 'Tuna melts', slot: 'Dinner', e: '🥫', serves: 3, fridge: 3, freezer: 0,
+    name: 'Tuna melts on English muffins', short: 'Tuna melts', slot: 'Dinner', e: '🥫', serves: 3, whole: true, fridge: 3, freezer: 0,
     foods: { tuna: 1, cheese: 1 },
     ing: [['tuna', 3], ['mayo', 4], ['lemons', 1], ['englishmuffins', 3], ['cheddar', 110]],
     why: ['A diner classic: warm tuna salad under melted cheese', 'The tuna salad is made on prep day; the melts take 6 minutes on the night', 'Light, with over 30 g of protein'],
@@ -985,7 +985,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'About 85 g dry pasta per plate. A green side rounds it out.',
   },
   pechugagratinada: {
-    name: 'Pechuga gratinada with mashed potatoes & green beans', short: 'Pechuga gratinada', slot: 'Dinner', e: '🧀', serves: 4, fridge: 4, freezer: 2,
+    name: 'Pechuga gratinada with mashed potatoes & green beans', short: 'Pechuga gratinada', slot: 'Dinner', e: '🧀', serves: 4, whole: true, fridge: 4, freezer: 2,
     foods: { chicken: 1, cheese: 1, tomatoes: 'Blended into a sauce', potatoes: 'Mashed', greenbeans: 'Steamed' }, sauces: ['Marinara'],
     ing: [['chickenbreast', 680], ['marinara', 0.5], ['mozzarella', 110], ['potatoes', 680], ['milk', 120], ['butter', 30], ['greenbeans', 240]],
     why: ['Colombian-style chicken breast baked under melted cheese', 'Creamy mash and green beans on the side', 'High in protein'],
@@ -1032,7 +1032,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'One big bowl, with a small bowl of rice and some avocado.',
   },
   tinga: {
-    name: 'Mild chicken tinga tacos', short: 'Chicken tinga tacos', slot: 'Dinner', e: '🌮', serves: 4, fridge: 4, freezer: 3,
+    name: 'Mild chicken tinga tacos', short: 'Chicken tinga tacos', slot: 'Dinner', e: '🌮', serves: 4, whole: true, fridge: 4, freezer: 3,
     foods: { chicken: 1, cheese: 1, tomatoes: 'Blended into a sauce', onions: 'Blended into a sauce', avocado: 'Raw' },
     ing: [['chickenbreast', 680], ['onion', 1], ['crushedtomatoes', 0.5], ['garlic', 2], ['paprika', 2], ['cumin', 1], ['oil', 1], ['corntortillas', 12], ['quesofresco', 80], ['avocados', 1], ['limes', 1]],
     why: ['Shredded chicken in a smoky tomato sauce: Mexican tinga, made mild', 'Freezes well', 'Warm tortillas, queso fresco and avocado on the night'],
@@ -1047,7 +1047,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'Three tacos with queso fresco and avocado.',
   },
   pizza: {
-    name: 'Pizza night: margherita', short: 'Margherita pizza', slot: 'Dinner', e: '🍕', serves: 2, fridge: 4, freezer: 0,
+    name: 'Pizza night: margherita', short: 'Margherita pizza', slot: 'Dinner', e: '🍕', serves: 2, whole: true, fridge: 4, freezer: 0,
     foods: { cheese: 1, tomatoes: 'Blended into a sauce' }, sauces: ['Marinara'],
     ing: [['mozzarella', 140], ['pizzadough', 340], ['marinara', 0.5], ['tomatoes', 1], ['herbs', 1], ['oil', 1]],
     why: ['Homemade pizza in 20 minutes, with store-bought dough', 'Marinara, melted mozzarella and fresh tomato', 'A fun cook-fresh night'],
@@ -1226,7 +1226,7 @@ const MEALS: Record<string, RecipeInput> = {
 
   /* ---------- light Colombian dinners: in Colombia dinner is closer to breakfast than to lunch ---------- */
   arepapollo: {
-    name: 'Arepa with shredded chicken and cheese', short: 'Chicken & cheese arepa', slot: 'Dinner', e: '🫓', serves: 4, fridge: 4, freezer: 3,
+    name: 'Arepa with shredded chicken and cheese', short: 'Chicken & cheese arepa', slot: 'Dinner', e: '🫓', serves: 4, whole: true, fridge: 4, freezer: 3,
     foods: { chicken: 1, cheese: 1, tomatoes: 'Blended into a sauce', onions: 'Blended into a sauce', avocado: 'Raw' },
     ing: [['arepaflour', 200], ['butter', 10], ['chickenbreast', 400], ['tomatoes', 2], ['scallions', 3], ['oil', 1], ['cumin', 1], ['quesofresco', 100], ['avocados', 1]],
     why: ['A proper Colombian dinner: a warm arepa filled with pollo desmechado in hogao', 'Light but filling, with about 30 g of protein', 'Arepas and chicken both freeze, so it works any night of the week'],
@@ -1241,7 +1241,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'One arepa, well filled. Add a side of fruit if you like.',
   },
   sandwichpollo: {
-    name: 'Toasted chicken & cheese sandwich', short: 'Chicken & cheese sandwich', slot: 'Dinner', e: '🥪', serves: 4, fridge: 4, freezer: 3,
+    name: 'Toasted chicken & cheese sandwich', short: 'Chicken & cheese sandwich', slot: 'Dinner', e: '🥪', serves: 4, whole: true, fridge: 4, freezer: 3,
     foods: { chicken: 1, cheese: 1, tomatoes: 'Blended into a sauce', onions: 'Blended into a sauce' },
     ing: [['chickenbreast', 360], ['tomatoes', 1], ['scallions', 2], ['oil', 1], ['cumin', 1], ['bread', 8], ['mozzarella', 100], ['mayo', 2]],
     why: ['The Colombian sándwich de pollo: shredded chicken and melted cheese, toasted in a pan', 'Whole-wheat bread and light mayonnaise keep it lighter', 'The chicken is made on prep day; the sandwich takes 8 minutes'],
@@ -1270,7 +1270,7 @@ const MEALS: Record<string, RecipeInput> = {
     plate: 'One container with an egg on top and a few slices of avocado.',
   },
   arepachoclo: {
-    name: 'Sweet corn arepas with melted cheese (arepas de choclo)', short: 'Arepas de choclo', slot: 'Dinner', e: '🌽', serves: 4, fridge: 4, freezer: 3,
+    name: 'Sweet corn arepas with melted cheese (arepas de choclo)', short: 'Arepas de choclo', slot: 'Dinner', e: '🌽', serves: 4, whole: true, fridge: 4, freezer: 3,
     foods: { corn: 1, cheese: 1 },
     ing: [['corn', 400], ['milk', 80], ['arepaflour', 120], ['sugar', 15], ['butter', 20], ['mozzarella', 120]],
     why: ['Sweet, soft corn arepas with melted cheese: a favourite Colombian evening treat', 'Made with corn, not flour', 'Freeze in pairs and toast from frozen'],
