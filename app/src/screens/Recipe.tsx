@@ -3,15 +3,14 @@ import { BottomNav, Header, StoragePill } from '../components/Chrome';
 import { Lead, Mast, SecHead } from '../components/Dish';
 import { Icon } from '../components/Icon';
 import { LaneTag, StepLines } from '../components/Steps';
-import { allRatings } from '../interview/helpers';
-import { LEVELS } from '../interview/questions';
 import { ING } from '../planning/data/ingredients';
 import { R } from '../planning/data/recipes';
 import { fraction, quantityText } from '../planning/grocery';
 import { isDetailed, taskLines } from '../planning/method';
 import { estimatesOn, proteinTarget } from '../planning/nutrition';
+import { safeSubs } from '../planning/subs';
 import { eachMeal, portions, portionSizes } from '../planning/planner';
-import { check, matchReasons, storage } from '../planning/rules';
+import { matchReasons, storage } from '../planning/rules';
 import { duration } from '../planning/schedule';
 import { DAY_FULL, type Day, type StorageInfo } from '../planning/types';
 import { useRemy } from '../store';
@@ -26,7 +25,6 @@ export function Recipe() {
   const r = ui.recipeId ? R[ui.recipeId] : null;
   if (!r || !planState.plan) return null;
   const A = ctx.A;
-  const rat = allRatings(A);
   const plan = planState.plan;
   const count = portions(plan)[r.id] ?? 0;
   const batches = Math.max(1, Math.ceil(count / r.serves));
@@ -43,16 +41,8 @@ export function Recipe() {
     if (m.r === r.id) days.push({ d: day.d, st: storage(r, i + 1) });
   });
 
-  // Substitutions only suggest foods rated Okay or better that pass the safety rules.
-  const levelName = (lv: string) => LEVELS.find((l) => l.id === lv)?.name.toLowerCase() ?? lv;
-  const subs = (r.subs ?? []).flatMap(([from, to, food]) => {
-    if (!food) return [{ from, to, note: '' }];
-    const lv = rat[food];
-    if (!lv || lv === 'dislike' || lv === 'never') return [];
-    const swapped = { ...r, foods: { [food]: 1 as const }, ing: [] };
-    if (!check(swapped, A).ok) return [];
-    return [{ from, to, note: levelName(lv) }];
-  });
+  // Substitutions only suggest swaps that pass every safety rule, with foods rated Okay or better.
+  const subs = safeSubs(r, A);
 
   const fridge = r.store ? 'Keep frozen' : r.room ? `${plural(r.fridge, 'day')}, pantry` : r.fridge ? plural(r.fridge, 'day') : 'Straight to the freezer';
   const freezer = r.freezer ? plural(r.freezer, 'month') : r.store ? 'Until eating' : 'Don’t freeze';

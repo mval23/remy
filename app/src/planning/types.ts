@@ -84,6 +84,14 @@ export interface StorageInfo {
   thaw?: string;
 }
 
+/** A suggested swap. `out` = the ingredient it replaces; `in` = the ingredients that come in ([] = leave it out), the closest match in `ING`, so the allergy, diet and taste checks can test it. */
+export interface Sub {
+  from: string;
+  to: string;
+  out: string;
+  in: string[];
+}
+
 export interface Recipe {
   id: string;
   name: string;
@@ -113,8 +121,8 @@ export interface Recipe {
   reheat: string;
   thaw?: string;
   tasks: Task[];
-  /** [what, swap to, food key to check against ratings] */
-  subs?: [string, string, string?][];
+  /** Swaps the recipe page suggests; each is checked against the person's rules before it's shown (`planning/subs.ts`). */
+  subs?: Sub[];
   /** Food-safety risks from how the dish is made (e.g. carbonara's egg sauce). */
   risk?: Risk[];
   /** Ingredient risks the method removes (e.g. pandebono bakes its queso fresco). */
