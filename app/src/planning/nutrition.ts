@@ -23,11 +23,15 @@ export const LIGHT_DAY_KCAL = 1200;
 export interface NutritionSettings {
   /** Show calorie and macro estimates: true, false, or null for “follow the interview” (on for “Detailed”). */
   nums: boolean | null;
-  /** Optional targets from a professional, as typed. */
+  /** Optional daily targets: typed (their own or a professional's) or copied from Remy's estimate. */
   kcal: string;
   pro: string;
+  /** Where the targets came from. Typing in the fields makes them 'typed' again. */
+  from: 'typed' | 'estimate';
+  /** The estimate's floor (kcal), so fitting never goes under it; null for typed targets (1,200 applies). */
+  floor: number | null;
 }
-export const defaultNutrition = (): NutritionSettings => ({ nums: null, kcal: '', pro: '' });
+export const defaultNutrition = (): NutritionSettings => ({ nums: null, kcal: '', pro: '', from: 'typed', floor: null });
 
 export const balanceOn = (A: Answers) => A.balance !== 'No thanks';
 export const estimatesOn = (s: NutritionSettings, A: Answers) => s.nums === true || (s.nums !== false && A.pace === 'Detailed');

@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import { emptyInterview, type InterviewState } from '../interview/types';
+import { emptyBody, type BodyProfile } from '../planning/energy';
 import { emptyPlanState, normalizePlanState, type PlanState } from './planState';
 
 export { emptyPlanState, normalizePlanState, type PlanState };
@@ -26,6 +27,8 @@ export const db = new RemyDB();
 const INTERVIEW = 'interview';
 const PLAN = 'plan';
 const META = 'meta';
+/** Age, height, weight and activity for the optional estimate. Device-only: not part of sync. */
+const HEALTH = 'health';
 
 /**
  * When each document last changed on this device (ms since 1970).
@@ -50,6 +53,7 @@ async function load<T>(id: string, empty: () => T): Promise<T> {
 export const loadInterview = () => load<InterviewState>(INTERVIEW, emptyInterview);
 export const loadPlanState = () => load<PlanState>(PLAN, emptyPlanState).then(normalizePlanState);
 export const loadStamps = () => load<Stamps>(META, emptyStamps);
+export const loadHealth = () => load<BodyProfile>(HEALTH, emptyBody);
 
 /** Save a document and its change time together, so two saves at once can't overwrite each other's time. */
 async function saveStamped(id: string, value: unknown, stampKey: keyof Stamps, at: number): Promise<void> {
@@ -67,6 +71,15 @@ async function saveStamped(id: string, value: unknown, stampKey: keyof Stamps, a
 /** `at` defaults to now; sync passes the cloud copy's time when applying it. */
 export const saveInterview = (s: InterviewState, at = Date.now()) => saveStamped(INTERVIEW, s, 'interviewAt', at);
 export const savePlanState = (s: PlanState, at = Date.now()) => saveStamped(PLAN, s, 'planAt', at);
+
+/** Health details aren't synced, so they have no change time. */
+export async function saveHealth(b: BodyProfile): Promise<void> {
+  try {
+    await db.kv.put({ id: HEALTH, value: b });
+  } catch {
+    /* see load */
+  }
+}
 
 export async function deleteEverything(): Promise<void> {
   try {

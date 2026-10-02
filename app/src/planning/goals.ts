@@ -14,6 +14,8 @@ import { SLOTS } from './types';
 export interface Goals {
   kcal: number | null;
   pro: number | null;
+  /** The lowest daily calories fitting may aim for: the estimate's floor. Missing = about 1,200. */
+  floor?: number;
 }
 
 /** Portion sizes stay within this range, in steps of 5%. */
@@ -27,11 +29,12 @@ const MAX_SWAPS = 8;
  * Goals from the typed text; anything unrealistic is ignored. None at all when the health and age screen says
  * Remy shouldn't plan weight loss (pregnancy, breastfeeding, under 18, an eating disorder): see profile/screen.ts.
  */
-export function goalsOf(n: Pick<NutritionSettings, 'kcal' | 'pro'>, A: Answers): Goals {
-  if (noWeightLoss(A)) return { kcal: null, pro: null };
+export function goalsOf(n: Pick<NutritionSettings, 'kcal' | 'pro'> & Partial<Pick<NutritionSettings, 'from' | 'floor'>>, A: Answers): Goals {
+  const floor = n.from === 'estimate' && n.floor ? Math.max(n.floor, LIGHT_DAY_KCAL) : LIGHT_DAY_KCAL;
+  if (noWeightLoss(A)) return { kcal: null, pro: null, floor };
   const k = Number(n.kcal);
   const p = Number(n.pro);
-  return { kcal: k >= 800 && k <= 5000 ? Math.round(k) : null, pro: p >= 20 && p <= 300 ? Math.round(p) : null };
+  return { kcal: k >= 800 && k <= 5000 ? Math.round(k) : null, pro: p >= 20 && p <= 300 ? Math.round(p) : null, floor };
 }
 export const hasGoals = (g: Goals) => g.kcal !== null || g.pro !== null;
 
@@ -68,7 +71,7 @@ export function fitToGoals(input: WeekPlan, ctx: PlanContext, goals: Goals): Fit
   let plan = copyPlan(input);
   // Start from as-written portions, so fitting again gives the same answer.
   for (const d of plan) for (const m of Object.values(d.meals)) if (m) delete m.x;
-  const target = goals.kcal === null ? null : Math.max(goals.kcal, LIGHT_DAY_KCAL);
+  const target = goals.kcal === null ? null : Math.max(goals.kcal, goals.floor ?? LIGHT_DAY_KCAL);
   let swapped = 0;
   let sides = 0;
 

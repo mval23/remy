@@ -2,18 +2,21 @@ import { describe, expect, it } from 'vitest';
 import { fillWithSamples } from '../interview/engine';
 import { emptyInterview } from '../interview/types';
 import { backupFileName, makeBackup, readBackup } from './backup';
+import { emptyBody } from '../planning/energy';
 import { emptyPlanState } from './planState';
 
 describe('backup files', () => {
-  it('round-trips a profile and plan', () => {
+  it('round-trips a profile, plan and the device-only health details', () => {
     const interview = fillWithSamples(emptyInterview());
     const plan = { ...emptyPlanState(), hungry: true, units: 'metric' as const };
-    const r = readBackup(JSON.stringify(makeBackup(interview, plan, 42)));
+    const health = { ...emptyBody(), consent: true, ageYears: 34, heightCm: 165, weightKg: 78 };
+    const r = readBackup(JSON.stringify(makeBackup(interview, plan, health, 42)));
     expect(r.ok).toBe(true);
     if (r.ok) {
       expect(r.backup.interview).toEqual(interview);
       expect(r.backup.plan).toEqual(plan);
       expect(r.backup.exportedAt).toBe(42);
+      expect(r.backup.health).toEqual(health);
     }
   });
 
@@ -22,6 +25,8 @@ describe('backup files', () => {
     const r = readBackup(JSON.stringify(old));
     expect(r.ok && r.backup.plan.learned).toEqual([]);
     expect(r.ok && r.backup.interview.skipped).toEqual({});
+    // Version 1 had no health details.
+    expect(r.ok && r.backup.health).toEqual(emptyBody());
   });
 
   it('converts AI recipes from before Remy went metric, once', () => {
@@ -39,7 +44,7 @@ describe('backup files', () => {
   it('explains what’s wrong with a file that isn’t a backup', () => {
     expect(readBackup('not json')).toMatchObject({ ok: false });
     expect(readBackup('{"hello":1}')).toMatchObject({ ok: false, reason: expect.stringContaining('isn’t a Remy backup') });
-    expect(readBackup('{"app":"remy","version":2,"interview":{"answers":{}}}')).toMatchObject({ ok: false, reason: expect.stringContaining('newer version') });
+    expect(readBackup('{"app":"remy","version":3,"interview":{"answers":{}}}')).toMatchObject({ ok: false, reason: expect.stringContaining('newer version') });
     expect(readBackup('{"app":"remy","version":1}')).toMatchObject({ ok: false, reason: expect.stringContaining('interview') });
   });
 

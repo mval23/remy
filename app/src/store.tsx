@@ -9,6 +9,7 @@ import { planAhead } from './planning/ahead';
 import type { ShopDays } from './planning/calendar';
 import { R, registerAiRecipes } from './planning/data/recipes';
 import { WEEKS } from './planning/data/weeks';
+import { emptyBody, energyTargets, type BodyProfile } from './planning/energy';
 import { fitToGoals, goalsOf, hasGoals } from './planning/goals';
 import { emptyGroceryEdits } from './planning/grocery';
 import type { ShopMode } from './planning/month';
@@ -33,8 +34,10 @@ import { backupFileName, makeBackup, readBackup, type Backup } from './storage/b
 import {
   deleteEverything,
   emptyPlanState,
+  loadHealth,
   loadInterview,
   loadPlanState,
+  saveHealth,
   saveInterview,
   savePlanState,
   type PlanState,
@@ -44,7 +47,7 @@ import { useSync } from './sync/useSync';
 export type Screen =
   | 'welcome' | 'interview' | 'resume' | 'summary' | 'home' | 'planner' | 'nutrition' | 'recipe' | 'grocery' | 'prep'
   | 'account' | 'checkin' | 'prefs' | 'privacy' | 'reminders' | 'cook';
-export type SheetName = 'map' | 'options' | 'confirmRestart' | 'replace' | 'move' | 'side' | 'food' | 'confirmForget' | 'confirmImport' | 'meal' | 'menuSettings';
+export type SheetName = 'map' | 'options' | 'confirmRestart' | 'replace' | 'move' | 'side' | 'food' | 'confirmForget' | 'confirmImport' | 'meal' | 'menuSettings' | 'estimate';
 export interface SheetArg {
   d: number;
   slot: Slot;
@@ -114,9 +117,17 @@ const withWeek = (p: PlanState, w: number, plan: WeekPlan): PlanState => (w === 
 /** The weeks after `plan`, redrafted from the rules: meals approved ahead stay. */
 const aheadFor = (plan: WeekPlan, s: InterviewState, p: PlanState, variety: Variety) => planAhead(plan, p.ahead, variety, planContext(s, p), goalsOf(p.nutrition, activeAnswers(s)));
 
-function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
+interface Initial {
+  interview: InterviewState;
+  plan: PlanState;
+  /** Device-only details for the optional estimate (never synced). */
+  health: BodyProfile;
+}
+
+function useRemyState(initial: Initial) {
   const [interview, setInterview] = useState<InterviewState>(initial.interview);
   const [planState, setPlanState] = useState<PlanState>(initial.plan);
+  const [health, setHealth] = useState<BodyProfile>(initial.health);
   const shuffles = useRef(1);
   // Saved AI recipes must be in the library before anything below (or any screen) looks them up.
   registerAiRecipes(planState.aiRecipes);
@@ -201,6 +212,11 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
     stampNext.current.plan = undefined;
     void savePlanState(planState, at ?? Date.now()).then(() => at === undefined && sync.schedule());
   }, [planState]);
+  // Health details stay on this device: saved, never uploaded.
+  useEffect(() => {
+    if (health === initial.health) return;
+    void saveHealth(health);
+  }, [health]);
 
   const patchUi = (p: Partial<UiState>) => setUi((u) => ({ ...u, ...p }));
   const patchPlan = (p: Partial<PlanState>) => setPlanState((s) => ({ ...s, ...p }));
@@ -340,6 +356,7 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
       stampNext.current = { interview: 0, plan: 0 };
       setInterview(emptyInterview());
       setPlanState(emptyPlanState());
+      setHealth(emptyBody());
       setUi(initialUi());
       toast('Everything deleted');
     },
@@ -537,7 +554,7 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
     /* ---------- your data ---------- */
     /** Save everything to a file the user keeps. */
     exportData: () => {
-      const blob = new Blob([JSON.stringify(makeBackup(interview, planState), null, 2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify(makeBackup(interview, planState, health), null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -565,13 +582,40 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
       }
       setInterview(b.interview);
       setPlanState(plan);
+      setHealth(b.health);
       setUi(initialUi(plan.plan ? 'home' : b.interview.done ? 'summary' : 'welcome'));
       toast('Backup restored');
     },
 
     /* ---------- nutrition ---------- */
     setEstimates: (on: boolean) => setPlanState((s) => ({ ...s, nutrition: { ...s.nutrition, nums: on } })),
-    setTargets: (kcal: string, pro: string) => setPlanState((s) => ({ ...s, nutrition: { ...s.nutrition, kcal, pro } })),
+    /** Update the details for the optional estimate (kept on this device). */
+    setBody: (b: Partial<BodyProfile>) => setHealth((h) => ({ ...h, ...b, updatedAt: Date.now() })),
+    /** Use Remy's estimate as the daily goals and fit this week and the drafts ahead to it. */
+    useEstimate: () => {
+      const A = activeAnswers(interview);
+      const r = energyTargets(health, A);
+      if (!r.ok) return toast(r.reason);
+      const nutrition = { ...planState.nutrition, kcal: String(r.plan.target), pro: r.plan.proteinG ? String(r.plan.proteinG) : '', from: 'estimate' as const, floor: r.plan.floor };
+      let next: PlanState = { ...planState, nutrition };
+      const goals = goalsOf(nutrition, A);
+      if (hasGoals(goals) && next.plan) {
+        const ctx = planContext(interview, next);
+        next = { ...next, plan: fitToGoals(next.plan, ctx, goals).plan, ahead: next.ahead.map((w) => fitToGoals(w, ctx, goals).plan) };
+      }
+      setPlanState(next);
+      setHealth((h) => ({ ...h, consent: true, updatedAt: Date.now() }));
+      patchUi({ sheet: null });
+      toast(`Your menu now aims for about ${r.plan.target.toLocaleString('en-US')} kcal a day`);
+    },
+    /** Delete the estimate details from this device; goals that came from the estimate go too. */
+    forgetBody: () => {
+      setHealth(emptyBody());
+      if (planState.nutrition.from === 'estimate') setPlanState((s) => ({ ...s, nutrition: { ...s.nutrition, kcal: '', pro: '', from: 'typed', floor: null } }));
+      patchUi({ sheet: null });
+      toast('Your details are deleted from this device');
+    },
+    setTargets: (kcal: string, pro: string) => setPlanState((s) => ({ ...s, nutrition: { ...s.nutrition, kcal, pro, from: 'typed', floor: null } })),
     setBalanceMode: (v: string) => {
       const s = { ...interview, answers: { ...interview.answers, balance: v }, updatedAt: Date.now() };
       setInterview(s);
@@ -580,22 +624,22 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
   };
 
   const ctx = planContext(interview, planState);
-  return { interview, planState, viewPlan, ui, ctx, actions, sync };
+  return { interview, planState, health, viewPlan, ui, ctx, actions, sync };
 }
 
 type Remy = ReturnType<typeof useRemyState>;
 const Ctx = createContext<Remy | null>(null);
 
-function Provider({ initial, children }: { initial: { interview: InterviewState; plan: PlanState }; children: ReactNode }) {
+function Provider({ initial, children }: { initial: Initial; children: ReactNode }) {
   const value = useRemyState(initial);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
 /** Loads saved progress from the device, then renders the app. */
 export function RemyProvider({ children, fallback }: { children: ReactNode; fallback: ReactNode }) {
-  const [initial, setInitial] = useState<{ interview: InterviewState; plan: PlanState } | null>(null);
+  const [initial, setInitial] = useState<Initial | null>(null);
   useEffect(() => {
-    void Promise.all([loadInterview(), loadPlanState()]).then(([interview, plan]) => {
+    void Promise.all([loadInterview(), loadPlanState(), loadHealth()]).then(([interview, plan, health]) => {
       registerAiRecipes(plan.aiRecipes);
       // Profiles confirmed before planning existed get their first week now.
       if (interview.confirmed && !plan.plan) {
@@ -604,7 +648,7 @@ export function RemyProvider({ children, fallback }: { children: ReactNode; fall
       }
       // Recipes deleted from the menu since the plan was made are swapped out.
       if (plan.plan) plan = { ...plan, plan: dropRemoved(plan.plan, planContext(interview, plan)).plan, ahead: plan.ahead.map((w) => dropRemoved(w, planContext(interview, plan)).plan) };
-      setInitial({ interview, plan });
+      setInitial({ interview, plan, health });
     });
   }, []);
   if (!initial) return <>{fallback}</>;

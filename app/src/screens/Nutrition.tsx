@@ -196,6 +196,14 @@ export function Nutrition() {
               </p>
             ) : (
               <>
+                <button type="button" className="btn soft wide gap-top" onClick={() => actions.openSheet('estimate')}>
+                  <Icon name="heart" size={17} /> {n.from === 'estimate' ? 'Your daily estimate' : 'Work out a daily estimate'}
+                </button>
+                <p className="hint gap-top">
+                  {n.from === 'estimate'
+                    ? 'The goals below come from your estimate. Typing a different number makes it yours instead.'
+                    : 'Optional: a starting point from your age, height, weight and activity, kept on this device. Or type numbers from a professional below.'}
+                </p>
                 <div className="lead tall">
                   <label className="k" htmlFor="goal-kcal">Calories a day</label>
                   <Leader />
@@ -218,7 +226,7 @@ export function Nutrition() {
                     )}
                     <p className="hint gap-top">
                       Remy swaps meals you haven’t approved for lighter or heavier ones, adds protein sides, then adjusts main-meal portions by up to 20%. New weeks are fitted
-                      automatically. It never plans a day under about 1,200 kcal, and your sweet always stays.
+                      automatically. It never plans a day under about {(goals.floor ?? LIGHT_DAY_KCAL).toLocaleString('en-US')} kcal, and your sweet always stays.
                     </p>
                     {n.kcal && Number(n.kcal) < LIGHT_DAY_KCAL && (
                       <div className="warnline">
@@ -228,7 +236,7 @@ export function Nutrition() {
                     )}
                   </>
                 ) : (
-                  <p className="hint gap-top">Optional. With goals, Remy fits your menu toward them. Remy never works out targets from your weight or body.</p>
+                  <p className="hint gap-top">Optional. With goals, Remy fits your menu toward them. Remy only uses your age, height or weight if you ask for the estimate above.</p>
                 )}
               </>
             )}

@@ -25,8 +25,10 @@ const safeAndAllowed = (plan: WeekPlan) =>
 
 describe('daily goals', () => {
   it('reads realistic goals and ignores the rest', () => {
-    expect(goalsOf({ kcal: '1700', pro: '120' }, {})).toEqual({ kcal: 1700, pro: 120 });
-    expect(goalsOf({ kcal: '17', pro: '' }, {})).toEqual({ kcal: null, pro: null });
+    expect(goalsOf({ kcal: '1700', pro: '120' }, {})).toEqual({ kcal: 1700, pro: 120, floor: 1200 });
+    // From the estimate: its floor applies.
+    expect(goalsOf({ kcal: '2650', pro: '115', from: 'estimate', floor: 1900 }, {})).toEqual({ kcal: 2650, pro: 115, floor: 1900 });
+    expect(goalsOf({ kcal: '17', pro: '' }, {})).toMatchObject({ kcal: null, pro: null });
   });
 
   it('brings a week down toward a lower calorie goal, safely', () => {
@@ -45,6 +47,13 @@ describe('daily goals', () => {
   it('never aims below about 1,200 kcal, even when asked to', () => {
     const fit = fitToGoals(week(), ctx, { kcal: 900, pro: null });
     for (const d of fit.plan) expect(dayNutrition(d, false).light).toBe(false);
+  });
+
+  it('aims no lower than the floor that comes with an estimate', () => {
+    const typed = fitToGoals(week(), ctx, { kcal: 1300, pro: null });
+    const floored = fitToGoals(week(), ctx, { kcal: 1300, pro: null, floor: 1900 });
+    expect(floored.kcal).toBeGreaterThan(typed.kcal);
+    expect(Math.abs(floored.kcal - 1900)).toBeLessThan(Math.abs(floored.kcal - 1300));
   });
 
   it('raises a week toward a higher goal, with portions at most 20% bigger', () => {
