@@ -5,7 +5,7 @@ import { SLOTS } from '../types';
 import slotList from './slots.json';
 
 /** kcal, protein, carbs and fat are added up from the ingredients (macros.ts), so recipes don’t list them. */
-type RecipeInput = Omit<Recipe, 'id' | 'kcal' | 'pro' | 'carb' | 'fat' | 'fiber'>;
+type RecipeInput = Omit<Recipe, 'id' | 'kcal' | 'pro' | 'carb' | 'fat' | 'fiber' | 'prod' | 'grams'>;
 
 /*
  * Tasks shared by several recipes (same \`key\`): one pot of rice or one tray of taco chicken covers them all,
@@ -61,7 +61,7 @@ const MEALS: Record<string, RecipeInput> = {
     reheat: 'Eat cold, straight from the fridge. If you want it warm, microwave 60–90 seconds and stir.',
     tasks: [{ t: 'Stir together chocolate overnight-oat jars', l: 'hands', m: 8, end: true, gear: ['mixing bowl', 'jars'], how: ['Mash {bananas} in a large bowl with a fork until smooth.', 'Stir in {oats}, {milk}, {yogurt}, {cocoa} and {honey} until no dry oats or cocoa lumps remain.', 'Divide evenly between {portions} jars, close and refrigerate. Ready after 4 hours; they keep 4 days.'] }],
     subs: [{ from: 'milk', to: 'lactose-free milk', out: 'milk', in: ['milk'] }, { from: 'bananas', to: '2 tbsp honey, if bananas get old', out: 'bananas', in: ['honey'] }],
-    prod: 0.5, plate: 'One jar is one portion.',
+    plate: 'One jar is one portion.',
   },
   pancakes: {
     name: 'Sheet-pan banana pancakes', short: 'Sheet-pan pancakes', slot: 'Breakfast', e: '🥞', serves: 8, fridge: 3, freezer: 2,
@@ -76,7 +76,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Cut pancakes into squares; bag in pairs', l: 'hands', m: 8, end: true, gear: ['freezer bag'], how: ['Cool 10 minutes, then cut into {portions*2} squares.', 'Bag them in pairs. The next 3 days go in the fridge; freeze the rest.'] },
     ],
     subs: [{ from: 'chocolate chips', to: 'berries', out: 'chips', in: ['berries'] }],
-    prod: 0.25, plate: 'Two squares are one portion.',
+    plate: 'Two squares are one portion.',
   },
   eggbites: {
     name: 'Cheesy egg & potato bites', short: 'Egg & potato bites', slot: 'Breakfast', e: '🧁', serves: 6, fridge: 4, freezer: 2,
@@ -86,7 +86,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Heat oven to 190°C and grease a 12-hole muffin tin.', 'Grate potato, squeeze dry, and divide between the holes with the cheese.', 'Whisk eggs with milk and pour over. Bake 20–22 minutes.'],
     reheat: 'Microwave 45–60 seconds until hot in the center.', thaw: 'Move to the fridge the night before, or microwave from frozen for 90 seconds.',
     tasks: [{ t: 'Grate potato and whisk eggs for egg bites', l: 'hands', m: 10 }, { t: 'Bake egg & potato bites', l: 'oven', m: 22, temp: 190 }, { t: 'Cool and box egg bites', l: 'hands', m: 4, end: true }],
-    prod: 0, plate: 'Two bites are one portion.',
+    plate: 'Two bites are one portion.',
   },
   parfait: {
     name: 'Berry yogurt parfait jars', short: 'Berry parfaits', slot: 'Breakfast', e: '🍓', serves: 3, fridge: 2, freezer: 0, cold: true,
@@ -95,7 +95,7 @@ const MEALS: Record<string, RecipeInput> = {
     why: ['Berries are a Love for you', 'Vanilla yogurt, the sweetened kind you’ll eat'],
     steps: ['Layer yogurt, berries and a drizzle of honey in 3 jars.'],
     reheat: 'Eat cold.', tasks: [{ t: 'Layer 3 berry parfait jars', l: 'hands', m: 6, end: true }],
-    prod: 1, plate: 'One jar is one portion.',
+    plate: 'One jar is one portion.',
   },
 
   /* ---------- lunch ---------- */
@@ -115,7 +115,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Glaze and portion teriyaki bowls', l: 'hands', m: 8, end: true, gear: ['containers'], how: ['Brush the chicken with the rest of the sauce.', 'Divide between {portions} containers: half chicken and vegetables, a quarter rice (about {rice*3:g} cooked rice in total).', 'Cool with the lids off for 20 minutes, then close and refrigerate.'] },
     ],
     subs: [{ from: 'chicken breast', to: 'turkey', out: 'chickenbreast', in: ['turkey'] }, { from: 'broccoli', to: 'green beans', out: 'broccoli', in: ['greenbeans'] }, { from: 'jasmine rice', to: 'pasta', out: 'rice', in: ['pasta'] }],
-    prod: 1.5, plate: 'In each container: half chicken and crispy vegetables, a quarter rice (about 140 g cooked).',
+    plate: 'In each container: half chicken and crispy vegetables, a quarter rice (about 140 g cooked).',
   },
   burritos: {
     name: 'Freezer chicken & cheese burritos', short: 'Chicken burritos', slot: 'Lunch', e: '🌯', serves: 4, fridge: 3, freezer: 3,
@@ -131,7 +131,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Fill and wrap the burritos', l: 'hands', m: 15, end: true, gear: ['mixing bowl', 'foil'], how: ['In a large bowl, mix {chickenbreast*0.75:g} of the shredded chicken with {rice*3:g} cooked rice, {corn} (thawed) and {salsa}.', 'Warm {tortillas} in the microwave for 20 seconds so they fold without cracking.', 'Divide the filling between them, top each with some of {cheddar}, fold in the sides and roll up tightly.', 'Wrap each in foil and freeze flat. Keep tomorrow’s burrito in the fridge.'] },
     ],
     subs: [{ from: 'chicken breast', to: 'ground beef', out: 'chickenbreast', in: ['beef'] }, { from: 'corn', to: 'leave it out', out: 'corn', in: [] }],
-    prod: 0.5, plate: 'One burrito is one portion. A fruit or corn side covers produce.',
+    plate: 'One burrito is one portion. A fruit or corn side covers produce.',
   },
   bbqbowl: {
     name: 'BBQ chicken & cheesy rice bowls', short: 'BBQ chicken bowl', slot: 'Lunch', e: '🍗', serves: 3, fridge: 4, freezer: 3,
@@ -141,7 +141,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Roast chicken at 220°C for 22 minutes, then toss in BBQ sauce.', 'Stir cheese into hot rice. Portion with chicken and corn.'],
     reheat: 'Microwave 2–3 minutes until 74°C.', thaw: 'Move to the fridge the night before.',
     tasks: [RICE_TASK, { t: 'Roast chicken for BBQ bowls', l: 'oven', m: 22, temp: 220 }, { t: 'Toss chicken in BBQ sauce and portion 3 bowls', l: 'hands', m: 8, end: true }],
-    prod: 0.5, plate: 'In each container: chicken and corn on one side, about 140 g cheesy rice on the other.',
+    plate: 'In each container: chicken and corn on one side, about 140 g cheesy rice on the other.',
   },
   beefbroc: {
     name: 'Beef & broccoli stir-fry', short: 'Beef & broccoli', slot: 'Lunch', e: '🥡', serves: 3, fridge: 4, freezer: 2,
@@ -151,7 +151,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Slice beef thinly against the grain.', 'Sear beef in a hot pan, remove, then steam-fry broccoli with garlic.', 'Return the beef, add oyster and soy sauce, toss 1 minute, and portion with rice.'],
     reheat: 'Microwave 2–3 minutes until 74°C.', thaw: 'Move to the fridge the night before.',
     tasks: [RICE_TASK, { t: 'Slice beef and cut broccoli', l: 'hands', m: 10 }, { t: 'Stir-fry beef and broccoli', l: 'stove', m: 15 }, { t: 'Portion 3 stir-fry bowls', l: 'hands', m: 6, end: true }],
-    prod: 1.5, plate: 'In each container: half beef and broccoli, a quarter rice.',
+    plate: 'In each container: half beef and broccoli, a quarter rice.',
   },
 
   /* ---------- dinner ---------- */
@@ -171,7 +171,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Portion sauce and pasta', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Divide the pasta between {portions} containers, and the sauce between {portions} more (about 250 ml each).', 'Refrigerate what you’ll eat in the next 4 days; freeze the rest of the sauce.', 'Keep {parmesan} for serving.'] },
     ],
     subs: [{ from: 'ground beef', to: 'ground turkey', out: 'beef', in: ['turkey'] }, { from: 'spaghetti', to: 'any pasta shape', out: 'spaghetti', in: ['pasta'] }],
-    prod: 1, plate: 'About 150 g cooked pasta with 250 ml sauce. The vegetables are already in the sauce.',
+    plate: 'About 150 g cooked pasta with 250 ml sauce. The vegetables are already in the sauce.',
   },
   tenders: {
     name: 'Crispy parmesan chicken tenders & potato wedges', short: 'Crispy tenders & wedges', slot: 'Dinner', e: '🍟', serves: 2, fridge: 1, freezer: 3,
@@ -189,7 +189,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Bag frozen tenders; box wedges', l: 'hands', m: 4, end: true, gear: ['freezer bag', 'containers'], how: ['Move the frozen tenders to a freezer bag and label it.', 'Cool the wedges, then box them for the fridge (up to 4 days). Keep {honeymustard} for dipping.'] },
     ],
     subs: [{ from: 'panko', to: 'crushed crackers', out: 'panko', in: ['crackers'] }, { from: 'honey mustard', to: 'ranch', out: 'honeymustard', in: ['ranch'] }, { from: 'honey mustard', to: 'BBQ sauce', out: 'honeymustard', in: ['bbq'] }],
-    prod: 0, plate: 'About 4 tenders and a handful of wedges. A vegetable side rounds it out.',
+    plate: 'About 4 tenders and a handful of wedges. A vegetable side rounds it out.',
   },
   quesadilla: {
     name: 'Cheesy chicken quesadillas', short: 'Chicken quesadillas', slot: 'Dinner', e: '🫓', serves: 2, fridge: 3, freezer: 3,
@@ -204,7 +204,7 @@ const MEALS: Record<string, RecipeInput> = {
       TACO_ROAST,
       { t: 'Bag taco chicken for quesadillas; freeze', l: 'hands', m: 3, end: true, gear: ['freezer bag'], how: ['Put {chickenbreast*0.75:g} of the shredded chicken in a freezer bag, press it flat and freeze.', 'Keep {tortillas}, {cheddar} and {salsa} for the night you make them.'] },
     ],
-    prod: 0, plate: 'One large quesadilla, cut into 4, with salsa.',
+    plate: 'One large quesadilla, cut into 4, with salsa.',
   },
   meatballs: {
     name: 'Turkey meatballs in marinara', short: 'Turkey meatballs', slot: 'Dinner', e: '🧆', serves: 4, fridge: 4, freezer: 3,
@@ -214,7 +214,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Mix turkey, egg, panko and parmesan; roll 16 meatballs.', 'Bake at 200°C for 18 minutes, then simmer in marinara 10 minutes.'],
     reheat: 'Microwave 2–3 minutes until 74°C.', thaw: 'Move to the fridge the night before.',
     tasks: [{ t: 'Roll 16 turkey meatballs', l: 'hands', m: 15 }, { t: 'Bake meatballs', l: 'oven', m: 18, temp: 200 }, { t: 'Simmer meatballs in marinara', l: 'stove', m: 10 }, { t: 'Portion meatballs', l: 'hands', m: 5, end: true }],
-    prod: 0.5, plate: '4 meatballs with about 180 g pasta and sauce.',
+    plate: '4 meatballs with about 180 g pasta and sauce.',
   },
   shrimp: {
     name: 'Garlic butter shrimp & rice', short: 'Garlic shrimp', slot: 'Dinner', e: '🍤', serves: 3, fridge: 3, freezer: 0,
@@ -225,7 +225,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Melt butter with sliced garlic over medium heat.', 'Add shrimp and cook 2 minutes per side until pink and opaque.', 'Portion over rice.'],
     reheat: 'Microwave 90 seconds, just until hot (74°C). Longer makes shrimp tough.',
     tasks: [RICE_TASK, { t: 'Cook garlic butter shrimp', l: 'stove', m: 10 }, { t: 'Portion 3 shrimp bowls', l: 'hands', m: 5, end: true }],
-    prod: 0, plate: 'About 140 g shrimp with 140 g cooked rice.',
+    plate: 'About 140 g shrimp with 140 g cooked rice.',
   },
   salmon: {
     name: 'Honey-soy glazed salmon', short: 'Honey-soy salmon', slot: 'Dinner', e: '🐟', serves: 3, fridge: 3, freezer: 2,
@@ -235,7 +235,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Whisk soy sauce and honey.', 'Brush over salmon and roast at 220°C for 12–14 minutes, until it flakes.', 'Portion with rice.'],
     reheat: 'Microwave at half power 2 minutes, or eat cold over rice.', thaw: 'Move to the fridge the night before.',
     tasks: [RICE_TASK, { t: 'Glaze salmon', l: 'hands', m: 5 }, { t: 'Roast salmon', l: 'oven', m: 14, temp: 220 }, { t: 'Portion 3 salmon bowls', l: 'hands', m: 5, end: true }],
-    prod: 0, plate: 'One fillet with about 140 g cooked rice.',
+    plate: 'One fillet with about 140 g cooked rice.',
   },
   chili: {
     name: 'Mild beef & bean chili', short: 'Beef & bean chili', slot: 'Dinner', e: '🍲', serves: 4, fridge: 4, freezer: 3,
@@ -245,7 +245,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Soften finely chopped onion, then brown the beef.', 'Add beans and sauce, simmer 30 minutes.', 'Cool and portion into 4 containers.'],
     reheat: 'Microwave 2–3 minutes, stirring halfway, until 74°C.', thaw: 'Move to the fridge the night before.',
     tasks: [{ t: 'Chop onion and brown beef', l: 'hands', m: 10 }, { t: 'Simmer chili', l: 'stove', m: 35 }, { t: 'Portion chili', l: 'hands', m: 5, end: true }],
-    prod: 1.5, plate: 'About 350 g.',
+    plate: 'About {grams} g.',
   },
 
   /* ---------- snacks ---------- */
@@ -256,7 +256,7 @@ const MEALS: Record<string, RecipeInput> = {
     why: ['Crunchy, cheesy and sweet, all three of your snack picks', 'No cooking, so it adds 10 minutes of packing, not cooking'],
     steps: ['Cube the cheese and wash the grapes.', 'Pack cheese and grapes in 5 small containers; keep crackers in a separate bag so they stay crunchy.'],
     reheat: 'Eat cold.', tasks: [{ t: 'Pack 5 snack boxes: cheese cubes and grapes', l: 'hands', m: 10, end: true }],
-    prod: 1, plate: 'One box.',
+    plate: 'One box.',
   },
   popcorn: {
     name: 'Kettle-style popcorn', short: 'Kettle popcorn', slot: 'Afternoon snack', e: '🍿', serves: 2, fridge: 7, freezer: 0, room: true,
@@ -264,14 +264,14 @@ const MEALS: Record<string, RecipeInput> = {
     why: ['Crunchy and a little sweet', 'Keeps a week in an airtight bag at room temperature'],
     steps: ['Heat oil in a large lidded pot, add kernels and sugar, shake constantly until popping slows.', 'Spread to cool, salt lightly, and bag in 2 portions.'],
     reheat: 'Eat at room temperature.', tasks: [{ t: 'Pop kettle corn and bag 2 portions', l: 'stove', m: 8 }],
-    prod: 0, plate: 'One bag, about 25 g.',
+    plate: 'One bag, about 25 g.',
   },
   pretzels: {
     name: 'Chocolate-dipped pretzels', short: 'Chocolate pretzels', slot: 'Afternoon snack', e: '🥨', serves: 5, fridge: 7, freezer: 0, room: true,
     foods: {}, sweet: ['Chocolate'], ing: [['pretzels', 0.25], ['chips', 60]],
     why: ['Crunchy plus chocolate'], steps: ['Melt chips in 20-second bursts, dip pretzels, set on parchment.'], reheat: 'Room temperature.',
     tasks: [{ t: 'Dip pretzels in chocolate', l: 'hands', m: 10 }],
-    prod: 0, plate: 'About 10 pretzels.',
+    plate: 'About 10 pretzels.',
   },
 
   /* ---------- sweets ---------- */
@@ -288,7 +288,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Cut brownie squares; wrap extras for the freezer', l: 'hands', m: 6, end: true, gear: ['freezer bag'], how: ['Cool completely in the pan, at least 1 hour; cold brownies cut cleanly.', 'Cut into {portions} squares. Keep 5 days’ worth in a box and freeze the rest.'] },
     ],
     subs: [{ from: 'chocolate chips', to: 'leave them out for a lighter square', out: 'chips', in: [] }],
-    prod: 0, plate: 'One small square.',
+    plate: 'One small square.',
   },
   bark: {
     name: 'Chocolate-berry frozen yogurt bark', short: 'Froyo bark', slot: 'Evening sweet', e: '🍧', serves: 6, fridge: 0, freezer: 2,
@@ -298,14 +298,14 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Stir honey and cocoa into yogurt, spread on a lined tray.', 'Scatter berries and chips, freeze at least 2 hours, then break into 6 pieces.'],
     reheat: 'Eat straight from the freezer. Let it sit 2 minutes if it’s too hard.',
     tasks: [{ t: 'Spread chocolate-berry yogurt bark on a tray', l: 'hands', m: 6 }, { t: 'Freeze bark (break into pieces tomorrow)', l: 'chill', m: 120 }],
-    prod: 0.5, plate: 'One piece.',
+    plate: 'One piece.',
   },
   icecream: {
     name: 'Mini ice cream bar', short: 'Mini ice cream bar', slot: 'Evening sweet', e: '🍦', serves: 6, fridge: 0, freezer: 2, store: true,
     foods: {}, sweet: ['Ice cream'], ing: [['icecream', 1]],
     why: ['Store-bought treats count too. This one is already portioned', 'Ice cream is on your sweets list'],
     steps: ['Buy, freeze, enjoy.'], reheat: 'Straight from the freezer.', tasks: [],
-    prod: 0, plate: 'One bar.',
+    plate: 'One bar.',
   },
   mousse: {
     name: 'Chocolate Greek-yogurt mousse cups', short: 'Chocolate mousse cup', slot: 'Evening sweet', e: '🍮', serves: 4, fridge: 4, freezer: 0, cold: true,
@@ -314,7 +314,7 @@ const MEALS: Record<string, RecipeInput> = {
     why: ['Chocolatey, creamy and cold', 'Sweetened yogurt, the form you like'],
     steps: ['Whisk yogurt, cocoa and honey until silky. Spoon into 4 small glasses and top with chips.'], reheat: 'Eat cold.',
     tasks: [{ t: 'Whisk and portion 4 mousse cups', l: 'hands', m: 7, end: true }],
-    prod: 0, plate: 'One cup.',
+    plate: 'One cup.',
   },
   cookies: {
     name: 'Freezer chocolate-chip cookie dough', short: 'Fresh-baked cookie', slot: 'Evening sweet', e: '🍪', serves: 12, fridge: 0, freezer: 3,
@@ -323,7 +323,7 @@ const MEALS: Record<string, RecipeInput> = {
     why: ['Cookies are one of your favorite sweets', 'Bake 1–2 at a time in the air fryer, so there’s no whole batch sitting around'],
     steps: ['Mix dough, scoop 12 balls onto a tray and freeze.'], reheat: 'Air fryer 160°C for 8–9 minutes from frozen.',
     tasks: [{ t: 'Mix cookie dough and scoop 12 balls', l: 'hands', m: 14 }, { t: 'Freeze dough balls', l: 'chill', m: 60 }],
-    prod: 0, plate: 'One cookie.',
+    plate: 'One cookie.',
   },
   /* ---------- more choices, so weeks can rotate ---------- */
   bfburritos: {
@@ -335,7 +335,7 @@ const MEALS: Record<string, RecipeInput> = {
     reheat: 'From frozen: remove foil, wrap in a damp paper towel, microwave 1½ minutes, flip, then 1 minute more until 74°C in the center.', thaw: 'Optional: move to the fridge the night before for a 60-second reheat.',
     tasks: [{ t: 'Dice potatoes for breakfast burritos', l: 'hands', m: 8 }, { t: 'Roast breakfast potatoes', l: 'oven', m: 25, temp: 220 }, { t: 'Scramble 10 eggs', l: 'stove', m: 10 }, { t: 'Roll and wrap 6 breakfast burritos', l: 'hands', m: 12, end: true }],
     subs: [{ from: 'salsa', to: 'leave it out', out: 'salsa', in: [] }],
-    prod: 0.25, plate: 'One burrito is one portion.',
+    plate: 'One burrito is one portion.',
   },
   muffins: {
     name: 'Banana chocolate-chip muffins', short: 'Banana muffins', slot: 'Breakfast', e: '🧁', serves: 12, fridge: 4, freezer: 3,
@@ -346,7 +346,7 @@ const MEALS: Record<string, RecipeInput> = {
     reheat: 'Eat at room temperature, or microwave 15 seconds.', thaw: 'Frozen muffins thaw on the counter in about 30 minutes, or microwave 30 seconds.',
     tasks: [{ t: 'Mix banana muffin batter', l: 'hands', m: 12 }, { t: 'Bake banana muffins', l: 'oven', m: 22, temp: 180 }, { t: 'Cool and bag muffins; freeze half', l: 'hands', m: 5, end: true }],
     subs: [{ from: 'chocolate chips', to: 'berries', out: 'chips', in: ['berries'] }],
-    prod: 0.25, plate: 'One muffin. Add a yogurt cup or eggs for protein.',
+    plate: 'One muffin. Add a yogurt cup or eggs for protein.',
   },
   pboats: {
     name: 'Peanut butter banana overnight oats', short: 'PB banana oats', slot: 'Breakfast', e: '🥜', serves: 4, fridge: 4, freezer: 0, cold: true,
@@ -356,7 +356,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Mash the bananas in a large bowl.', 'Stir in oats, milk, yogurt, peanut butter and honey.', 'Divide between 4 jars, lid and refrigerate.'],
     reheat: 'Eat cold, or microwave 60–90 seconds and stir.',
     tasks: [{ t: 'Stir together 4 PB banana oat jars', l: 'hands', m: 8, end: true }],
-    prod: 0.5, plate: 'One jar is one portion.',
+    plate: 'One jar is one portion.',
   },
   tacobowl: {
     name: 'Turkey taco rice bowls', short: 'Turkey taco bowl', slot: 'Lunch', e: '🌮', serves: 4, fridge: 4, freezer: 3,
@@ -367,7 +367,7 @@ const MEALS: Record<string, RecipeInput> = {
     reheat: 'Microwave 2–3 minutes until 74°C.', thaw: 'Move to the fridge the night before.',
     tasks: [RICE_TASK, { t: 'Brown taco turkey', l: 'stove', m: 12 }, { t: 'Portion 4 turkey taco bowls', l: 'hands', m: 8, end: true }],
     subs: [{ from: 'ground turkey', to: 'ground beef', out: 'turkey', in: ['beef'] }],
-    prod: 0.75, plate: 'In each container: turkey and corn over about 140 g cooked rice.',
+    plate: 'In each container: turkey and corn over about 140 g cooked rice.',
   },
   chickenpasta: {
     name: 'Cheesy chicken & broccoli pasta bake', short: 'Chicken pasta bake', slot: 'Lunch', e: '🧀', serves: 5, fridge: 4, freezer: 2,
@@ -378,7 +378,7 @@ const MEALS: Record<string, RecipeInput> = {
     reheat: 'Microwave 2–3 minutes with a splash of milk until steaming (74°C).', thaw: 'Move to the fridge the night before.',
     tasks: [{ t: 'Cut chicken and chop broccoli small', l: 'hands', m: 10 }, { t: 'Boil pasta (2 minutes under) with broccoli', l: 'stove', m: 12 }, { t: 'Make cheese sauce', l: 'stove', m: 10 }, { t: 'Bake chicken pasta', l: 'oven', m: 20, temp: 190 }, { t: 'Portion 5 pasta bakes', l: 'hands', m: 5, end: true }],
     subs: [{ from: 'broccoli', to: 'corn', out: 'broccoli', in: ['corn'] }],
-    prod: 0.75, plate: 'About 400 g, a fifth of the dish.',
+    plate: 'About {grams} g, a fifth of the dish.',
   },
   hmchicken: {
     name: 'Honey-mustard chicken & crispy potatoes', short: 'Honey-mustard chicken', slot: 'Lunch', e: '🍯', serves: 3, fridge: 4, freezer: 0,
@@ -390,7 +390,7 @@ const MEALS: Record<string, RecipeInput> = {
     reheat: 'Air fryer 190°C for 6 minutes to re-crisp, or microwave 2 minutes until 74°C.',
     tasks: [{ t: 'Cut potatoes and carrots; sauce the chicken', l: 'hands', m: 12 }, { t: 'Roast honey-mustard chicken and potatoes', l: 'oven', m: 30, temp: 220, pans: 2 }, { t: 'Portion 3 honey-mustard containers', l: 'hands', m: 5, end: true }],
     subs: [{ from: 'carrots', to: 'green beans', out: 'carrots', in: ['greenbeans'] }],
-    prod: 1, plate: 'In each container: chicken, a fist of potatoes, and carrots.',
+    plate: 'In each container: chicken, a fist of potatoes, and carrots.',
   },
   friedrice: {
     name: 'Chicken fried rice', short: 'Chicken fried rice', slot: 'Lunch', e: '🍳', serves: 4, fridge: 4, freezer: 2,
@@ -400,7 +400,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Cook the rice and spread it out to cool (day-old texture fries best).', 'Stir-fry diced chicken until cooked through, then the carrots, corn and garlic.', 'Push aside, scramble the eggs, then add the rice and soy sauce and fry 3 minutes.'],
     reheat: 'Microwave 2 minutes, stirring halfway, until 74°C.', thaw: 'Move to the fridge the night before.',
     tasks: [RICE_TASK, { t: 'Dice chicken and carrots', l: 'hands', m: 10 }, { t: 'Stir-fry chicken fried rice', l: 'stove', m: 15 }, { t: 'Portion 4 fried rice containers', l: 'hands', m: 5, end: true }],
-    prod: 1, plate: 'About 350 g.',
+    plate: 'About {grams} g.',
   },
   macncheese: {
     name: 'Baked mac & cheese with hidden carrots', short: 'Mac & cheese', slot: 'Dinner', e: '🧀', serves: 5, fridge: 4, freezer: 2,
@@ -410,7 +410,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Simmer sliced carrots in the milk until very soft, then blend smooth.', 'Melt butter, whisk in flour, add the carrot milk and simmer until thick; stir in cheddar.', 'Mix with pasta cooked 2 minutes under, top with panko, and bake at 190°C for 20 minutes.'],
     reheat: 'Microwave 2 minutes with a splash of milk, stirring halfway, until steaming.', thaw: 'Move to the fridge the night before.',
     tasks: [{ t: 'Simmer carrots in milk and blend', l: 'stove', m: 15 }, { t: 'Boil pasta (2 minutes under)', l: 'stove', m: 10 }, { t: 'Make mac & cheese sauce and assemble', l: 'hands', m: 10 }, { t: 'Bake mac & cheese', l: 'oven', m: 20, temp: 190 }, { t: 'Portion mac & cheese', l: 'hands', m: 5, end: true }],
-    prod: 0.5, plate: 'About 350 g. Add a protein side, like string cheese or eggs, to round it out.',
+    plate: 'About {grams} g. Add a protein side, like string cheese or eggs, to round it out.',
   },
   burgerpasta: {
     name: 'Cheeseburger pasta skillet', short: 'Cheeseburger pasta', slot: 'Dinner', e: '🍔', serves: 4, fridge: 4, freezer: 2,
@@ -421,7 +421,7 @@ const MEALS: Record<string, RecipeInput> = {
     reheat: 'Microwave 2–3 minutes with a splash of water until 74°C.', thaw: 'Move to the fridge the night before.',
     tasks: [{ t: 'Chop onion and brown beef', l: 'hands', m: 10 }, { t: 'Simmer cheeseburger pasta', l: 'stove', m: 15 }, { t: 'Portion cheeseburger pasta', l: 'hands', m: 5, end: true }],
     subs: [{ from: 'ground beef', to: 'ground turkey', out: 'beef', in: ['turkey'] }],
-    prod: 0.25, plate: 'About 350 g. A vegetable side covers produce.',
+    plate: 'About {grams} g. A vegetable side covers produce.',
   },
   meatloaves: {
     name: 'Mini BBQ meatloaves & mashed potatoes', short: 'Mini meatloaves', slot: 'Dinner', e: '🥔', serves: 4, fridge: 4, freezer: 3,
@@ -431,7 +431,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Mix beef, panko, egg and grated onion; press into 8 muffin cups and brush with BBQ sauce.', 'Bake at 200°C for 20 minutes, to 71°C inside.', 'Boil potatoes 15 minutes and mash with milk and butter.'],
     reheat: 'Microwave 2–3 minutes until 74°C.', thaw: 'Move to the fridge the night before.',
     tasks: [{ t: 'Mix and shape 8 mini meatloaves', l: 'hands', m: 12 }, { t: 'Bake mini meatloaves', l: 'oven', m: 20, temp: 200 }, { t: 'Boil potatoes for mash', l: 'stove', m: 18 }, { t: 'Mash potatoes and portion with meatloaves', l: 'hands', m: 8, end: true }],
-    prod: 0.25, plate: 'Two mini meatloaves with about 150 g mash.',
+    plate: 'Two mini meatloaves with about 150 g mash.',
   },
   beanquesadilla: {
     name: 'Black bean & corn quesadillas', short: 'Bean & corn quesadillas', slot: 'Dinner', e: '🫘', serves: 4, fridge: 4, freezer: 2,
@@ -442,7 +442,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Mash half the beans; stir in the rest with corn and taco seasoning.', 'Spread on half of each tortilla, add cheese, fold, and stack with parchment between them.', 'On the night: air-fry at 190°C for 6 minutes, or cook in a dry pan 2–3 minutes per side.'],
     reheat: 'Cooked fresh on the night, until the cheese melts and the filling is hot.', thaw: 'If frozen, move to the fridge the night before.',
     tasks: [{ t: 'Mash beans and assemble 4 quesadillas', l: 'hands', m: 12, end: true }],
-    prod: 1, plate: 'One quesadilla, cut in 4, with salsa.',
+    plate: 'One quesadilla, cut in 4, with salsa.',
   },
   energybites: {
     name: 'No-bake chocolate oat bites', short: 'Chocolate oat bites', slot: 'Afternoon snack', e: '🍫', serves: 8, fridge: 7, freezer: 3,
@@ -452,7 +452,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Stir oats, peanut butter, honey, vanilla and chips together.', 'Chill 30 minutes, then roll 16 bites.'],
     reheat: 'Eat cold from the fridge.', thaw: 'Frozen bites soften in 10 minutes.',
     tasks: [{ t: 'Mix chocolate oat bites', l: 'hands', m: 6 }, { t: 'Chill oat bite mixture', l: 'chill', m: 30 }, { t: 'Roll 16 oat bites', l: 'hands', m: 8, end: true }],
-    prod: 0, plate: 'Two bites.',
+    plate: 'Two bites.',
   },
   applepb: {
     name: 'Apple slices with peanut butter', short: 'Apple & peanut butter', slot: 'Afternoon snack', e: '🍏', serves: 4, fridge: 7, freezer: 0, room: true,
@@ -462,7 +462,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Portion 2 tbsp (30 g) peanut butter into 4 small lidded cups.', 'Slice an apple when you eat it.'],
     reheat: 'Eat fresh.',
     tasks: [{ t: 'Portion 4 peanut butter cups', l: 'hands', m: 4, end: true }],
-    prod: 1, plate: 'One apple with 2 tbsp (30 g) peanut butter.',
+    plate: 'One apple with 2 tbsp (30 g) peanut butter.',
   },
   pizzabites: {
     name: 'Tortilla pizza bites', short: 'Pizza bites', slot: 'Afternoon snack', e: '🍕', serves: 4, fridge: 4, freezer: 2,
@@ -472,7 +472,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Cut tortillas into wedges, spread thinly with marinara and top with cheese.', 'Bake at 200°C for 8 minutes until crisp and bubbling. Cool and box.'],
     reheat: 'Air fryer 190°C for 3 minutes to re-crisp, or eat at room temperature.', thaw: 'Re-crisp straight from frozen: 5 minutes in the air fryer.',
     tasks: [{ t: 'Top tortilla wedges for pizza bites', l: 'hands', m: 8 }, { t: 'Bake pizza bites', l: 'oven', m: 8, temp: 200 }],
-    prod: 0.25, plate: 'Six wedges.',
+    plate: 'Six wedges.',
   },
   cheesecake: {
     name: 'No-bake berry cheesecake cups', short: 'Cheesecake cup', slot: 'Evening sweet', e: '🍰', serves: 6, fridge: 4, freezer: 0, cold: true,
@@ -482,7 +482,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Crush graham crackers, mix with melted butter, and press into 6 small cups.', 'Beat cream cheese, yogurt, sugar and vanilla until smooth; spoon over the crusts.', 'Top with thawed berries and chill.'],
     reheat: 'Eat cold.',
     tasks: [{ t: 'Press graham crusts into 6 cups', l: 'hands', m: 6 }, { t: 'Beat cheesecake filling and fill cups', l: 'hands', m: 8, end: true }],
-    prod: 0.25, plate: 'One cup.',
+    plate: 'One cup.',
   },
   bananabites: {
     name: 'Frozen chocolate banana bites', short: 'Choc banana bites', slot: 'Evening sweet', e: '🍌', serves: 6, fridge: 0, freezer: 2,
@@ -492,7 +492,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Slice bananas into coins and dip halfway in melted chocolate.', 'Freeze on a lined tray for 1 hour, then bag in 6 portions.'],
     reheat: 'Straight from the freezer; let them sit 2 minutes.',
     tasks: [{ t: 'Dip banana coins in chocolate', l: 'hands', m: 10 }, { t: 'Freeze banana bites', l: 'chill', m: 60 }],
-    prod: 0.5, plate: 'About 8 coins.',
+    plate: 'About 8 coins.',
   },
 
   /* ---------- Colombian, Mexican, Italian, American, and lighter dinners (all written out in full, all mild) ---------- */
@@ -510,7 +510,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Cool and bag arepas', l: 'hands', m: 5, end: true, gear: ['freezer bag'], how: ['Cool on a rack, then bag in pairs. Keep 4 days’ worth in the fridge and freeze the rest with baking paper between them.'] },
     ],
     subs: [{ from: 'mozzarella', to: 'queso fresco, crumbled', out: 'mozzarella', in: ['quesofresco'] }],
-    prod: 0, plate: 'Two arepas. Add scrambled eggs or a yogurt cup for protein.',
+    plate: 'Two arepas. Add scrambled eggs or a yogurt cup for protein.',
   },
   bfsandwich: {
     name: 'Turkey sausage & egg muffin sandwiches', short: 'Egg muffin sandwiches', slot: 'Breakfast', e: '🥪', serves: 6, fridge: 3, freezer: 2,
@@ -525,7 +525,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Brown turkey sausage patties', l: 'stove', m: 10, gear: ['large nonstick pan'], how: ['Cook {turkeysausage} in a dry pan over medium heat, 4–5 minutes per side, until 74°C inside.'] },
       { t: 'Assemble and wrap egg muffin sandwiches', l: 'hands', m: 10, end: true, gear: ['foil', 'freezer bag'], how: ['Split {englishmuffins}. Cut the egg into {portions} squares.', 'Fill each muffin with a sausage patty and an egg square, and let them cool completely.', 'Wrap each in foil and bag them. Keep 3 in the fridge and freeze the rest.'] },
     ],
-    prod: 0, plate: 'One sandwich. Fruit on the side covers produce.',
+    plate: 'One sandwich. Fruit on the side covers produce.',
   },
   frittata: {
     name: 'Spinach & cheese frittata squares', short: 'Frittata squares', slot: 'Breakfast', e: '🥚', serves: 6, fridge: 4, freezer: 2,
@@ -540,7 +540,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Bake the frittata', l: 'oven', m: 25, temp: 180, how: ['Bake at 180°C for 22–25 minutes, until puffed and set in the center.'] },
       { t: 'Cut and box frittata squares', l: 'hands', m: 5, end: true, gear: ['containers'], how: ['Cool 10 minutes, cut into {portions} squares and box them. Freeze what you won’t eat in 4 days.'] },
     ],
-    prod: 0.5, plate: 'One square. Add toast or fruit if you want more.',
+    plate: 'One square. Add toast or fruit if you want more.',
   },
 
   pericos: {
@@ -557,7 +557,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Cook the hogao for pericos', l: 'stove', m: 8, gear: ['medium pot'], how: ['Finely chop {tomatoes} and {scallions}, and cook in {oil} over medium heat for 6 minutes, until soft. Season with salt and box it.'] },
       { t: 'Bag arepas and pack the pericos kit', l: 'hands', m: 4, end: true, gear: ['freezer bag'], how: ['Cool the arepas and bag them; freeze what you won’t eat in 4 days.', 'Keep {eggs} and {quesofresco} for the mornings.'] },
     ],
-    prod: 0.5, plate: 'One arepa with 2 eggs scrambled with hogao.',
+    plate: 'One arepa with 2 eggs scrambled with hogao.',
   },
 
   /* lunch */
@@ -573,7 +573,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Cook arroz con pollo', l: 'stove', m: 35, gear: ['large deep pan with a lid', 'sieve'], how: ['Brown the chicken in {oil} over medium-high heat, 4 minutes, then lift it onto a plate. Cook the chopped vegetables in the same pan 5 minutes, until soft.', 'Stir in {rice} (rinsed) and {chickenbroth}, and bring to a boil.', 'Cover, turn the heat to low and cook 8 minutes. Lay the chicken on top, cover again and cook 10 minutes more, until the rice is tender and the chicken reaches 74°C.', 'Scatter {peas} on top, cover again and rest 5 minutes off the heat, then fluff.'] },
       { t: 'Portion arroz con pollo', l: 'hands', m: 5, end: true, gear: ['containers'], how: ['Spread on a tray to cool quickly, then divide between {portions} containers and refrigerate within an hour.'] },
     ],
-    prod: 1.25, plate: 'About 380 g. Avocado slices on the side are traditional.',
+    plate: 'About {grams} g. Avocado slices on the side are traditional.',
   },
   frijoles: {
     name: 'Colombian red bean bowls with sweet plantain', short: 'Frijoles bowl', slot: 'Lunch', e: '🫘', serves: 4, fridge: 4, freezer: 3,
@@ -590,7 +590,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Bake sweet plantain slices', l: 'oven', m: 25, temp: 200, gear: ['sheet pan', 'baking paper'], how: ['Peel {plantains} and cut into thick diagonal slices.', 'Bake on a lined sheet pan at 200°C for 20–25 minutes, turning once, until soft and caramelized.'] },
       { t: 'Portion frijoles bowls', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Divide rice (about {rice*3:g} cooked in total), beans, beef and plantain between {portions} containers. Cool, then refrigerate.'] },
     ],
-    prod: 1.5, plate: 'Rice, beans, beef and plantain. Add avocado slices when you eat it.',
+    plate: 'Rice, beans, beef and plantain. Add avocado slices when you eat it.',
   },
   fajitabowl: {
     name: 'Chicken fajita rice bowls', short: 'Fajita bowl', slot: 'Lunch', e: '🫑', serves: 4, fridge: 4, freezer: 2,
@@ -605,7 +605,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Roast fajita chicken and vegetables (2 pans)', l: 'oven', m: 22, temp: 220, pans: 2, how: ['Roast at 220°C for 20–22 minutes, swapping shelves halfway, until the pepper edges char and the chicken reaches 74°C.', 'Squeeze {limes} over everything.'] },
       { t: 'Portion fajita bowls', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Divide rice (about {rice*3:g} cooked), chicken and vegetables between {portions} containers and top with {cheddar}.', 'Keep {salsa} in small cups on the side.'] },
     ],
-    prod: 1.5, plate: 'Half chicken and peppers, a quarter rice, a little cheese.',
+    plate: 'Half chicken and peppers, a quarter rice, a little cheese.',
   },
   pestopasta: {
     name: 'Pesto chicken pasta with green beans', short: 'Pesto chicken pasta', slot: 'Lunch', e: '🌿', serves: 4, fridge: 4, freezer: 2,
@@ -621,7 +621,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Boil pasta with green beans', l: 'stove', m: 12, gear: ['large pot', 'colander'], how: ['Boil {pasta} in salted water for 1 minute less than the packet says, adding {greenbeans} for the last 4 minutes.', 'Keep a mug of the pasta water, then drain.'] },
       { t: 'Toss pesto pasta and portion', l: 'hands', m: 6, end: true, gear: ['mixing bowl', 'containers'], how: ['Toss the pasta and beans with {pesto}, the juice of {lemons} and a splash of pasta water until glossy.', 'Divide between {portions} containers and top with the sliced chicken and {parmesan}.'] },
     ],
-    prod: 0.75, plate: 'About 350 g: pasta and beans with a sliced chicken breast on top.',
+    plate: 'About {grams} g: pasta and beans with a sliced chicken breast on top.',
   },
   greekbowl: {
     name: 'Greek chicken bowls with tzatziki', short: 'Greek chicken bowl', slot: 'Lunch', e: '🥙', serves: 4, fridge: 4, freezer: 0,
@@ -638,7 +638,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Make tzatziki and chop the salad', l: 'hands', m: 10, gear: ['grater'], how: ['Grate half of {cucumber}, squeeze out the water and stir into {plainyogurt} with a pinch of salt.', 'Dice the rest of the cucumber and {tomatoes}.'] },
       { t: 'Portion Greek bowls', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Divide rice (about {rice*3:g} cooked) and chicken between {portions} containers.', 'Put the salad and {feta} in one corner and the tzatziki in a small cup, so the rest reheats without them.'] },
     ],
-    prod: 1.25, plate: 'Half chicken and salad, a quarter rice, a spoon of tzatziki.',
+    plate: 'Half chicken and salad, a quarter rice, a spoon of tzatziki.',
   },
   lemonchicken: {
     name: 'Lemon-herb chicken & roasted vegetables', short: 'Lemon-herb chicken', slot: 'Lunch', e: '🍋', serves: 4, fridge: 4, freezer: 0,
@@ -653,7 +653,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Roast lemon-herb chicken and vegetables (2 pans)', l: 'oven', m: 28, temp: 220, pans: 2, how: ['Roast the potato pan at 220°C for 28 minutes, turning once. Put the chicken pan in after 6 minutes, so it roasts 20–22 minutes, until the chicken reaches 74°C.'] },
       { t: 'Slice and portion lemon chicken', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Slice the chicken and divide it with the vegetables between {portions} containers. Cool, then refrigerate.'] },
     ],
-    prod: 1.5, plate: 'Half vegetables, a quarter chicken, a quarter potatoes.',
+    plate: 'Half vegetables, a quarter chicken, a quarter potatoes.',
   },
 
   tunapasta: {
@@ -668,7 +668,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Boil pasta for tuna salad', l: 'stove', m: 12, gear: ['large pot', 'colander'], how: ['Boil {pasta} in salted water for the time on the packet, adding {corn} and {peas} for the last 2 minutes.', 'Drain, rinse under cold water until cool and drain well.'] },
       { t: 'Mix and portion tuna pasta salad', l: 'hands', m: 8, end: true, gear: ['mixing bowl', 'containers'], how: ['Drain {tuna} and flake it into a large bowl with {mayo}, the juice of {lemons}, salt and pepper.', 'Fold in the pasta and vegetables, and divide between {portions} containers.'] },
     ],
-    prod: 0.75, plate: 'About 300 g.',
+    plate: 'About {grams} g.',
   },
 
   pechuga: {
@@ -686,7 +686,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Cook the hogao', l: 'stove', m: 10, how: ['Finely chop {tomatoes} and {scallions}, and cook in {oil*0.5} over medium heat for 8 minutes, until soft and jammy. Season with salt.'] },
       { t: 'Portion pechuga lunches', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Divide rice (about {rice*3:g} cooked), sliced chicken and hogao between {portions} containers.', 'Keep {avocados} whole until the day you eat them.'] },
     ],
-    prod: 1, plate: 'Half chicken and hogao, a quarter rice, and half an avocado.',
+    plate: 'Half chicken and hogao, a quarter rice, and half an avocado.',
   },
   sandwich: {
     name: 'Chicken, avocado & cheese sandwiches', short: 'Chicken avocado sandwich', slot: 'Lunch', e: '🥪', serves: 4, fridge: 4, freezer: 0, cold: true,
@@ -701,7 +701,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Roast sandwich chicken', l: 'oven', m: 22, temp: 220, how: ['Roast at 220°C for 20–22 minutes, until 74°C in the thickest part. Cool before slicing.'] },
       { t: 'Slice and pack sandwich fillings', l: 'hands', m: 10, end: true, gear: ['containers'], how: ['Slice the chicken thin, slice {cheeseblock} and {tomatoes}, and wash and dry {lettuce}.', 'Pack the fillings in {portions} boxes. Keep {bread} in its bag, and {avocados} and {limes} whole until the day you eat it.'] },
     ],
-    prod: 1, plate: 'One sandwich (2 slices of bread).',
+    plate: 'One sandwich (2 slices of bread).',
   },
   wraps: {
     name: 'Chicken ranch wraps', short: 'Chicken ranch wraps', slot: 'Lunch', e: '🌯', serves: 4, fridge: 4, freezer: 0, cold: true,
@@ -716,7 +716,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Roast wrap chicken', l: 'oven', m: 22, temp: 220, how: ['Roast at 220°C for 20–22 minutes, until 74°C in the thickest part.'] },
       { t: 'Slice and pack wrap fillings', l: 'hands', m: 10, end: true, gear: ['containers'], how: ['Slice the chicken into strips. Chop {lettuce}, dice {tomatoes}, and pack them with {cheddar} and the chicken in {portions} boxes.', 'Put {ranch} in small cups and keep {tortillas} in their bag.'] },
     ],
-    prod: 1, plate: 'One large wrap.',
+    plate: 'One large wrap.',
   },
 
   alfredo: {
@@ -733,7 +733,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Make the alfredo sauce', l: 'stove', m: 8, gear: ['medium pot'], how: ['Melt {butter}, add {garlic} (grated) and cook 1 minute.', 'Add {cream} and {milk}, simmer 3 minutes, then stir in {parmesan} until smooth.'] },
       { t: 'Toss and portion chicken alfredo', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Toss the pasta, peas and chicken with the sauce, loosening with a splash of pasta water, and divide between {portions} containers.'] },
     ],
-    prod: 0.5, plate: 'About 350 g. A green side rounds it out.',
+    plate: 'About {grams} g. A green side rounds it out.',
   },
   salmonbowl: {
     name: 'Honey-soy salmon & avocado rice bowls', short: 'Salmon avocado bowl', slot: 'Lunch', e: '🍚', serves: 3, fridge: 3, freezer: 0,
@@ -749,7 +749,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Roast salmon for bowls', l: 'oven', m: 14, temp: 220, how: ['Roast at 220°C for 12–14 minutes, until it flakes easily and reaches 63°C.'] },
       { t: 'Portion salmon bowls', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Flake the salmon over rice (about {rice*3:g} cooked) in {portions} containers and add sliced {cucumber}.', 'Keep {avocados} and {limes} to add when you eat it.'] },
     ],
-    prod: 1, plate: 'Salmon, rice, cucumber and half an avocado.',
+    plate: 'Salmon, rice, cucumber and half an avocado.',
   },
   tunaavocado: {
     name: 'Tuna-stuffed avocados', short: 'Tuna-stuffed avocado', slot: 'Lunch', e: '🥑', serves: 2, fridge: 3, freezer: 0, cold: true,
@@ -759,7 +759,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Mix tuna with a little mayonnaise, lime, tomato and corn.', 'Halve an avocado and fill it when you eat it.'],
     reheat: 'Halve an avocado, remove the pit, and pile in half the tuna salad. 2 minutes.',
     tasks: [{ t: 'Mix tuna salad for stuffed avocados', l: 'hands', m: 6, end: true, gear: ['mixing bowl', 'containers'], how: ['Drain {tuna} and mix with {mayo}, the juice of {limes}, diced {tomatoes}, {corn} (thawed), salt and pepper. Box it for the fridge.', 'Keep {avocados} whole, to halve and fill when you eat them.'] }],
-    prod: 1.5, plate: 'One whole avocado, filled.',
+    plate: 'One whole avocado, filled.',
   },
   caesar: {
     name: 'Chicken caesar salad with homemade croutons', short: 'Chicken caesar', slot: 'Lunch', e: '🥗', serves: 4, fridge: 4, freezer: 0, cold: true,
@@ -774,7 +774,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Roast caesar chicken and croutons (2 pans)', l: 'oven', m: 22, temp: 220, pans: 2, how: ['Roast the chicken at 220°C for 20–22 minutes, until 74°C inside. Take the croutons out after 10–12 minutes, when golden and crisp.'] },
       { t: 'Pack caesar salads', l: 'hands', m: 10, end: true, gear: ['containers', 'freezer bag'], how: ['Chop {lettuce}, and pack it with the sliced chicken and {parmesan} in {portions} boxes.', 'Bag the croutons, and put {caesar} in small cups.'] },
     ],
-    prod: 1, plate: 'One big box of salad, dressing and croutons on the side.',
+    plate: 'One big box of salad, dressing and croutons on the side.',
   },
 
   /* dinner */
@@ -791,7 +791,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Simmer ajiaco', l: 'stove', m: 45, gear: ['large pot'], how: ['Put {chickenbreast}, the green onions, garlic and small potato cubes in the pot with {chickenbroth}. Simmer 20 minutes.', 'Lift out the chicken. Add the large potato chunks and {corn}, and simmer 20 minutes more, until the small cubes have broken down and thickened the soup.', 'Shred the chicken, return it to the pot and season with salt.'] },
       { t: 'Portion ajiaco', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Cool the soup in shallow containers, then refrigerate or freeze.', 'Keep {sourcream} and {avocados} to add when you eat it.'] },
     ],
-    prod: 0.75, plate: 'One big bowl, about 450 ml, with sour cream and avocado.',
+    plate: 'One big bowl, about {grams} g, with sour cream and avocado.',
   },
   sudado: {
     name: 'Colombian chicken sudado (tomato-braised chicken & potatoes)', short: 'Chicken sudado', slot: 'Lunch', e: '🍗', serves: 4, fridge: 4, freezer: 3,
@@ -806,7 +806,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Braise chicken sudado', l: 'stove', m: 40, gear: ['large deep pan with a lid'], how: ['Cook the tomato, onion and garlic in {oil} with {cumin} and {paprika} over medium heat for 8 minutes, until soft.', 'Add the potatoes with 250 ml water and a pinch of salt, cover and simmer 15 minutes.', 'Cut {chickenbreast} into large chunks, tuck them into the sauce, cover and simmer 12–15 minutes more, until the potatoes are tender and the chicken reaches 74°C.'] },
       { t: 'Portion chicken sudado', l: 'hands', m: 5, end: true, gear: ['containers'], how: ['Divide the chicken, potatoes and sauce between {portions} containers with rice (about {rice*3:g} cooked in total). Cool, then refrigerate or freeze.'] },
     ],
-    prod: 1, plate: 'Chicken and potatoes in sauce, with about 140 g cooked rice.',
+    plate: 'Chicken and potatoes in sauce, with about 140 g cooked rice.',
   },
   enchiladas: {
     name: 'Mild chicken enchiladas', short: 'Chicken enchiladas', slot: 'Dinner', e: '🫔', serves: 4, fridge: 4, freezer: 3,
@@ -821,7 +821,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Bake enchiladas', l: 'oven', m: 20, temp: 200, how: ['Bake at 200°C for 20 minutes, until bubbling at the edges.'] },
       { t: 'Portion enchiladas', l: 'hands', m: 5, end: true, gear: ['containers'], how: ['Cool 10 minutes, then box {portions} portions of 2 enchiladas each. Freeze what you won’t eat in 4 days.'] },
     ],
-    prod: 0.25, plate: 'Two enchiladas. Corn or a salad on the side covers produce.',
+    plate: 'Two enchiladas. Corn or a salad on the side covers produce.',
   },
   tortillasoup: {
     name: 'Chicken tortilla soup', short: 'Tortilla soup', slot: 'Dinner', e: '🍜', serves: 5, fridge: 4, freezer: 3,
@@ -836,7 +836,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Bake crispy tortilla strips', l: 'oven', m: 12, temp: 200, gear: ['sheet pan', 'baking paper'], how: ['Cut {corntortillas} into thin strips, spread on a lined sheet pan and bake at 200°C for 10–12 minutes, until crisp. Cool and bag them.'] },
       { t: 'Portion tortilla soup', l: 'hands', m: 5, end: true, gear: ['containers'], how: ['Cool the soup in shallow containers, then divide into {portions} portions for the fridge or freezer. Keep the tortilla strips in a bag at room temperature.'] },
     ],
-    prod: 1.5, plate: 'One big bowl, about 450 ml, with a handful of tortilla strips.',
+    plate: 'One big bowl, about {grams} g, with a handful of tortilla strips.',
   },
   lasagna: {
     name: 'Classic beef lasagna', short: 'Lasagna', slot: 'Dinner', e: '🥘', serves: 8, fridge: 4, freezer: 3,
@@ -852,7 +852,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Bake lasagna', l: 'oven', m: 50, temp: 190, how: ['Bake covered at 190°C for 35 minutes, then uncovered for 15 minutes, until bubbling and golden.'] },
       { t: 'Cut and portion lasagna', l: 'hands', m: 8, end: true, gear: ['containers'], how: ['Rest 20 minutes so it slices cleanly, then cut into {portions} pieces.', 'Refrigerate 4 days’ worth and freeze the rest in single portions.'] },
     ],
-    prod: 0.5, plate: 'One piece, about a 10 cm square. Green beans or a salad on the side covers produce.',
+    plate: 'One piece, about a 10 cm square. Green beans or a salad on the side covers produce.',
   },
   chickenparm: {
     name: 'Baked chicken parmesan with spaghetti', short: 'Chicken parmesan', slot: 'Dinner', e: '🍝', serves: 4, fridge: 4, freezer: 3,
@@ -867,7 +867,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Boil spaghetti for chicken parmesan', l: 'stove', m: 12, gear: ['large pot', 'colander'], how: ['Boil {spaghetti} in salted water for 1 minute less than the packet says. Drain and toss with the rest of the marinara.'] },
       { t: 'Portion chicken parmesan', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Divide the spaghetti between {portions} containers and top each with a cutlet.'] },
     ],
-    prod: 0.5, plate: 'One cutlet with about 150 g cooked spaghetti. A green side covers produce.',
+    plate: 'One cutlet with about 150 g cooked spaghetti. A green side covers produce.',
   },
   minestrone: {
     name: 'Hearty minestrone soup', short: 'Minestrone', slot: 'Dinner', e: '🥣', serves: 6, fridge: 4, freezer: 2,
@@ -882,7 +882,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Simmer minestrone', l: 'stove', m: 35, gear: ['large pot'], how: ['Soften the vegetables in {oil} over medium heat for 8 minutes.', 'Add {crushedtomatoes}, {vegbroth}, {herbs} and {redbeans} (drained). Simmer 15 minutes.', 'Add {pasta} and cook 10 minutes, until tender, then stir in {spinach} until wilted. Season with salt and pepper.'] },
       { t: 'Portion minestrone', l: 'hands', m: 5, end: true, gear: ['containers'], how: ['Cool in shallow containers, then divide into {portions} portions for the fridge or freezer. Keep {parmesan} for the top.'] },
     ],
-    prod: 2.5, plate: 'One big bowl, about 450 ml. Add string cheese or eggs on the side to make it more filling.',
+    plate: 'One big bowl, about {grams} g. Add string cheese or eggs on the side to make it more filling.',
   },
   turkeyburgers: {
     name: 'Turkey burgers & sweet potato wedges', short: 'Turkey burgers', slot: 'Dinner', e: '🍔', serves: 4, fridge: 3, freezer: 3,
@@ -897,7 +897,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Bake turkey burgers and sweet potato wedges (2 pans)', l: 'oven', m: 25, temp: 220, pans: 2, how: ['Bake both pans at 220°C: the burgers 18–20 minutes until 74°C inside, the wedges 25 minutes, turning once.', 'Put {cheddar} on the burgers for the last 2 minutes.'] },
       { t: 'Box burgers and wedges', l: 'hands', m: 5, end: true, gear: ['containers', 'freezer bag'], how: ['Cool, then box each burger with its wedges. Keep {buns} in their bag, and freeze the burgers you won’t eat in 3 days.'] },
     ],
-    prod: 1, plate: 'One burger on a bun with a handful of wedges.',
+    plate: 'One burger on a bun with a handful of wedges.',
   },
   lemonsalmon: {
     name: 'Lemon-baked salmon with crispy potatoes & green beans', short: 'Lemon salmon', slot: 'Dinner', e: '🐟', serves: 3, fridge: 3, freezer: 0,
@@ -912,7 +912,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Roast lemon salmon and potatoes (2 pans)', l: 'oven', m: 25, temp: 220, pans: 2, how: ['Roast the potatoes at 220°C for 25 minutes. Put the salmon pan in for the last 12–14 minutes, until the salmon flakes easily and reaches 63°C.'] },
       { t: 'Portion lemon salmon', l: 'hands', m: 5, end: true, gear: ['containers'], how: ['Divide between {portions} containers and refrigerate once cool. Eat within 3 days.'] },
     ],
-    prod: 1.5, plate: 'One fillet, a handful of potatoes, and green beans.',
+    plate: 'One fillet, a handful of potatoes, and green beans.',
   },
   tunamelt: {
     name: 'Tuna melts on English muffins', short: 'Tuna melts', slot: 'Dinner', e: '🥫', serves: 3, fridge: 3, freezer: 0,
@@ -923,7 +923,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Mix drained tuna with mayonnaise, lemon juice and pepper.', 'On the night: spread on English muffin halves, top with cheddar and air-fry at 190°C for 5–6 minutes.'],
     reheat: 'On the night: split an English muffin, spread with a third of the tuna, top with cheese and air-fry at 190°C for 5–6 minutes, until the cheese melts. A vegetable side rounds it out.',
     tasks: [{ t: 'Mix tuna melt filling', l: 'hands', m: 6, end: true, gear: ['mixing bowl', 'containers'], how: ['Drain {tuna} and mix with {mayo}, the juice of {lemons} and a pinch of pepper. Box it for the fridge.', 'Keep {englishmuffins} and {cheddar} for the nights you make them.'] }],
-    prod: 0, plate: 'Two open-faced halves. Add a vegetable side for produce.',
+    plate: 'Two open-faced halves. Add a vegetable side for produce.',
   },
 
   bandeja: {
@@ -946,7 +946,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Portion bandeja paisa', l: 'hands', m: 8, end: true, gear: ['containers'], how: ['Divide rice (about {rice*3:g} cooked), beans, beef, sliced chorizo, plantain and an arepa between {portions} containers. Cool, then refrigerate.', 'Keep {eggs} and {avocados} to fry and slice when you eat it.'] },
     ],
     subs: [{ from: 'pork chorizo', to: 'turkey sausage', out: 'chorizo', in: ['turkeysausage'] }],
-    prod: 1.5, plate: 'One container, plus a fried egg and a few slices of avocado.',
+    plate: 'One container, plus a fried egg and a few slices of avocado.',
   },
   bolognese: {
     name: 'Slow-simmered spaghetti bolognese', short: 'Spaghetti bolognese', slot: 'Dinner', e: '🍝', serves: 5, fridge: 4, freezer: 3,
@@ -964,7 +964,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Portion bolognese', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Divide the pasta and the sauce into {portions} containers each. Refrigerate 4 days’ worth and freeze the rest of the sauce.', 'Keep {parmesan} for the top.'] },
     ],
     subs: [{ from: 'ground beef', to: 'ground turkey', out: 'beef', in: ['turkey'] }],
-    prod: 1, plate: 'About 150 g cooked pasta with a generous ladle of sauce.',
+    plate: 'About 150 g cooked pasta with a generous ladle of sauce.',
   },
   carbonara: {
     name: 'Carbonara with crispy bacon (made fresh)', short: 'Carbonara', slot: 'Dinner', e: '🥓', serves: 2, fridge: 4, freezer: 0,
@@ -982,7 +982,7 @@ const MEALS: Record<string, RecipeInput> = {
     ],
     // Turkey bacon has no entry of its own; ground turkey stands in for the checks (meat, no pork).
     subs: [{ from: 'bacon', to: 'turkey bacon', out: 'bacon', in: ['turkey'] }],
-    prod: 0, plate: 'About 85 g dry pasta per plate. A green side rounds it out.',
+    plate: 'About 85 g dry pasta per plate. A green side rounds it out.',
   },
   pechugagratinada: {
     name: 'Pechuga gratinada with mashed potatoes & green beans', short: 'Pechuga gratinada', slot: 'Dinner', e: '🧀', serves: 4, fridge: 4, freezer: 2,
@@ -998,7 +998,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Steam green beans', l: 'stove', m: 6, gear: ['medium pot'], how: ['Steam or boil {greenbeans} for 5 minutes, until bright green and tender.'] },
       { t: 'Portion pechuga gratinada', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Divide the chicken, mash and green beans between {portions} containers. Cool, then refrigerate.'] },
     ],
-    prod: 1, plate: 'One breast, a scoop of mash, and green beans.',
+    plate: 'One breast, a scoop of mash, and green beans.',
   },
   nachos: {
     name: 'Loaded chicken nachos with fresh guacamole', short: 'Chicken nachos', slot: 'Dinner', e: '🌮', serves: 4, fridge: 4, freezer: 0,
@@ -1013,7 +1013,7 @@ const MEALS: Record<string, RecipeInput> = {
       TACO_ROAST,
       { t: 'Box the nachos toppings', l: 'hands', m: 4, end: true, gear: ['containers'], how: ['Box the shredded chicken (about {chickenbreast*0.75:g}) with {corn} for the fridge.', 'Keep {tortillachips}, {cheddar}, {salsa} and {sourcream} for the nights you make them, and {avocados}, {tomatoes} and {limes} for fresh guacamole.'] },
     ],
-    prod: 1, plate: 'A quarter of the tray, with guacamole, salsa and sour cream.',
+    plate: 'A quarter of the tray, with guacamole, salsa and sour cream.',
   },
 
   sancocho: {
@@ -1029,7 +1029,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Simmer the sancocho', l: 'stove', m: 50, gear: ['large pot'], how: ['Put the green onion, garlic, {cumin} and {chickenbroth} in the pot with the green plantain and {yuca} (no need to thaw), and simmer 20 minutes.', 'Add the potatoes, {corn} and {chickenbreast} (whole), and simmer 20 minutes more, until everything is tender and the chicken reaches 74°C.', 'Lift out the chicken, pull it into large pieces and return it. Season with salt.'] },
       { t: 'Portion sancocho', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Cool the soup in shallow containers, then divide into {portions} portions with rice (about {rice*3:g} cooked in total) on the side.', 'Keep {avocados} and {limes} to serve.'] },
     ],
-    prod: 1, plate: 'One big bowl, with a small bowl of rice and some avocado.',
+    plate: 'One big bowl, with a small bowl of rice and some avocado.',
   },
   tinga: {
     name: 'Mild chicken tinga tacos', short: 'Chicken tinga tacos', slot: 'Dinner', e: '🌮', serves: 4, fridge: 4, freezer: 3,
@@ -1044,7 +1044,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Simmer chicken tinga', l: 'stove', m: 15, gear: ['large deep pan'], how: ['Cook the sauce in {oil} for 5 minutes, add the shredded chicken and simmer 10 minutes, until thick. Season with salt.'] },
       { t: 'Box the tinga', l: 'hands', m: 4, end: true, gear: ['containers'], how: ['Box the tinga for the fridge or freezer.', 'Keep {corntortillas}, {quesofresco}, {avocados} and {limes} for serving.'] },
     ],
-    prod: 1, plate: 'Three tacos with queso fresco and avocado.',
+    plate: 'Three tacos with queso fresco and avocado.',
   },
   pizza: {
     name: 'Pizza night: margherita', short: 'Margherita pizza', slot: 'Dinner', e: '🍕', serves: 2, fridge: 4, freezer: 0,
@@ -1055,7 +1055,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Stretch the dough, spread marinara, add mozzarella and tomato.', 'Bake at your oven’s hottest setting for 10–12 minutes.'],
     reheat: 'On the night, 20 minutes: heat the oven to 250°C (or its hottest). Stretch the dough on a floured tray, brush with a little oil, spread with marinara, add the mozzarella and tomato slices, sprinkle the herbs, and bake 10–12 minutes, until the crust is golden and the cheese bubbles.',
     tasks: [{ t: 'Pack the pizza night kit', l: 'hands', m: 5, end: true, gear: ['containers'], how: ['Box {mozzarella} for the fridge.', 'Keep {pizzadough}, {marinara}, {tomatoes}, {herbs} and {oil} for the night.'] }],
-    prod: 0.5, plate: 'Half a pizza. A salad or protein side rounds it out.',
+    plate: 'Half a pizza. A salad or protein side rounds it out.',
   },
 
   /* ---------- healthy bowls (lunch): a lean protein, a grain, vegetables and a light sauce ---------- */
@@ -1072,7 +1072,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Roast lemon chicken and vegetables (2 pans)', l: 'oven', m: 22, temp: 220, pans: 2, how: ['Roast both pans at 220°C for 20–22 minutes, until the chicken reaches 74°C inside and the broccoli edges are crisp and brown.'] },
       { t: 'Build lemon quinoa bowls', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Slice the chicken. Divide the quinoa, chicken and vegetables between {portions} containers. Cool, then refrigerate; freeze what you won’t eat in 4 days.'] },
     ],
-    prod: 1.5, plate: 'One bowl: a quarter quinoa, a quarter chicken, half vegetables.',
+    plate: 'One bowl: a quarter quinoa, a quarter chicken, half vegetables.',
   },
   bowl_beef: {
     name: 'Seasoned beef & sweet potato bowl', short: 'Beef & sweet potato bowl', slot: 'Lunch', e: '🍠', serves: 4, fridge: 4, freezer: 3,
@@ -1087,7 +1087,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Cook the seasoned beef', l: 'stove', m: 17, gear: ['large deep pan', 'blender'], how: ['Roughly chop {onion}, {tomatoes} and {garlic}, cook in {oil*0.5} over medium heat for 6 minutes, until soft, and blend until smooth.', 'Return the sauce to the pan, add {beef} and {cumin}, break it up and cook 8 minutes, until browned with no pink. Stir in {corn} (no need to thaw) for the last 2 minutes and season with salt.'] },
       { t: 'Portion beef bowls', l: 'hands', m: 5, end: true, gear: ['containers'], how: ['Divide the sweet potatoes and beef between {portions} containers. Cool, then refrigerate; freeze what you won’t eat in 4 days.', 'Keep {avocados} and {limes} to add when eating.'] },
     ],
-    prod: 1.5, plate: 'One bowl, with a quarter of an avocado.',
+    plate: 'One bowl, with a quarter of an avocado.',
   },
   bowl_meatballs: {
     name: 'Turkey meatballs in hidden-veggie tomato sauce with rice', short: 'Turkey meatball bowl', slot: 'Lunch', e: '🍚', serves: 4, fridge: 4, freezer: 3,
@@ -1103,7 +1103,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Blend and simmer the hidden-veggie sauce', l: 'stove', m: 20, gear: ['blender', 'large deep pan'], how: ['Roughly chop {onion} and {carrots}, and blend with {spinach}, {crushedtomatoes} and {garlic*0.5} until completely smooth.', 'Simmer in {oil} for 12 minutes, stirring now and then, until it thickens and the carrot taste is gone. Season with salt.', 'Add the baked meatballs and simmer 5 minutes more.'] },
       { t: 'Portion meatball bowls', l: 'hands', m: 5, end: true, gear: ['containers'], how: ['Divide rice (about {rice*3:g} cooked) and the meatballs in sauce between {portions} containers. Cool, then refrigerate; freeze what you won’t eat in 4 days.'] },
     ],
-    prod: 1.25, plate: 'Four meatballs with sauce over a small scoop of rice.',
+    plate: 'Four meatballs with sauce over a small scoop of rice.',
   },
   bowl_greenpasta: {
     name: 'Chicken pasta in creamy hidden-spinach sauce', short: 'Green pasta bowl', slot: 'Lunch', e: '🍝', serves: 4, fridge: 4, freezer: 2,
@@ -1117,7 +1117,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Brown chicken and make the spinach sauce', l: 'stove', m: 15, gear: ['large deep pan', 'blender'], how: ['Cut {chickenbreast} into bite-size pieces and cook in {oil} over medium-high heat for 6–7 minutes, until golden and 74°C inside. Add {garlic} (grated) for the last minute.', 'Blend {spinach} with {milk}, {creamcheese} and {parmesan} until smooth.', 'Pour the sauce over the chicken and warm it 2 minutes without boiling. Toss in the pasta with a splash of the pasta water and the juice of {lemons}. Season with salt.'] },
       { t: 'Portion green pasta', l: 'hands', m: 4, end: true, gear: ['containers'], how: ['Divide between {portions} containers. Cool, then refrigerate; freeze what you won’t eat in 4 days.'] },
     ],
-    prod: 0.75, plate: 'One bowl. Add a side of roasted carrots for more vegetables.',
+    plate: 'One bowl. Add a side of roasted carrots for more vegetables.',
   },
   bowl_mango: {
     name: 'Honey-lime chicken rice bowl with mango and avocado', short: 'Mango chicken bowl', slot: 'Lunch', e: '🥭', serves: 4, fridge: 4, freezer: 0, cold: true,
@@ -1133,7 +1133,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Cut mango, cucumber and carrot', l: 'hands', m: 10, how: ['Dice {mango} and {cucumber}, and grate or cut {carrots} into thin sticks.'] },
       { t: 'Build mango chicken bowls', l: 'hands', m: 6, end: true, gear: ['containers'], how: ['Divide rice (about {rice*3:g} cooked), chicken, mango, cucumber and carrot between {portions} containers, with the rest of the lime squeezed over.', 'Keep {avocados} to add when eating.'] },
     ],
-    prod: 1.5, plate: 'One bowl with a quarter of an avocado.',
+    plate: 'One bowl with a quarter of an avocado.',
   },
 
   /* other healthy recipes */
@@ -1149,7 +1149,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Cook banana-oat pancakes', l: 'stove', m: 20, gear: ['large nonstick pan'], how: ['Heat the pan over medium-low and brush it with a little of {oil}.', 'Cook 3 tablespoons of batter per pancake, 2–3 minutes per side, until bubbles form on top and the underside is golden. Brush the pan again between batches.'] },
       { t: 'Cool and bag banana-oat pancakes', l: 'hands', m: 4, end: true, gear: ['freezer bag'], how: ['Cool on a rack, then bag in {portions} portions with baking paper between them. Freeze what you won’t eat in 3 days.'] },
     ],
-    prod: 0.75, plate: 'Three or four pancakes. A yogurt cup or berries on the side is great.',
+    plate: 'Three or four pancakes. A yogurt cup or berries on the side is great.',
   },
   mangobiche: {
     name: 'Mango with lime and salt', short: 'Mango with lime', slot: 'Afternoon snack', e: '🥭', serves: 4, fridge: 3, freezer: 0, cold: true,
@@ -1159,7 +1159,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Peel and cut the mangos into sticks.', 'Squeeze over lime, box, and add a pinch of salt when eating.'],
     reheat: 'Eat cold, with a pinch of salt.',
     tasks: [{ t: 'Cut mango sticks', l: 'hands', m: 8, end: true, gear: ['containers'], how: ['Peel {mango} and cut into thick sticks.', 'Divide between {portions} containers and squeeze {limes} over them so they stay bright.'] }],
-    prod: 1.5, plate: 'One mango. Add a pinch of salt.',
+    plate: 'One mango. Add a pinch of salt.',
   },
 
   /* ---------- fruit snacks: just fruit, cut or sorted on prep day ---------- */
@@ -1171,7 +1171,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Peel the mangos and cut them into cubes.', 'Box them: the next 3 days in the fridge, the rest in the freezer.'],
     reheat: 'Eat cold.', thaw: 'Move to the fridge the night before, or eat after 20 minutes on the counter, still a little icy.',
     tasks: [{ t: 'Cut mango cups', l: 'hands', m: 8, end: true, gear: ['cutting board', 'containers'], how: ['Peel {mango}, cut the flesh away from the stones and cube it.', 'Divide between {portions} containers. Keep the next 3 days in the fridge and freeze the rest.'] }],
-    prod: 1.5, plate: 'One cup, about one mango.',
+    plate: 'One cup, about one mango.',
   },
   fruit_strawberries: {
     name: 'Fresh strawberries', short: 'Strawberries', slot: 'Afternoon snack', e: '🍓', serves: 4, fridge: 4, freezer: 0, cold: true,
@@ -1181,7 +1181,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Pick out any soft strawberries.', 'Box them unwashed on paper towel; rinse a cup just before eating.'],
     reheat: 'Eat cold; rinse just before eating.',
     tasks: [{ t: 'Sort strawberries', l: 'hands', m: 3, end: true, gear: ['containers', 'paper towels'], how: ['Pick through {strawberries} and set aside any soft ones to eat today.', 'Line {portions} containers with paper towel and fill them with the berries, unwashed. Water makes them go soft; rinse and hull them just before eating.'] }],
-    prod: 1, plate: 'One cup, about 150 g (10 strawberries).',
+    plate: 'One cup, about 150 g (10 strawberries).',
   },
   fruit_blueberries: {
     name: 'Fresh blueberries', short: 'Blueberries', slot: 'Afternoon snack', e: '🫐', serves: 4, fridge: 7, freezer: 0, cold: true,
@@ -1191,7 +1191,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Pick out any soft blueberries.', 'Keep them unwashed in the fridge; rinse a portion just before eating.'],
     reheat: 'Eat cold; rinse just before eating.',
     tasks: [{ t: 'Sort blueberries', l: 'hands', m: 2, end: true, gear: ['containers'], how: ['Pick out any soft or wrinkled {blueberries} and divide the rest, unwashed, between {portions} containers.', 'Rinse a portion in a sieve just before eating; washed blueberries go soft sooner.'] }],
-    prod: 1, plate: 'One punnet, about 125 g.',
+    plate: 'One punnet, about 125 g.',
   },
   fruit_cup: {
     name: 'Mixed fruit cups with lime', short: 'Fruit cups', slot: 'Afternoon snack', e: '🥣', serves: 4, fridge: 3, freezer: 0, cold: true,
@@ -1201,7 +1201,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Halve the strawberries and cube the mango.', 'Toss with blueberries, halved grapes and lime juice, and box.'],
     reheat: 'Eat cold.',
     tasks: [{ t: 'Make mixed fruit cups', l: 'hands', m: 12, end: true, gear: ['cutting board', 'mixing bowl', 'containers'], how: ['Hull and halve {strawberries}. Peel {mango}, cut the flesh away from the stones and cube it.', 'Toss in a bowl with {blueberries} and halved {grapes}, and squeeze over {limes} so the fruit stays bright.', 'Divide between {portions} containers. They keep 3 days.'] }],
-    prod: 2, plate: 'One cup.',
+    plate: 'One cup.',
   },
   fruit_pineapple: {
     name: 'Pineapple spears', short: 'Pineapple', slot: 'Afternoon snack', e: '🍍', serves: 5, fridge: 4, freezer: 3, cold: true,
@@ -1211,7 +1211,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Peel the pineapple, cut out the core and cut it into spears.', 'Box them: the next 4 days in the fridge, the rest in the freezer.'],
     reheat: 'Eat cold.', thaw: 'Move to the fridge the night before, or eat after 20 minutes on the counter, still a little icy.',
     tasks: [{ t: 'Cut pineapple spears', l: 'hands', m: 8, end: true, gear: ['cutting board', 'containers'], how: ['Cut the top and bottom off {pineapple}, stand it up and slice off the skin, then cut out any brown eyes.', 'Quarter it lengthwise, cut away the hard core and cut each quarter into spears.', 'Divide between {portions} containers. Keep the next 4 days in the fridge and freeze the rest.'] }],
-    prod: 1.5, plate: 'One box of spears, about 180 g.',
+    plate: 'One box of spears, about 180 g.',
   },
   fruit_grapes: {
     name: 'Frozen grapes', short: 'Frozen grapes', slot: 'Afternoon snack', e: '🍇', serves: 5, fridge: 0, freezer: 3, cold: true,
@@ -1221,7 +1221,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Wash the grapes, pull them off the stems and dry them well.', 'Freeze in bags.'],
     reheat: 'Eat straight from the freezer.', thaw: 'Eat straight from the freezer, or leave 5 minutes to soften a little.',
     tasks: [{ t: 'Freeze grapes', l: 'hands', m: 5, end: true, gear: ['freezer bag', 'clean tea towel'], how: ['Wash {grapes}, pull them off the stems and pat them completely dry with a clean tea towel, so they don’t freeze together.', 'Divide between {portions} small freezer bags and freeze flat.'] }],
-    prod: 1, plate: 'One bag, about 150 g.',
+    plate: 'One bag, about 150 g.',
   },
 
   /* ---------- light Colombian dinners: in Colombia dinner is closer to breakfast than to lunch ---------- */
@@ -1238,7 +1238,7 @@ const MEALS: Record<string, RecipeInput> = {
       POLLO_DESMECHADO,
       { t: 'Pack the arepa dinners', l: 'hands', m: 4, end: true, gear: ['containers', 'freezer bag'], how: ['Box the chicken in {portions} portions and bag the cooled arepas. Freeze what you won’t eat in 4 days.', 'Keep {quesofresco} and {avocados} for serving.'] },
     ],
-    prod: 0.5, plate: 'One arepa, well filled. Add a side of fruit if you like.',
+    plate: 'One arepa, well filled. Add a side of fruit if you like.',
   },
   sandwichpollo: {
     name: 'Toasted chicken & cheese sandwich', short: 'Chicken & cheese sandwich', slot: 'Dinner', e: '🥪', serves: 4, fridge: 4, freezer: 3,
@@ -1252,7 +1252,7 @@ const MEALS: Record<string, RecipeInput> = {
       POLLO_DESMECHADO,
       { t: 'Pack the sandwich nights', l: 'hands', m: 3, end: true, gear: ['containers'], how: ['Box the chicken in {portions} portions and freeze what you won’t eat in 4 days.', 'Keep {bread}, {mozzarella} and {mayo} for the nights.'] },
     ],
-    prod: 0.25, plate: 'One sandwich. Fruit or a salad on the side adds produce.',
+    plate: 'One sandwich. Fruit or a salad on the side adds produce.',
   },
   calentado: {
     name: 'Light calentado with beef, hogao and a scrambled egg', short: 'Calentado', slot: 'Dinner', e: '🍳', serves: 4, fridge: 4, freezer: 3,
@@ -1267,7 +1267,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Cook beef in hogao for calentado', l: 'stove', m: 18, gear: ['large deep pan', 'blender'], how: ['Roughly chop {tomatoes}, {scallions} and {garlic}, cook in {oil} over medium heat for 6 minutes, until soft, and blend until smooth.', 'Return the hogao to the pan, add {beef} and {cumin}, break it up and cook 8–10 minutes, until browned with no pink. Season with salt.'] },
       { t: 'Mix and box calentado', l: 'hands', m: 5, end: true, gear: ['containers'], how: ['Stir the rice (about {rice*3:g} cooked) into the beef and divide between {portions} containers. Cool, then refrigerate; freeze what you won’t eat in 4 days.', 'Keep {eggs} and {avocados} for the nights.'] },
     ],
-    prod: 0.75, plate: 'One container with an egg on top and a few slices of avocado.',
+    plate: 'One container with an egg on top and a few slices of avocado.',
   },
   arepachoclo: {
     name: 'Sweet corn arepas with melted cheese (arepas de choclo)', short: 'Arepas de choclo', slot: 'Dinner', e: '🌽', serves: 4, fridge: 4, freezer: 3,
@@ -1282,7 +1282,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Cook arepas de choclo', l: 'stove', m: 20, gear: ['large nonstick pan'], how: ['Cook {portions*2} thick rounds in batches over medium-low heat, brushing the pan with {butter} as you go, 4–5 minutes per side, until golden.', 'While they’re hot, put {mozzarella} on half of them and top with the others, so the cheese melts in the middle.'] },
       { t: 'Cool and bag arepas de choclo', l: 'hands', m: 4, end: true, gear: ['freezer bag'], how: ['Cool, then bag in {portions} portions with baking paper between them. Freeze what you won’t eat in 4 days.'] },
     ],
-    prod: 1, plate: 'One filled arepa. A glass of milk or a scrambled egg adds protein.',
+    plate: 'One filled arepa. A glass of milk or a scrambled egg adds protein.',
   },
   caldopollo: {
     name: 'Caldito de pollo y papa (light chicken and potato soup)', short: 'Caldito de pollo', slot: 'Dinner', e: '🍲', serves: 4, fridge: 4, freezer: 3,
@@ -1296,7 +1296,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Simmer the caldito', l: 'stove', m: 35, gear: ['large pot'], how: ['Put {chickenbreast}, the green onion, garlic, {cumin} and {chickenbroth} in the pot and simmer 15 minutes, until the chicken reaches 74°C. Lift it out and shred it.', 'Add the potatoes and carrots and simmer 15 minutes, until tender. Add {corn} and the chicken and simmer 3 minutes more. Season with salt.'] },
       { t: 'Portion caldito', l: 'hands', m: 4, end: true, gear: ['containers'], how: ['Cool in shallow containers and divide into {portions} portions. Freeze what you won’t eat in 4 days.'] },
     ],
-    prod: 1, plate: 'One big bowl. A small arepa on the side if you want more.',
+    plate: 'One big bowl. A small arepa on the side if you want more.',
   },
 
   /* snacks */
@@ -1313,7 +1313,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Mix and roll pandebono dough', l: 'hands', m: 12, gear: ['mixing bowl', 'tray', 'baking paper'], how: ['Crumble {quesofresco} finely into a bowl. Mix in {tapioca}, {arepaflour}, {sugar}, {bakingpowder} and a pinch of salt.', 'Add {eggs} and knead until a smooth, soft dough forms. Add a spoon of water if it cracks.', 'Roll into {portions*2} balls and set them on a lined tray.'] },
       { t: 'Freeze pandebono dough balls', l: 'chill', m: 60, how: ['Freeze uncovered for 1 hour, until firm, then bag and label.'] },
     ],
-    prod: 0, plate: 'Two rolls, warm.',
+    plate: 'Two rolls, warm.',
   },
   esquites: {
     name: 'Esquites (Mexican street-corn cups)', short: 'Street-corn cups', slot: 'Afternoon snack', e: '🌽', serves: 4, fridge: 3, freezer: 0, cold: true,
@@ -1326,7 +1326,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Char corn for esquites', l: 'stove', m: 10, gear: ['large nonstick pan'], how: ['Melt {butter} in the pan over high heat and cook {corn} (no need to thaw) for 8–10 minutes, stirring now and then, until some kernels brown.'] },
       { t: 'Mix and portion street-corn cups', l: 'hands', m: 6, end: true, gear: ['mixing bowl', 'containers'], how: ['Cool 5 minutes, then stir in {mayo}, the juice of {limes}, {paprika} and a pinch of salt.', 'Divide between {portions} small containers and top with crumbled {quesofresco}.'] },
     ],
-    prod: 1, plate: 'One small cup.',
+    plate: 'One small cup.',
   },
   hummus: {
     name: 'Hummus & crunchy veggie boxes', short: 'Hummus boxes', slot: 'Afternoon snack', e: '🥕', serves: 4, fridge: 4, freezer: 0, cold: true,
@@ -1339,7 +1339,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Blend hummus', l: 'hands', m: 6, gear: ['blender'], how: ['Blend {chickpeas} (drained; keep the liquid), the juice of {lemons}, {garlic}, {oil} and a pinch of salt until very smooth, adding 2–4 spoons of the chickpea liquid.'] },
       { t: 'Cut veggies and pack hummus boxes', l: 'hands', m: 8, end: true, gear: ['containers'], how: ['Cut {carrots} and {cucumber} into sticks.', 'Pack the hummus and veggies into {portions} boxes. Cut {pita} into wedges and keep them in a bag so they stay soft.'] },
     ],
-    prod: 1, plate: 'One box: about 4 tablespoons of hummus with veggie sticks and a few pita wedges.',
+    plate: 'One box: about 4 tablespoons of hummus with veggie sticks and a few pita wedges.',
   },
 
   eggbox: {
@@ -1353,7 +1353,7 @@ const MEALS: Record<string, RecipeInput> = {
       BOILED_EGGS,
       { t: 'Pack egg protein boxes', l: 'hands', m: 10, end: true, gear: ['containers'], how: ['Peel the eggs for the boxes; they peel easiest while cold.', 'Cube {cheeseblock} and wash {grapes}.', 'Pack {portions} boxes with 2 eggs, some cheese and a handful of grapes each.'] },
     ],
-    prod: 1, plate: 'One box.',
+    plate: 'One box.',
   },
 
   guacamole: {
@@ -1365,7 +1365,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Portion the chips on prep day.', 'Each time: mash half an avocado with lime and salt, and stir in diced tomato.'],
     reheat: 'Make it fresh, 3 minutes: mash half an avocado with a squeeze of lime and a pinch of salt, and stir in a spoon of diced tomato. Eat with a bag of chips.',
     tasks: [{ t: 'Portion chips for guacamole snacks', l: 'hands', m: 3, end: true, gear: ['freezer bag'], how: ['Divide {tortillachips} into {portions} small bags.', 'Keep {avocados}, {limes} and {tomatoes} to make it fresh; guacamole browns within a day.'] }],
-    prod: 1, plate: 'Half an avocado of guacamole with about 30 g of chips.',
+    plate: 'Half an avocado of guacamole with about 30 g of chips.',
   },
 
   empanadas: {
@@ -1381,7 +1381,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Bake the empanadas', l: 'oven', m: 25, temp: 200, how: ['Brush with {oil*0.5} and bake at 200°C for 20–25 minutes, turning once, until golden and crisp.'] },
       { t: 'Cool and bag the empanadas', l: 'hands', m: 4, end: true, gear: ['freezer bag'], how: ['Cool, then bag in pairs. Keep 3 days’ worth in the fridge and freeze the rest.'] },
     ],
-    prod: 0.25, plate: 'Two empanadas.',
+    plate: 'Two empanadas.',
   },
 
   /* sweets */
@@ -1396,7 +1396,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Simmer arroz con leche', l: 'stove', m: 40, gear: ['medium pot', 'sieve'], how: ['Rinse {rice}, then simmer it with 250 ml water for 10 minutes, until the water is absorbed.', 'Add {milk} and simmer gently, stirring often, for 25 minutes, until creamy and the rice is very soft.', 'Stir in {condensed}, {vanilla} and a pinch of salt, and cook 3 minutes more.'] },
       { t: 'Portion arroz con leche', l: 'hands', m: 5, end: true, gear: ['jars'], how: ['Divide between {portions} small jars and dust with {cinnamon}. Cool, then refrigerate; it thickens as it chills.'] },
     ],
-    prod: 0, plate: 'One small jar.',
+    plate: 'One small jar.',
   },
   tiramisu: {
     name: 'Tiramisu cups', short: 'Tiramisu cup', slot: 'Evening sweet', e: '☕', serves: 6, fridge: 3, freezer: 0, cold: true,
@@ -1410,7 +1410,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Whip tiramisu cream', l: 'hands', m: 8, gear: ['mixing bowl', 'whisk'], how: ['Whip {cream} with {sugar} and {vanilla} to soft peaks.', 'Beat {mascarpone} until smooth, then fold in the whipped cream.'] },
       { t: 'Layer tiramisu cups', l: 'hands', m: 10, end: true, gear: ['jars'], how: ['Dissolve {coffee} in 180 ml hot water and let it cool.', 'Break {ladyfingers} into pieces, dip each quickly in the coffee and layer with the cream in {portions} small cups, finishing with cream.', 'Dust with {cocoa} and chill at least 4 hours.'] },
     ],
-    prod: 0, plate: 'One small cup.',
+    plate: 'One small cup.',
   },
   applecrisp: {
     name: 'Apple crisp cups', short: 'Apple crisp', slot: 'Evening sweet', e: '🥧', serves: 6, fridge: 4, freezer: 3,
@@ -1424,7 +1424,7 @@ const MEALS: Record<string, RecipeInput> = {
       { t: 'Bake apple crisp', l: 'oven', m: 35, temp: 180, how: ['Bake at 180°C for 30–35 minutes, until the apples bubble and the top is golden.'] },
       { t: 'Portion apple crisp', l: 'hands', m: 5, end: true, gear: ['containers'], how: ['Cool, then spoon into {portions} small containers. Freeze what you won’t eat in 4 days.'] },
     ],
-    prod: 0.75, plate: 'One small container.',
+    plate: 'One small container.',
   },
   obleas: {
     name: 'Obleas con arequipe', short: 'Obleas', slot: 'Evening sweet', e: '🍪', serves: 6, fridge: 7, freezer: 0, room: true,
@@ -1434,7 +1434,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Portion arequipe into small cups.', 'Spread between two obleas when you eat it.'],
     reheat: 'Spread a spoon of arequipe between 2 obleas.',
     tasks: [{ t: 'Portion arequipe for obleas', l: 'hands', m: 3, end: true, how: ['Spoon {arequipe} into {portions} small lidded cups, and keep {obleas} in their pack.'] }],
-    prod: 0, plate: 'Two obleas with a spoon of arequipe.',
+    plate: 'Two obleas with a spoon of arequipe.',
   },
   fresas: {
     name: 'Fresas con crema', short: 'Fresas con crema', slot: 'Evening sweet', e: '🍓', serves: 4, fridge: 3, freezer: 0, cold: true,
@@ -1444,7 +1444,7 @@ const MEALS: Record<string, RecipeInput> = {
     steps: ['Quarter the strawberries.', 'Whip cream with condensed milk and layer with the strawberries in 4 jars.'],
     reheat: 'Eat cold.',
     tasks: [{ t: 'Make fresas con crema', l: 'hands', m: 8, end: true, gear: ['mixing bowl', 'whisk', 'jars'], how: ['Hull and quarter {strawberries}.', 'Whip {cream} with {condensed} to soft peaks, and layer with the strawberries in {portions} jars.'] }],
-    prod: 1, plate: 'One jar.',
+    plate: 'One jar.',
   },
 };
 
@@ -1453,37 +1453,37 @@ type SideInput = Omit<RecipeInput, 'slot' | 'serves' | 'fridge' | 'freezer' | 's
   Partial<Pick<RecipeInput, 'fridge' | 'tasks'>> & { for: Slot[] };
 
 const SIDES: Record<string, SideInput> = {
-  side_yogurt: { name: 'Vanilla Greek yogurt cup', short: 'Greek yogurt cup', e: '🥛', kind: 'protein', best: ['Breakfast', 'Afternoon snack'], for: ['Breakfast', 'Afternoon snack'], foods: { yogurt: 'Sweetened or flavored' }, ing: [['yogurtcups', 1]], prod: 0, st: { k: 'fridge', l: 'Store-bought · fridge' }, why: ['Sweetened, the way you like yogurt'] },
-  side_eggs: { name: 'Two scrambled eggs', short: 'Scrambled eggs', e: '🍳', kind: 'protein', best: ['Breakfast'], for: ['Breakfast'], foods: { eggs: 'Scrambled' }, ing: [['eggs', 2]], prod: 0, st: { k: 'fridge', l: 'Cook fresh · 3 min' }, why: ['Scrambled, one of the ways you eat eggs'] },
+  side_yogurt: { name: 'Vanilla Greek yogurt cup', short: 'Greek yogurt cup', e: '🥛', kind: 'protein', best: ['Breakfast', 'Afternoon snack'], for: ['Breakfast', 'Afternoon snack'], foods: { yogurt: 'Sweetened or flavored' }, ing: [['yogurtcups', 1]], st: { k: 'fridge', l: 'Store-bought · fridge' }, why: ['Sweetened, the way you like yogurt'] },
+  side_eggs: { name: 'Two scrambled eggs', short: 'Scrambled eggs', e: '🍳', kind: 'protein', best: ['Breakfast'], for: ['Breakfast'], foods: { eggs: 'Scrambled' }, ing: [['eggs', 2]], st: { k: 'fridge', l: 'Cook fresh · 3 min' }, why: ['Scrambled, one of the ways you eat eggs'] },
   side_boiledeggs: {
     name: 'Two hard-boiled eggs', short: 'Hard-boiled eggs', e: '🥚', kind: 'protein', best: ['Breakfast', 'Afternoon snack'], for: ['Breakfast', 'Lunch', 'Afternoon snack'], foods: { eggs: 'Hard-boiled' },
-    ing: [['eggs', 2]], prod: 0, fridge: 7, tasks: [BOILED_EGGS], why: ['Hard-boiled on prep day; they keep all week'],
+    ing: [['eggs', 2]], fridge: 7, tasks: [BOILED_EGGS], why: ['Hard-boiled on prep day; they keep all week'],
   },
   side_guac: {
     name: 'Fresh guacamole', short: 'Guacamole', e: '🥑', kind: 'produce', for: ['Lunch', 'Dinner', 'Afternoon snack'], foods: { avocado: 'Mashed' },
-    ing: [['avocados', 0.5], ['limes', 0.25]], prod: 1, st: { k: 'room', l: 'Make fresh · 3 min' }, why: ['Made fresh in 3 minutes'],
+    ing: [['avocados', 0.5], ['limes', 0.25]], st: { k: 'room', l: 'Make fresh · 3 min' }, why: ['Made fresh in 3 minutes'],
   },
-  side_cheese: { name: 'String cheese', short: 'String cheese', e: '🧀', kind: 'protein', best: ['Lunch', 'Afternoon snack'], for: ['Breakfast', 'Lunch', 'Afternoon snack'], foods: { cheese: 1 }, ing: [['stringcheese', 1]], prod: 0, st: { k: 'fridge', l: 'Store-bought · fridge' }, why: [] },
-  side_berries: { name: 'Bowl of berries', short: 'Berries', e: '🍓', kind: 'produce', for: ['Breakfast', 'Lunch', 'Afternoon snack'], foods: { berries: 1 }, ing: [['berries', 140]], prod: 1, st: { k: 'freezer', l: 'Frozen bag · thaw in the fridge overnight' }, why: [] },
-  side_apple: { name: 'Apple slices', short: 'Apple slices', e: '🍎', kind: 'produce', for: ['Lunch', 'Afternoon snack'], foods: { apples: 1 }, ing: [['apples', 1]], prod: 1, st: { k: 'room', l: 'Slice fresh' }, why: [] },
-  side_corn: { name: 'Buttered corn', short: 'Buttered corn', e: '🌽', kind: 'produce', veg: true, for: ['Lunch', 'Dinner'], foods: { corn: 1 }, ing: [['corn', 110], ['butter', 5]], prod: 1, st: { k: 'freezer', l: 'Frozen · microwave 3 min' }, why: [] },
-  side_greenbeans: { name: 'Air-fried green beans', short: 'Air-fried green beans', e: '🫛', kind: 'produce', veg: true, for: ['Lunch', 'Dinner'], foods: { greenbeans: 'Air-fried' }, ing: [['greenbeans', 120], ['oil', 0.33]], prod: 1, st: { k: 'freezer', l: 'Frozen · air-fry 8 min, crispy' }, why: [] },
+  side_cheese: { name: 'String cheese', short: 'String cheese', e: '🧀', kind: 'protein', best: ['Lunch', 'Afternoon snack'], for: ['Breakfast', 'Lunch', 'Afternoon snack'], foods: { cheese: 1 }, ing: [['stringcheese', 1]], st: { k: 'fridge', l: 'Store-bought · fridge' }, why: [] },
+  side_berries: { name: 'Bowl of berries', short: 'Berries', e: '🍓', kind: 'produce', for: ['Breakfast', 'Lunch', 'Afternoon snack'], foods: { berries: 1 }, ing: [['berries', 140]], st: { k: 'freezer', l: 'Frozen bag · thaw in the fridge overnight' }, why: [] },
+  side_apple: { name: 'Apple slices', short: 'Apple slices', e: '🍎', kind: 'produce', for: ['Lunch', 'Afternoon snack'], foods: { apples: 1 }, ing: [['apples', 1]], st: { k: 'room', l: 'Slice fresh' }, why: [] },
+  side_corn: { name: 'Buttered corn', short: 'Buttered corn', e: '🌽', kind: 'produce', veg: true, for: ['Lunch', 'Dinner'], foods: { corn: 1 }, ing: [['corn', 110], ['butter', 5]], st: { k: 'freezer', l: 'Frozen · microwave 3 min' }, why: [] },
+  side_greenbeans: { name: 'Air-fried green beans', short: 'Air-fried green beans', e: '🫛', kind: 'produce', veg: true, for: ['Lunch', 'Dinner'], foods: { greenbeans: 'Air-fried' }, ing: [['greenbeans', 120], ['oil', 0.33]], st: { k: 'freezer', l: 'Frozen · air-fry 8 min, crispy' }, why: [] },
   side_broc: {
     name: 'Crispy parmesan broccoli', short: 'Crispy broccoli', e: '🥦', kind: 'produce', veg: true, for: ['Lunch', 'Dinner'], foods: { broccoli: 'Roasted until crispy', cheese: 1 },
-    ing: [['broccoli', 0.5], ['parmesan', 6], ['oil', 0.33]], prod: 1, fridge: 4,
+    ing: [['broccoli', 0.5], ['parmesan', 6], ['oil', 0.33]], fridge: 4,
     tasks: [{ t: 'Cut extra broccoli for sides', l: 'hands', m: 5 }, { t: 'Roast crispy broccoli for sides', l: 'oven', m: 20, temp: 220, pans: 1 }],
     why: ['Roasted until crispy, the way broccoli works for you'],
   },
   side_carrots: {
     name: 'Honey-roasted carrots', short: 'Roasted carrots', e: '🥕', kind: 'produce', veg: true, for: ['Lunch', 'Dinner'], foods: { carrots: 1 },
-    ing: [['carrots', 2], ['honey', 0.33], ['oil', 0.33]], prod: 1, fridge: 4,
+    ing: [['carrots', 2], ['honey', 0.33], ['oil', 0.33]], fridge: 4,
     tasks: [{ t: 'Cut carrots for roasting', l: 'hands', m: 5 }, { t: 'Roast honey carrots for sides', l: 'oven', m: 25, temp: 220, pans: 1 }],
     why: [],
   },
   // Offered only as a one-time try (“Remy noticed”) when zucchini is rated Dislike; otherwise a normal side.
   side_zucchini: {
     name: 'Crispy parmesan zucchini fries', short: 'Zucchini fries', e: '🥒', kind: 'produce', veg: true, for: ['Lunch', 'Dinner'], foods: { zucchini: 'Air-fried', cheese: 1, eggs: 'Baked into something' },
-    ing: [['zucchini', 1], ['panko', 15], ['parmesan', 6], ['eggs', 0.5], ['oil', 0.33]], prod: 1, fridge: 3,
+    ing: [['zucchini', 1], ['panko', 15], ['parmesan', 6], ['eggs', 0.5], ['oil', 0.33]], fridge: 3,
     tasks: [{ t: 'Cut zucchini into sticks and coat in egg, panko and parmesan', l: 'hands', m: 10 }],
     why: ['Air-fried until crispy, with parmesan'],
   },

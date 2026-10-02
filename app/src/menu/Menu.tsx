@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { describe } from '../components/Dish';
 import { Icon } from '../components/Icon';
-import { MacroRow } from '../components/Macros';
+import { MacroFigures, MacroRow } from '../components/Macros';
 import { baseSlot, R } from '../planning/data/recipes';
 import { isDetailed, renderLine, scaledIngredients } from '../planning/method';
-import { nutritionSource } from '../planning/macros';
+import { nutritionSource, plateText } from '../planning/macros';
 import type { Recipe, Slot } from '../planning/types';
 
 /**
@@ -180,7 +180,7 @@ export function Menu() {
                     </p>
                     <p className="menu-desc">{describe(r)}</p>
                     <p className="menu-macros">
-                      <b>{r.pro} g</b> protein · <b>{r.carb} g</b> carbs · <b>{r.fat} g</b> fat · <b>{r.fiber} g</b> fiber · <span className="hint">{nutritionSource(r.ing)}</span>
+                      <MacroFigures n={r} /> · <span className="hint">{nutritionSource(r.ing)}</span>
                     </p>
                     <div className="chips tight">
                       {tags(r).map((t) => (
@@ -301,7 +301,7 @@ function Preparation({ r, onClose }: { r: Recipe; onClose: () => void }) {
           {r.name}
         </h2>
         <MacroRow n={r} note="per portion" />
-        <p className="hint gap-top">{r.side ? 'One portion.' : `Makes ${r.serves} portions. ${r.plate}`}</p>
+        <p className="hint gap-top">{r.side ? 'One portion.' : `Makes ${r.serves} portions. ${plateText(r)}`}</p>
         {r.note && (
           <p className="warnline">
             <Icon name="info" size={16} /> {r.note}

@@ -8,6 +8,8 @@ import { R } from '../planning/data/recipes';
 import { fraction, quantityText } from '../planning/grocery';
 import { isDetailed, taskLines } from '../planning/method';
 import { estimatesOn, proteinTarget } from '../planning/nutrition';
+import { gramsShown } from '../components/Macros';
+import { plateText } from '../planning/macros';
 import { safeSubs } from '../planning/subs';
 import { eachMeal, portions, portionSizes } from '../planning/planner';
 import { matchReasons, storage } from '../planning/rules';
@@ -199,9 +201,10 @@ export function Recipe() {
               {nums && (
                 <>
                   <Lead k="Calories" v={`${r.kcal.toLocaleString('en-US')} kcal`} />
-                  <Lead k="Protein" v={`${r.pro} g`} />
-                  <Lead k="Carbs" v={`${r.carb} g`} />
-                  <Lead k="Fat" v={`${r.fat} g`} />
+                  <Lead k="Protein" v={`${gramsShown(r.pro)} g`} />
+                  <Lead k="Carbs" v={`${gramsShown(r.carb)} g`} />
+                  <Lead k="Fat" v={`${gramsShown(r.fat)} g`} />
+                  <Lead k="Fiber" v={`${Math.round(r.fiber)} g`} />
                 </>
               )}
               <Lead k="Fruit and vegetables" v={r.prod ? `${fraction(r.prod)} serving${r.prod > 1 ? 's' : ''}` : 'None'} />
@@ -211,7 +214,7 @@ export function Recipe() {
               </p>
               {r.plate && (
                 <p className="lead-note">
-                  <b>Portion:</b> {r.plate}
+                  <b>Portion:</b> {plateText(r)}
                   {r.slot === 'Evening sweet' && planState.sweetPortion && (
                     <>
                       {' '}

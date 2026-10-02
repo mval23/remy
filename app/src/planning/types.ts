@@ -77,6 +77,11 @@ export interface Ingredient {
   gpu?: number;
   /** How the amount is measured: raw meat and potatoes, dry grains and pasta, drained cans. Missing = as sold. */
   state?: 'raw' | 'dry' | 'drained';
+  /**
+   * Share of its weight that counts as fruit or vegetables (80 g = 1 serving). Missing = 0. Potatoes, yuca and
+   * plantains don't count (starchy staples); beans and tomato sauces do.
+   */
+  veg?: number;
   /** Kept so older saved recipes still read; library recipes don't use it and the AI isn't offered it. */
   retired?: boolean;
   /** Food-safety risks this ingredient brings to any recipe, unless the recipe cooks them away (`Recipe.cooks`). */
@@ -164,9 +169,13 @@ export interface Recipe {
   fat: number;
   /** Fiber grams per portion (estimate, one decimal). */
   fiber: number;
-  /** Fruit and vegetable servings per portion. */
+  /** Fruit and vegetable servings per portion (80 g each), worked out from the ingredients' `veg` share. */
   prod: number;
-  /** Portion guidance in plain words. */
+  /** Cooked grams per portion: the weighed batch (`yieldG`) when known, otherwise estimated from the ingredients. */
+  grams: number;
+  /** The whole cooked batch, weighed in a kitchen test. */
+  yieldG?: number;
+  /** Portion guidance in plain words. `{grams}` becomes the portion weight, rounded to 10 g. */
   plate: string;
   /* sides only */
   side?: boolean;
