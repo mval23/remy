@@ -5,7 +5,7 @@ import { allRatings, listText } from '../interview/helpers';
 import { FOODS } from '../interview/questions';
 import { bodyCheckinOn, weightOn, weightTrend } from '../learning/learning';
 import { fraction } from '../planning/grocery';
-import { balanceOn, dayNutrition, estimatesOn, kcalRange, LIGHT_DAY_KCAL } from '../planning/nutrition';
+import { balanceOn, dayNutrition, estimatesOn, FIBER_TARGET, kcalRange, LIGHT_DAY_KCAL } from '../planning/nutrition';
 import { DAY_FULL, SLOT_SHORT } from '../planning/types';
 import { goalsOf, hasGoals } from '../planning/goals';
 import { noWeightLoss } from '../profile/screen';
@@ -104,6 +104,7 @@ export function Nutrition() {
   const avgKcal = counted.length ? Math.round(counted.reduce((s, x) => s + x.kcal, 0) / counted.length) : 0;
   const goals = goalsOf(n, A);
   const avgPro = counted.length ? Math.round(counted.reduce((s, x) => s + x.pro, 0) / counted.length) : 0;
+  const avgFiber = counted.length ? Math.round(counted.reduce((s, x) => s + x.fiber, 0) / counted.length) : 0;
   const round10 = (x: number) => (Math.round(x / 10) * 10).toLocaleString('en-US');
 
   return (
@@ -149,12 +150,13 @@ export function Nutrition() {
                 />
                 <div className="day-note">
                   <span>
-                    {nums ? `${x.pro} g protein · ` : ''}fruit &amp; veg {fraction(x.prod)}
+                    {nums ? `${x.pro} g protein · ${x.fiber} g fiber · ` : ''}fruit &amp; veg {fraction(x.prod)}
                     {x.produceOk ? ' ✓' : ''}
                     {x.out ? ' · meal out not counted' : ''}
                   </span>
                   {!x.proteinOk && <span className="pill p-warn">Protein light: {x.low.map((s) => SLOT_SHORT[s].toLowerCase()).join(', ')}</span>}
                   {!x.produceOk && <span className="pill p-warn">Under 3 fruit &amp; veg</span>}
+                  {!x.out && !x.fiberOk && <span className="pill p-muted">Fiber light</span>}
                   {x.light && <span className="pill p-bad">Light day</span>}
                 </div>
               </div>
@@ -166,7 +168,9 @@ export function Nutrition() {
                   <Leader />
                   <span className="dish-kcal">≈{round10(avgKcal)} kcal</span>
                 </div>
-                <p className="bill-note">{avgPro} g protein a day, on days without a meal out. Rough estimates added up from the ingredients.</p>
+                <p className="bill-note">
+                  {avgPro} g protein and {avgFiber} g fiber a day, on days without a meal out (fiber guide: about {FIBER_TARGET} g). Rough estimates added up from the ingredients.
+                </p>
               </div>
             )}
           </section>
@@ -182,7 +186,7 @@ export function Nutrition() {
               </div>
             </div>
             <p className="lead-note">
-              Calories, protein, carbs and fat for every meal, added up from the ingredients. Rough estimates.
+              Calories, protein, carbs, fat and fiber for every meal, added up from the ingredients. Rough estimates.
               {n.nums === null && ` Default: ${A.pace === 'Detailed' ? 'on (you chose detailed)' : 'off'}.`}
             </p>
             {noWeightLoss(A) ? (

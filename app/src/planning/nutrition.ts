@@ -11,6 +11,12 @@ import { SLOTS } from './types';
 
 /** Minimum fruit and vegetable servings for a balanced day. */
 export const PRODUCE_TARGET = 3;
+/**
+ * Daily fiber guide in grams: 25 g (the low end of adult guidance) until a personal estimate exists. A day counts as
+ * fine at 80% of it (`FIBER_OK`), since these are rough estimates.
+ */
+export const FIBER_TARGET = 25;
+export const FIBER_OK = 0.8;
 /** Days estimated below this are flagged as light; Remy never plans them deliberately. */
 export const LIGHT_DAY_KCAL = 1200;
 
@@ -48,6 +54,7 @@ export function mealNutrition(m: Meal | undefined) {
     pro: Math.round(r.pro * x + (s?.pro ?? 0)),
     carb: Math.round(r.carb * x + (s?.carb ?? 0)),
     fat: Math.round(r.fat * x + (s?.fat ?? 0)),
+    fiber: Math.round((r.fiber * x + (s?.fiber ?? 0)) * 10) / 10,
     prod: r.prod * x + (s?.prod ?? 0),
   };
 }
@@ -57,6 +64,7 @@ export interface DayNutrition {
   pro: number;
   carb: number;
   fat: number;
+  fiber: number;
   prod: number;
   /** A meal is eaten out, so the estimate is incomplete. */
   out: boolean;
@@ -65,12 +73,14 @@ export interface DayNutrition {
   low: Slot[];
   proteinOk: boolean;
   produceOk: boolean;
+  /** Fiber at 80% of the daily guide or more. Not part of `ok` yet: shown as information while the numbers are estimates. */
+  fiberOk: boolean;
   ok: boolean;
   light: boolean;
 }
 
 export function dayNutrition(day: PlanDay, hungry: boolean): DayNutrition {
-  let kcal = 0, pro = 0, carb = 0, fat = 0, prod = 0, out = false, sweet = false;
+  let kcal = 0, pro = 0, carb = 0, fat = 0, fiber = 0, prod = 0, out = false, sweet = false;
   const low: Slot[] = [];
   for (const slot of SLOTS) {
     const m = day.meals[slot];
@@ -85,6 +95,7 @@ export function dayNutrition(day: PlanDay, hungry: boolean): DayNutrition {
     pro += n.pro;
     carb += n.carb;
     fat += n.fat;
+    fiber += n.fiber;
     prod += n.prod;
     if (slot === 'Evening sweet') sweet = true;
     const target = proteinTarget(slot, hungry);
@@ -92,7 +103,9 @@ export function dayNutrition(day: PlanDay, hungry: boolean): DayNutrition {
   }
   const proteinOk = low.length === 0;
   const produceOk = prod >= PRODUCE_TARGET;
-  return { kcal, pro, carb, fat, prod, out, sweet, low, proteinOk, produceOk, ok: proteinOk && produceOk, light: !out && kcal > 0 && kcal < LIGHT_DAY_KCAL };
+  fiber = Math.round(fiber);
+  const fiberOk = fiber >= FIBER_TARGET * FIBER_OK;
+  return { kcal, pro, carb, fat, fiber, prod, out, sweet, low, proteinOk, produceOk, fiberOk, ok: proteinOk && produceOk, light: !out && kcal > 0 && kcal < LIGHT_DAY_KCAL };
 }
 
 /** A calorie estimate as a rounded range, e.g. "1,700–2,100". */
@@ -111,7 +124,8 @@ export function sideOptions(ctx: PlanContext, dayIndex: number, slot: Slot, kind
 }
 
 /**
- * Add sides to a day until each main meal meets the protein guide and produce reaches the target.
+ * Add sides to a day until each main meal meets the protein guide and produce reaches the target, then one
+ * fibrous fruit or vegetable side if the day is low on fiber.
  * Never adds a side to a meal that already has one, and never repeats a side within the day.
  * Returns a new day and how many sides were added.
  */
@@ -140,6 +154,24 @@ export function balanceDay(day: PlanDay, dayIndex: number, ctx: PlanContext): { 
     if (o) {
       m.side = o.id;
       added++;
+    }
+  }
+  // Fiber: one more fruit or vegetable side, the most fibrous that fits, when the day is under the guide.
+  // Days with a meal out are left alone, since their estimate is incomplete, and so are meals already approved.
+  const d = dayNutrition(next, ctx.hungry);
+  if (!d.fiberOk && !d.out) {
+    for (const slot of ['Dinner', 'Lunch', 'Afternoon snack', 'Breakfast'] as Slot[]) {
+      const m = meals[slot];
+      if (!m?.r || m.side || m.ok) continue;
+      const used = Object.values(meals).map((x) => x?.side).filter(Boolean);
+      const o = sideOptions(ctx, dayIndex, slot, 'produce', m.r)
+        .filter((x) => !used.includes(x.id) && x.fiber >= 2)
+        .sort((a, b) => b.fiber - a.fiber)[0];
+      if (o) {
+        m.side = o.id;
+        added++;
+        break;
+      }
     }
   }
   return { day: next, added };

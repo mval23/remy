@@ -3,7 +3,7 @@ import { ingredientName } from '../planning/method';
 import type { MacroShown } from '../planning/macros';
 import type { Recipe } from '../planning/types';
 import { Icon, type IconName } from './Icon';
-import { macroText } from './Macros';
+import { MacroFigures, macroText } from './Macros';
 
 /** Pantry basics left out of a dish's description. */
 const BASICS = new Set(['oil', 'spices', 'bakingpowder', 'vanilla', 'cumin', 'paprika', 'herbs', 'cinnamon', 'taco', 'garlic', 'sugar']);
@@ -20,11 +20,12 @@ export function describe(r: Recipe): string {
 /** The dotted line between a name and its value. */
 export const Leader = () => <span className="leader" aria-hidden="true" />;
 
-/** "17 g protein · 72 g carbs · 7 g fat", numbers in bold. */
+/** "17 g protein · 70 g carbs · 7 g fat · 7 g fiber", numbers in bold. */
 export function MacroLine({ n, note }: { n: MacroShown; note?: string }) {
   return (
     <p className="macro-line" aria-label={`About ${macroText(n)}${note ? `, ${note}` : ''}`}>
-      <b>{n.pro} g</b> protein · <b>{n.carb} g</b> carbs · <b>{n.fat} g</b> fat{note ? ` · ${note}` : ''}
+      <MacroFigures n={n} />
+      {note ? ` · ${note}` : ''}
     </p>
   );
 }
