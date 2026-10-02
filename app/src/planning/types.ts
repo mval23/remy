@@ -135,6 +135,8 @@ export interface Recipe {
   serves: number;
   /** Portioned as whole items (a burrito, a fillet, a sandwich): never scaled to fit goals, since 80% of a tortilla isn't a thing. */
   whole?: boolean;
+  /** The most days a week Remy plans it on its own (heavy dishes like bandeja paisa). The person can still choose it more. */
+  maxPerWeek?: number;
   /** Safe days in the fridge after prep day. */
   fridge: number;
   /** Months in the freezer for best quality (0 = don't freeze). */

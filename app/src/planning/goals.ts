@@ -133,7 +133,7 @@ function bestSwap(plan: WeekPlan, ctx: PlanContext, gap: number): Swap | null {
       const cur = R[from];
       for (const id of MEAL_IDS) {
         const r = R[id];
-        if (r.slot !== slot || inPlan.has(id) || avoided(id, ctx) || !check(r, ctx.A).ok || storage(r, u.last).k === 'unsafe') continue;
+        if (r.slot !== slot || inPlan.has(id) || avoided(id, ctx) || !check(r, ctx.A).ok || storage(r, u.last).k === 'unsafe' || (r.maxPerWeek !== undefined && u.n > r.maxPerWeek)) continue;
         const change = ((r.kcal - cur.kcal) * u.n) / counted;
         // Must move toward the goal and not overshoot by more than it closes.
         if (Math.sign(change) !== Math.sign(gap) || Math.abs(gap - change) >= Math.abs(gap)) continue;
