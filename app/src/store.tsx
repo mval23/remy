@@ -103,7 +103,7 @@ const planContext = (s: InterviewState, p: PlanState): PlanContext => context(ac
 
 /** A newly built week, fitted to the person's daily goals when they set some. */
 const fitted = (plan: WeekPlan, s: InterviewState, p: PlanState): WeekPlan => {
-  const goals = goalsOf(p.nutrition);
+  const goals = goalsOf(p.nutrition, activeAnswers(s));
   return hasGoals(goals) ? fitToGoals(plan, planContext(s, p), goals).plan : plan;
 };
 const pct = (x: number) => `${Math.round(x * 100)}%`;
@@ -112,7 +112,7 @@ const pct = (x: number) => `${Math.round(x * 100)}%`;
 const weekOf = (p: PlanState, w: number): WeekPlan | null => (w === 0 ? p.plan : (p.ahead[w - 1] ?? null));
 const withWeek = (p: PlanState, w: number, plan: WeekPlan): PlanState => (w === 0 ? { ...p, plan } : { ...p, ahead: p.ahead.map((x, i) => (i === w - 1 ? plan : x)) });
 /** The weeks after `plan`, redrafted from the rules: meals approved ahead stay. */
-const aheadFor = (plan: WeekPlan, s: InterviewState, p: PlanState, variety: Variety) => planAhead(plan, p.ahead, variety, planContext(s, p), goalsOf(p.nutrition));
+const aheadFor = (plan: WeekPlan, s: InterviewState, p: PlanState, variety: Variety) => planAhead(plan, p.ahead, variety, planContext(s, p), goalsOf(p.nutrition, activeAnswers(s)));
 
 function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
   const [interview, setInterview] = useState<InterviewState>(initial.interview);
@@ -320,7 +320,7 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
       // The first week is cooked on the next prep day; reminders and “today” follow that date.
       setPlanState((p) => {
         const plan = fitted(buildPlan(variety, planContext(s, p)).plan, s, p);
-        return { ...p, variety, day: 0, weekStartedAt: Date.now(), plan, ahead: planAhead(plan, [], variety, planContext(s, p), goalsOf(p.nutrition)) };
+        return { ...p, variety, day: 0, weekStartedAt: Date.now(), plan, ahead: planAhead(plan, [], variety, planContext(s, p), goalsOf(p.nutrition, activeAnswers(s))) };
       });
       patchUi({ screen: 'planner' });
       toast('Your week is ready. Review each meal.');
@@ -373,7 +373,7 @@ function useRemyState(initial: { interview: InterviewState; plan: PlanState }) {
     },
     /** Fit this week to the daily goals now (new weeks are fitted automatically). */
     fitGoals: () => {
-      const goals = goalsOf(planState.nutrition);
+      const goals = goalsOf(planState.nutrition, activeAnswers(interview));
       if (!viewPlan || !hasGoals(goals)) return;
       const r = fitToGoals(viewPlan, planContext(interview, planState), goals);
       setPlanState(withWeek(planState, ui.week, r.plan));

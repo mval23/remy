@@ -99,7 +99,8 @@ export const ING: Record<string, Ingredient> = {
   sweetpotatoes: { n: 'Sweet potatoes', u: 'g', p: 0.0033, sec: 'Produce', m: [1.6, 20, 0.1] },
   peas: { n: 'Frozen peas', u: 'g', pk: 340, pp: 1.79, pkn: '340 g bag', sec: 'Frozen', m: [5, 14, 0.4] },
   mozzarella: { n: 'Shredded mozzarella', u: 'g', pk: 225, pp: 3.29, pkn: '225 g bag', sec: 'Dairy & eggs', alg: ['dairy'], f: 'cheese', m: [24, 3, 20] },
-  quesofresco: { n: 'Queso fresco', u: 'g', pk: 280, pp: 3.99, pkn: '280 g round', sec: 'Dairy & eggs', alg: ['dairy'], f: 'cheese', m: [18, 3, 23] },
+  // Fresh Latin-style cheese: a Listeria risk in pregnancy unless heated until steaming (recipes that bake it say so with `cooks`).
+  quesofresco: { n: 'Queso fresco', u: 'g', pk: 280, pp: 3.99, pkn: '280 g round', sec: 'Dairy & eggs', alg: ['dairy'], f: 'cheese', m: [18, 3, 23], risk: ['fresh-cheese'] },
   ricotta: { n: 'Ricotta', u: 'g', pk: 425, pp: 3.99, pkn: '425 g tub', sec: 'Dairy & eggs', alg: ['dairy'], f: 'cheese', m: [11, 3, 13] },
   feta: { n: 'Crumbled feta', u: 'g', pk: 170, pp: 3.99, pkn: '170 g tub', sec: 'Dairy & eggs', alg: ['dairy'], f: 'cheese', m: [14, 4, 21] },
   mascarpone: { n: 'Mascarpone', u: 'g', pk: 225, pp: 4.99, pkn: '225 g tub', sec: 'Dairy & eggs', alg: ['dairy'], f: 'cheese', m: [4.5, 4, 44] },

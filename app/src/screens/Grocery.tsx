@@ -28,7 +28,7 @@ export function Grocery() {
   const staplesThisWeek = monthly ? weekItems.filter((x) => !x.custom && buysMonthly(x.k) && !x.home) : [];
   const weekly = monthly ? weekItems.filter((x) => x.custom || !buysMonthly(x.k)) : weekItems;
   // The month: this week and the weeks planned ahead (older saved data without them: a forecast).
-  const weeks = planState.ahead.length ? [planState.plan, ...planState.ahead] : forecastWeeks(planState.plan, planState.variety ?? defaultVariety(A), ctx, goalsOf(planState.nutrition));
+  const weeks = planState.ahead.length ? [planState.plan, ...planState.ahead] : forecastWeeks(planState.plan, planState.variety ?? defaultVariety(A), ctx, goalsOf(planState.nutrition, A));
   const month = monthly ? monthList(weeks, A, planState.month.edits) : [];
   const shop = planState.shopDays;
   const wd = weekDates(A, planState.weekStartedAt, 0, shop, monthly);

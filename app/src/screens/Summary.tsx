@@ -4,6 +4,7 @@ import { activeAnswers, applies, formatAnswer, sequence } from '../interview/eng
 import { allRatings, arr, asPreparations, listText, real, str } from '../interview/helpers';
 import { FOODS, LEVELS, QBY } from '../interview/questions';
 import { inferences, laterQuestions, safetyRules, type Confidence } from '../profile/profile';
+import { noWeightLoss, riskFlags } from '../profile/screen';
 import { useRemy } from '../store';
 
 const DAY_FULL: Record<string, string> = { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' };
@@ -107,14 +108,26 @@ export function Summary() {
                 </button>
               </div>
             </div>
-            {health.length > 0 && (
+            <div className="panel kv gap-top">
+              <Row label="Health" id="health" src="Kept out of anything sent to the AI" />
+              <Row label="Age group" id="age" />
+            </div>
+            {noWeightLoss(A) ? (
+              <div className="warnline">
+                <Icon name="info" size={16} />
+                <span>
+                  From your answers, Remy won’t plan for weight loss, set calorie or protein goals, or track weight. Meals stay regular and balanced
+                  {riskFlags(A).length ? ', and a few foods that need extra care are left out' : ''}. A doctor or registered dietitian is the right guide for anything more.
+                </span>
+              </div>
+            ) : health.length > 0 ? (
               <div className="warnline">
                 <Icon name="info" size={16} />
                 <span>
                   You mentioned {listText(health).toLowerCase()}. Remy keeps meals general and can’t tailor them medically; please review the plan with your care team.
                 </span>
               </div>
-            )}
+            ) : null}
           </section>
 
           <section className="sec">

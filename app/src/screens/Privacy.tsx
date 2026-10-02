@@ -29,7 +29,10 @@ export function Privacy() {
               Your interview answers, your week, grocery list, check-ins, what Remy learned and any AI recipes you kept are saved in this browser’s storage on this device.
               Clearing the browser’s data for this site, or removing the installed app, deletes them. A backup file is the way to keep a copy.
             </p>
-            <p className="hint">Weight and health answers are optional. If you give them, they stay in your data and are never sent to the AI.</p>
+            <p className="hint">
+              Weight, age group and health answers are optional. If you give them, they stay in your data and are never sent to the AI. Some health answers turn off
+              weight-loss planning and leave out a few foods that need extra care.
+            </p>
           </div>
         </section>
 

@@ -2,6 +2,11 @@ export type Slot = 'Breakfast' | 'Lunch' | 'Afternoon snack' | 'Dinner' | 'Eveni
 export type Day = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun';
 export type Lane = 'hands' | 'oven' | 'stove' | 'chill';
 export type Variety = 'favorites' | 'balanced' | 'variety';
+/**
+ * Food-safety risks that matter more for some people (see `profile/screen.ts`):
+ * an egg sauce that doesn't fully cook, an egg with a runny yolk, fresh cheese served unheated.
+ */
+export type Risk = 'raw-egg' | 'soft-egg' | 'fresh-cheese';
 
 export const SLOTS: Slot[] = ['Breakfast', 'Lunch', 'Afternoon snack', 'Dinner', 'Evening sweet'];
 export const SLOT_SHORT: Record<Slot, string> = {
@@ -37,6 +42,8 @@ export interface Ingredient {
   m?: [number, number, number];
   /** Kept so older saved recipes still read; library recipes don't use it and the AI isn't offered it. */
   retired?: boolean;
+  /** Food-safety risks this ingredient brings to any recipe, unless the recipe cooks them away (`Recipe.cooks`). */
+  risk?: Risk[];
 }
 
 export interface Task {
@@ -99,6 +106,10 @@ export interface Recipe {
   tasks: Task[];
   /** [what, swap to, food key to check against ratings] */
   subs?: [string, string, string?][];
+  /** Food-safety risks from how the dish is made (e.g. carbonara's egg sauce). */
+  risk?: Risk[];
+  /** Ingredient risks the method removes (e.g. pandebono bakes its queso fresco). */
+  cooks?: Risk[];
   kcal: number;
   /** Protein grams per portion (estimate). kcal, pro, carb and fat are added up from the ingredients (see macros.ts). */
   pro: number;
