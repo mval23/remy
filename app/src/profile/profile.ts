@@ -1,6 +1,7 @@
 import { asBudget, asPreparations, has, hasAny, real, arr } from '../interview/helpers';
 import { QBY } from '../interview/questions';
 import type { Answers, Question } from '../interview/types';
+import { STRICT_ALLERGY, STRICT_ALLERGY_OLD } from '../planning/rules';
 
 export type Confidence = 'high' | 'medium' | 'low';
 
@@ -17,7 +18,8 @@ export function safetyRules(A: Answers) {
     allergies: real(A.allergies),
     diet: arr(A.diet).filter((x) => x !== 'No restrictions'),
     intolerances: real(A.intolerances),
-    confirmation: typeof A.allergy_confirm === 'string' ? A.allergy_confirm : null,
+    // Older answers used wording that promised to skip “may contain” products; show what the rule actually does.
+    confirmation: A.allergy_confirm === STRICT_ALLERGY_OLD ? STRICT_ALLERGY : typeof A.allergy_confirm === 'string' ? A.allergy_confirm : null,
   };
 }
 

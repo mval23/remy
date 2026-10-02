@@ -10,7 +10,7 @@ import { fitToGoals, goalsOf, hasGoals } from '../planning/goals';
 import { buildPlan, eachMeal } from '../planning/planner';
 import { duration, schedule } from '../planning/schedule';
 import { dayIndexOn } from '../planning/calendar';
-import { AVOID_AT, check, context, defaultVariety, storage, type PlanContext } from '../planning/rules';
+import { AVOID_AT, check, context, defaultVariety, kosherClash, storage, type PlanContext } from '../planning/rules';
 import type { PlanDay, Slot, Variety, WeekPlan } from '../planning/types';
 import { inferences, type Confidence } from '../profile/profile';
 import type { PlanState } from '../storage/planState';
@@ -154,20 +154,20 @@ export function fillLightDay(day: PlanDay, dayIndex: number, ctx: PlanContext): 
     const m = meals[slot];
     if (!m?.r || m.side) continue;
     const used = Object.values(meals).map((x) => x?.side);
-    const side = sideOptions(ctx, dayIndex, slot).find((x) => !used.includes(x.id));
+    const side = sideOptions(ctx, dayIndex, slot, undefined, m.r).find((x) => !used.includes(x.id));
     if (side) m.side = side.id;
   }
   return next;
 }
 
-/** Put a trial side on the first lunch or dinner where it's safe to store, replacing any side there. */
-export function placeTrial(plan: WeekPlan, sideId: string): WeekPlan {
+/** Put a trial side on the first lunch or dinner where it's safe to store, replacing any side there (never dairy with meat for Kosher). */
+export function placeTrial(plan: WeekPlan, sideId: string, A: Answers = {}): WeekPlan {
   const side = R[sideId];
   for (let i = 0; i < plan.length; i++) {
     if (storage(side, i + 1).k === 'unsafe') break;
     for (const slot of ['Dinner', 'Lunch'] as Slot[]) {
       const m = plan[i].meals[slot];
-      if (m?.r && side.for?.includes(slot)) return plan.map((d, j) => (j === i ? { ...d, meals: { ...d.meals, [slot]: { ...m, side: sideId } } } : d));
+      if (m?.r && side.for?.includes(slot) && !kosherClash(A, R[m.r], side)) return plan.map((d, j) => (j === i ? { ...d, meals: { ...d.meals, [slot]: { ...m, side: sideId } } } : d));
     }
   }
   return plan;
@@ -283,7 +283,7 @@ export function applyCheckin(state: PlanState, A: Answers, at = Date.now()): Che
   const next = state.ahead?.[0];
   const keptAhead = next ? approvedCount(next) : 0;
   let plan = buildPlan(variety, ctx, next).plan;
-  if (trial) plan = placeTrial(plan, trial);
+  if (trial) plan = placeTrial(plan, trial, A);
   if (lowEnergy) plan = plan.map((day, i) => (dayNutrition(day, hungry).light ? fillLightDay(day, i, ctx) : day));
   // Daily goals the person set: fit the new week toward them.
   const goals = goalsOf(state.nutrition, A);

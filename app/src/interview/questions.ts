@@ -60,10 +60,11 @@ const QUESTIONS: Omit<Question, 'i'>[] = [
     when: (A) => real(A.allergies).length > 0,
     because: (A) => 'Because you listed ' + listText(real(A.allergies)),
     say: (A) => 'Let me confirm: ' + listText(real(A.allergies)) + ' will be a hard rule. I won’t suggest it anywhere, including hidden sources like sauces. Is that right?',
-    why: 'Many allergens hide in sauces. For shellfish, that includes oyster sauce and some fish sauces. I check ingredient aliases, but always read labels too.',
+    why: 'Many allergens hide in sauces. For shellfish, that includes oyster sauce and some fish sauces. I check ingredient aliases and what each one usually contains, but recipes and factories vary by brand, so always read labels too.',
     opts: [
       { v: 'Yes, never include it', d: 'Treat it as a hard rule everywhere' },
-      { v: 'Yes, and avoid “may contain” products too', d: 'Stricter: skip cross-contact warnings' },
+      // Same value as STRICT_ALLERGY in planning/rules.ts (not imported: rules.ts imports this file).
+      { v: 'Yes, and skip ingredients that often carry it', d: 'Stricter: also leave out foods like buns that often have sesame. I can’t see factory lines, so still read labels' },
       { v: 'Let me change my answer', d: 'Go back to the allergy list' },
     ],
     sample: 'Yes, never include it',

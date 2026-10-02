@@ -34,13 +34,20 @@ const ALLERGY_TAG: Record<string, string> = {
 };
 const DIET_TAGS: Record<string, string[]> = {
   Vegetarian: ['meat', 'fish', 'shellfish'], Vegan: ['meat', 'fish', 'shellfish', 'dairy', 'egg', 'honey'], Pescatarian: ['meat'],
-  'No pork': ['pork'], 'No red meat': ['beef'], Halal: ['pork'], Kosher: ['pork', 'shellfish'],
+  // Pork is red meat too. Kosher also keeps meat and dairy apart (`kosherClash`); Halal and Kosher meat certification is a label check.
+  'No pork': ['pork'], 'No red meat': ['beef', 'pork'], Halal: ['pork'], Kosher: ['pork', 'shellfish'],
 };
-const INTOLERANCE_TAGS: Record<string, string[]> = { Lactose: ['dairy'], Gluten: ['gluten'], 'Beans and lentils': ['beans'] };
+// Caffeine means coffee; the small amount in cocoa isn't counted, or every chocolate sweet would go.
+const INTOLERANCE_TAGS: Record<string, string[]> = { Lactose: ['dairy'], Gluten: ['gluten'], 'Beans and lentils': ['beans'], Caffeine: ['caffeine'] };
 export const TAG_LABEL: Record<string, string> = {
   peanut: 'peanuts', treenut: 'tree nuts', dairy: 'dairy', egg: 'eggs', gluten: 'wheat / gluten', soy: 'soy', fish: 'fish',
-  shellfish: 'shellfish', sesame: 'sesame', meat: 'meat', beef: 'red meat', pork: 'pork', honey: 'honey', beans: 'beans',
+  shellfish: 'shellfish', sesame: 'sesame', meat: 'meat', beef: 'red meat', pork: 'pork', honey: 'honey', beans: 'beans', caffeine: 'caffeine',
 };
+
+/** The stricter allergy answer. The first wording promised to skip “may contain” products, which Remy can't see; both mean the same rule. */
+export const STRICT_ALLERGY = 'Yes, and skip ingredients that often carry it';
+export const STRICT_ALLERGY_OLD = 'Yes, and avoid “may contain” products too';
+export const strictAllergy = (A: Answers) => A.allergy_confirm === STRICT_ALLERGY || A.allergy_confirm === STRICT_ALLERGY_OLD;
 
 /** Allergen and diet tags that must never appear. Typed-in allergies become `custom:<text>`. */
 export function hardTags(A: Answers): Set<string> {
@@ -49,6 +56,32 @@ export function hardTags(A: Answers): Set<string> {
   for (const d of arr(A.diet)) for (const x of DIET_TAGS[d] ?? []) t.add(x);
   for (const d of arr(A.intolerances)) for (const x of INTOLERANCE_TAGS[d] ?? []) t.add(x);
   return t;
+}
+
+/** Allergen tags from the allergy list (not diets or intolerances): the ones the stricter rule extends to `may`. */
+function allergyTags(A: Answers): Set<string> {
+  return new Set(real(A.allergies).filter((v) => ALLERGY_OPTS.includes(v)).map((v) => ALLERGY_TAG[v]));
+}
+
+/** Kosher: meat (including poultry) and dairy never in the same dish or meal. */
+export function kosherClash(A: Answers, ...recipes: (Recipe | undefined)[]): boolean {
+  if (!has(A.diet, 'Kosher')) return false;
+  const tags = recipes.flatMap((r) => (r ? r.ing.flatMap(([k]) => ING[k]?.alg ?? []) : []));
+  return tags.includes('meat') && tags.includes('dairy');
+}
+
+/** Label checks that matter for this person: allergy, diet and intolerance tags, plus Halal and Kosher certification. */
+export function labelTags(A: Answers): Set<string> {
+  const t = hardTags(A);
+  if (has(A.diet, 'Halal')) t.add('halal');
+  if (has(A.diet, 'Kosher')) t.add('kosher');
+  return t;
+}
+
+/** What to check on this ingredient's package, for this person. */
+export function labelChecks(k: string, A: Answers): string[] {
+  const t = labelTags(A);
+  return (ING[k]?.label ?? []).filter((l) => !l.for || l.for.some((x) => t.has(x))).map((l) => l.note);
 }
 
 function isAllergyTag(A: Answers, tag: string): boolean {
@@ -77,12 +110,21 @@ const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
  */
 export function check(r: Recipe, A: Answers): CheckResult {
   const tags = hardTags(A);
+  const strict = strictAllergy(A) ? allergyTags(A) : new Set<string>();
   for (const [k] of r.ing) {
     const g = ING[k];
     const name = g.n.toLowerCase();
     for (const t of g.alg ?? []) if (tags.has(t)) return { ok: false, blocked: true, allergy: isAllergyTag(A, t), reason: `Contains ${name} (${TAG_LABEL[t] ?? t})` };
-    for (const t of tags) if (t.startsWith('custom:') && name.includes(t.slice(7))) return { ok: false, blocked: true, allergy: true, reason: `Contains ${name}` };
+    for (const t of g.may ?? []) if (strict.has(t)) return { ok: false, blocked: true, allergy: true, reason: `${g.n} often carries ${TAG_LABEL[t] ?? t}` };
+    // Typed-in allergies match the ingredient's name and its hidden parts (mustard in mayonnaise).
+    for (const t of tags) {
+      if (!t.startsWith('custom:')) continue;
+      const word = t.slice(7);
+      const part = (g.parts ?? []).find((p) => p.includes(word));
+      if (name.includes(word) || part) return { ok: false, blocked: true, allergy: true, reason: part ? `${g.n} has ${part} in it` : `Contains ${name}` };
+    }
   }
+  if (kosherClash(A, r)) return { ok: false, blocked: true, allergy: false, reason: 'Meat with dairy (kosher)' };
   // Food-safety risks for people the health and age screen flags (pregnancy, 65 or older): a safety rule, like allergies.
   const flags = riskFlags(A);
   if (flags.length) {

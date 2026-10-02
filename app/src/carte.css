@@ -113,6 +113,7 @@ button.dish-name { border: 0; background: none; padding: 12px 0; margin: -12px 0
 .gline .nm { font-weight: 600; font-size: var(--fs-body); color: var(--ink); }
 .gline .qty { font-family: var(--f-display); font-weight: 700; font-size: var(--fs-m); white-space: nowrap; color: var(--ink); font-variant-numeric: tabular-nums; }
 .gline .from { display: block; font-size: var(--fs-s); color: var(--ink-3); margin-top: 1px; }
+.gline .label-check { color: var(--carrot); font-weight: 600; }
 .gline-main > .nm { display: block; }
 .gline .price { font-family: var(--f-display); font-weight: 600; font-size: var(--fs-s); color: var(--ink-3); min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
 .gline.done .nm { text-decoration: line-through; color: var(--ink-3); }

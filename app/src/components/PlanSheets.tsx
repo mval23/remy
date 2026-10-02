@@ -246,7 +246,7 @@ function SideSheet({ arg }: { arg: SheetArg }) {
   const r = R[m.r!];
   const nums = estimatesOn(planState.nutrition, ctx.A);
   const hidden = SIDE_IDS.map((id) => R[id]).filter((s) => s.for?.includes(slot) && !check(s, ctx.A).ok);
-  const groups = (['protein', 'produce'] as const).map((kind) => ({ kind, list: sideOptions(ctx, d, slot, kind).filter((s) => s.id !== m.side) }));
+  const groups = (['protein', 'produce'] as const).map((kind) => ({ kind, list: sideOptions(ctx, d, slot, kind, m.r).filter((s) => s.id !== m.side) }));
   const title = `Add a side · ${DAY_FULL[plan[d].d]} ${SLOT_SHORT[slot].toLowerCase()}`;
   return (
     <SheetFrame label={title}>

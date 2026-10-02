@@ -3,6 +3,7 @@ import type { Answers } from '../interview/types';
 import { ING } from './data/ingredients';
 import { R } from './data/recipes';
 import { portions, portionSizes } from './planner';
+import { labelChecks } from './rules';
 import { quantityText } from './units';
 import type { WeekPlan } from './types';
 
@@ -34,6 +35,8 @@ export interface GroceryItem {
   home: boolean;
   custom: boolean;
   qtyText: string;
+  /** What to check on the package for this person ("may contain sesame", "made with pasteurized milk"). */
+  checks: string[];
 }
 
 /** How much of each ingredient the week's cooking uses (whole batches × portion size), and which recipes use it. */
@@ -79,10 +82,11 @@ export function toItems({ total, from }: Totals, A: Answers, edits: GroceryEdits
       home: edits.have[k] ?? pantryHome,
       custom: false,
       qtyText: edits.qty[k] ?? quantityText(q, g.u),
+      checks: labelChecks(k, A),
     };
   });
   for (const c of edits.custom) {
-    items.push({ k: c.id, n: c.n, q: null, u: '', sec: c.sec || 'Other', cost: null, packs: '', from: ['Added by you'], home: !!edits.have[c.id], custom: true, qtyText: edits.qty[c.id] ?? c.q });
+    items.push({ k: c.id, n: c.n, q: null, u: '', sec: c.sec || 'Other', cost: null, packs: '', from: ['Added by you'], home: !!edits.have[c.id], custom: true, qtyText: edits.qty[c.id] ?? c.q, checks: [] });
   }
   return items.filter((x) => !edits.deleted[x.k]);
 }
