@@ -129,9 +129,53 @@ export function weekQuestions(plan: WeekPlan, A: Answers, state: PlanState): Che
   });
   if (sweet) out.push({ id: 'sweet', q: 'Did the evening sweet portion feel like enough?', o: ['Yes, satisfied', 'I wanted more', 'It was too much'] });
   out.push({ id: 'prep', q: 'Was prep day the right length?', o: ['Too long', 'About right', 'I could do more'] });
+  out.push({ id: 'ate', q: 'How much of the planned food did you eat?', o: ATE });
   const s = noticeSuggestion(A, state.noticed);
   if (s && !state.trial) out.push({ id: 'try', q: `Want to try ${s.idea} next week?`, o: ['Sure, once', 'Not yet'] });
   return out;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Answers to “How much of the planned food did you eat?”, most first. */
+export const ATE = ['All or nearly all', 'Most of it', 'About half', 'Not much'];
+const ateMost = (a: string | undefined) => a === ATE[0] || a === ATE[1];
+const ateLittle = (a: string | undefined) => a === ATE[2] || a === ATE[3];
+
+/** Weekly weight change as a share of body weight (% a week, positive = losing), from weigh-ins over the last 5 weeks. Null until there are 3 spanning 2 weeks or more. */
+export function weeklyLossPct(progress: ProgressEntry[], at: number): number | null {
+  const kg = (p: ProgressEntry) => (p.unit === 'lb' ? p.weight! * KG_PER_LB : p.weight!);
+  const w = progress.filter((p) => p.weight && at - p.at <= 35 * DAY_MS).sort((a, b) => a.at - b.at);
+  if (w.length < 3) return null;
+  const days = (w[w.length - 1].at - w[0].at) / DAY_MS;
+  if (days < 14) return null;
+  return ((kg(w[0]) - kg(w[w.length - 1])) / kg(w[0])) * 100 / (days / 7);
+}
+
+/** At most this often (and by this much) a check-in changes an estimate-based target. */
+export const ADJUST_EVERY_DAYS = 14;
+export const ADJUST_KCAL = 100;
+
+/**
+ * A check-in's proposal for an estimate-based calorie target (audit, section 5): raise it when someone is often
+ * hungry or low on energy two check-ins running, or losing more than 1% a week; lower it when weight has held
+ * steady for 3 weeks while they ate most of the planned food and weren't often hungry; leave it when they ate
+ * half or less, since taste and effort come first. Typed targets (their own or a professional's) are never changed.
+ */
+export function proposeAdjustment(state: PlanState, q: Record<string, string>, progress: ProgressEntry[], at: number): { delta: number; why: string } | null {
+  const n = state.nutrition;
+  const target = Number(n.kcal);
+  if (n.from !== 'estimate' || !target) return null;
+  if (at - (n.adjustedAt ?? 0) < ADJUST_EVERY_DAYS * DAY_MS) return null;
+  const prev = progress[1];
+  if ((q.hunger === 'Often hungry' && prev?.hunger === 'Often hungry') || (q.energy === 'Low' && prev?.energy === 'Low'))
+    return { delta: ADJUST_KCAL, why: q.hunger === 'Often hungry' ? 'you were often hungry two check-ins running' : 'your energy was low two check-ins running' };
+  const rate = weeklyLossPct(progress, at);
+  if (rate !== null && rate > 1) return { delta: ADJUST_KCAL, why: 'you’re losing more than 1% of your weight a week, faster than Remy aims for' };
+  if (ateLittle(q.ate)) return { delta: 0, why: 'you ate about half of the planned food or less, so taste and effort come first' };
+  if (rate !== null && rate < 0.2 && ateMost(q.ate) && q.hunger !== 'Often hungry' && target - ADJUST_KCAL >= (n.floor ?? 0))
+    return { delta: -ADJUST_KCAL, why: 'your weight has held steady for a few weeks while you ate most of the planned food' };
+  return null;
 }
 
 /** Body check-in, unless the user chose not to track. Weight is separate and opt-in. */
@@ -270,6 +314,15 @@ export function applyCheckin(state: PlanState, A: Answers, at = Date.now()): Che
     kept = kept.filter((x) => x.effect !== 'hungry');
     changes.push('Go back to the usual protein guide');
   }
+  // An estimate-based target can move by 100 kcal, at most every 2 weeks.
+  let nutrition = state.nutrition;
+  const adjust = proposeAdjustment(state, q, progress, at);
+  if (adjust && adjust.delta) {
+    const kcal = Number(nutrition.kcal) + adjust.delta;
+    nutrition = { ...nutrition, kcal: String(kcal), adjustedAt: at };
+    learn(`Daily target ${adjust.delta > 0 ? 'up' : 'down'} ${Math.abs(adjust.delta)} kcal: ${adjust.why}`, 'medium', { effect: 'target', kcal: adjust.delta });
+    changes.push(`Aim for about ${kcal.toLocaleString('en-US')} kcal a day (${adjust.delta > 0 ? '+' : '−'}${Math.abs(adjust.delta)}), since ${adjust.why}`);
+  } else if (adjust) changes.push(`Keep your daily target as it is, since ${adjust.why}`);
   const lowEnergy = q.energy === 'Low';
   if (lowEnergy) {
     learn('Low energy this week: avoid light days', 'medium');
@@ -286,7 +339,7 @@ export function applyCheckin(state: PlanState, A: Answers, at = Date.now()): Che
   if (trial) plan = placeTrial(plan, trial, A);
   if (lowEnergy) plan = plan.map((day, i) => (dayNutrition(day, hungry).light ? fillLightDay(day, i, ctx) : day));
   // Daily goals the person set: fit the new week toward them.
-  const goals = goalsOf(state.nutrition, A);
+  const goals = goalsOf(nutrition, A);
   if (hasGoals(goals)) plan = fitToGoals(plan, ctx, goals).plan;
   if (keptAhead) changes.push(`Keep the ${keptAhead} meal${keptAhead > 1 ? 's' : ''} you approved ahead for next week`);
   // The rest of the month moves up a week, and a new week is drafted at the end.
@@ -312,6 +365,7 @@ export function applyCheckin(state: PlanState, A: Answers, at = Date.now()): Che
       adj,
       hungry,
       sweetPortion,
+      nutrition,
       trial: null,
       noticed,
       learned: [...learned, ...kept],
@@ -346,6 +400,8 @@ function reverse(state: PlanState, x: LearnedItem): PlanState {
   }
   if (x.effect === 'hungry') s = { ...s, hungry: false };
   if (x.effect === 'sweetPortion') s = { ...s, sweetPortion: null };
+  if (x.effect === 'target' && x.kcal && s.nutrition.from === 'estimate' && Number(s.nutrition.kcal))
+    s = { ...s, nutrition: { ...s.nutrition, kcal: String(Number(s.nutrition.kcal) - x.kcal) } };
   if ((x.effect === 'trial' || x.effect === 'noticed') && x.food) {
     const noticed = { ...s.noticed };
     delete noticed[x.food];

@@ -53,8 +53,10 @@ export interface FitResult {
   swapped: number;
   /** Protein sides added. */
   sides: number;
-  /** Portion size for main meals (1 = as written). */
+  /** Portion size for main meals (1 = as written); whole-item dishes stay as written. */
   scale: number;
+  /** Days brought back toward the target with a snack swap or a side. */
+  dayFixes: number;
   /** Where the week lands, per day on average. */
   kcal: number;
   pro: number;
@@ -64,7 +66,8 @@ export interface FitResult {
  * Fit a week toward the goals, in three steps:
  * 1. Swap unapproved recipes (on every day they appear) for lighter or heavier ones that pass every rule.
  * 2. Add protein sides to unapproved meals on days below the protein goal.
- * 3. Fine-tune main-meal portions (80–120%) to close the rest of the calorie gap.
+ * 3. Fine-tune main-meal portions (80–120%, in 10% steps; whole-item dishes like burritos stay as written).
+ * 4. Bring days still far from the target (more than 12% off, or under the floor) back with a snack swap or a side.
  * Approved meals keep their recipe; sweets are never swapped out or shrunk. Pure and deterministic.
  */
 export function fitToGoals(input: WeekPlan, ctx: PlanContext, goals: Goals): FitResult {
@@ -94,13 +97,16 @@ export function fitToGoals(input: WeekPlan, ctx: PlanContext, goals: Goals): Fit
   // 2. Protein sides, then 3. portions (and protein again, since smaller portions have less of it).
   sides += addProtein(plan, ctx, goals.pro);
   let scale = 1;
+  let dayFixes = 0;
   if (target !== null) {
-    scale = portionScale(plan, ctx, target);
+    const floor = goals.floor ?? LIGHT_DAY_KCAL;
+    scale = portionScale(plan, ctx, target, floor);
     plan = withScale(plan, scale);
     sides += addProtein(plan, ctx, goals.pro);
+    dayFixes = fixDays(plan, ctx, target, floor);
   }
   const avg = weekAverage(plan, ctx.hungry);
-  return { plan, swapped, sides, scale, kcal: Math.round(avg.kcal), pro: Math.round(avg.pro) };
+  return { plan, swapped, sides, scale, dayFixes, kcal: Math.round(avg.kcal), pro: Math.round(avg.pro) };
 }
 
 interface Swap {
@@ -164,12 +170,12 @@ const MAIN = new Set<Slot>(MAIN_SLOTS);
 function withScale(plan: WeekPlan, x: number): WeekPlan {
   return plan.map((d) => ({
     ...d,
-    meals: Object.fromEntries(Object.entries(d.meals).map(([k, m]) => [k, m?.r && MAIN.has(k as Slot) && x !== 1 ? ({ ...m, x } as Meal) : m])) as PlanDay['meals'],
+    meals: Object.fromEntries(Object.entries(d.meals).map(([k, m]) => [k, m?.r && MAIN.has(k as Slot) && x !== 1 && !R[m.r].whole ? ({ ...m, x } as Meal) : m])) as PlanDay['meals'],
   }));
 }
 
-/** The main-meal portion size (80–120%, steps of 5%) that brings the average closest to the goal, without making any day light. */
-function portionScale(plan: WeekPlan, ctx: PlanContext, target: number): number {
+/** The main-meal portion size (80–120%, steps of 10%) that brings the average closest to the goal, without taking any day under the floor. */
+function portionScale(plan: WeekPlan, ctx: PlanContext, target: number, floor: number): number {
   const avg = weekAverage(plan, ctx.hungry).kcal;
   if (!avg || Math.abs(target - avg) <= target * 0.03) return 1;
   let mainKcal = 0;
@@ -179,13 +185,82 @@ function portionScale(plan: WeekPlan, ctx: PlanContext, target: number): number 
     days++;
     for (const slot of MAIN_SLOTS) {
       const m = d.meals[slot];
-      if (m?.r) mainKcal += R[m.r].kcal;
+      if (m?.r && !R[m.r].whole) mainKcal += R[m.r].kcal;
     }
   }
   if (!mainKcal) return 1;
   const raw = 1 + ((target - avg) * days) / mainKcal;
-  let x = Math.min(SCALE_MAX, Math.max(SCALE_MIN, Math.round(raw * 20) / 20));
-  // Never make a day light (under about 1,200 kcal).
-  while (x < 1 && withScale(plan, x).some((d) => dayNutrition(d, ctx.hungry).light)) x = Math.round((x + 0.05) * 20) / 20;
+  let x = Math.min(SCALE_MAX, Math.max(SCALE_MIN, Math.round(raw * 10) / 10));
+  // Never take a day under the floor (about 1,200 kcal, or the estimate's floor).
+  const under = (p: WeekPlan) => p.some((d) => {
+    const n = dayNutrition(d, ctx.hungry);
+    return !n.out && n.kcal > 0 && n.kcal < floor;
+  });
+  while (x < 1 && under(withScale(plan, x))) x = Math.round((x + 0.1) * 10) / 10;
   return x;
+}
+
+/** How far a day may land from the target before Remy changes it: 12% either way, and never under the floor. */
+export const DAY_BAND = 0.12;
+
+/**
+ * Snacks a day could switch to: allowed, safe on that day, liked, and quick to prep (already on this week's menu,
+ * or 10 minutes of work or less, like fruit), so fixing one day doesn't add much to prep day.
+ */
+function snackOptions(plan: WeekPlan, ctx: PlanContext, dayIndex: number): string[] {
+  const inPlan = new Set<string>();
+  for (const d of plan) for (const m of Object.values(d.meals)) if (m?.r) inPlan.add(m.r);
+  return MEAL_IDS.filter((id) => {
+    const r = R[id];
+    if (r.slot !== 'Afternoon snack' || avoided(id, ctx) || !check(r, ctx.A).ok || storage(r, dayIndex + 1).k === 'unsafe' || score(r, ctx) <= 0) return false;
+    return inPlan.has(id) || r.tasks.reduce((s, t) => s + t.m, 0) <= 10;
+  });
+}
+
+/**
+ * Bring days still far from the target back toward it, one day at a time: a lighter or heavier snack, or a protein
+ * side on a main meal when the day is low. Unapproved meals only; sweets are never touched. Returns how many days changed.
+ */
+function fixDays(plan: WeekPlan, ctx: PlanContext, target: number, floor: number): number {
+  const lo = Math.max(floor, target * (1 - DAY_BAND));
+  const hi = target * (1 + DAY_BAND);
+  let fixed = 0;
+  plan.forEach((day, i) => {
+    const before = dayNutrition(day, ctx.hungry);
+    if (before.out || !before.kcal || (before.kcal >= lo && before.kcal <= hi)) return;
+    const kcal = () => dayNutrition(day, ctx.hungry).kcal;
+    const off = (k: number) => (k < lo ? lo - k : k > hi ? k - hi : 0);
+    // A different snack, the one that lands closest to the target.
+    const snack = day.meals['Afternoon snack'];
+    if (snack?.r && !snack.ok) {
+      const now = snack.r;
+      let best: { id: string; miss: number } | null = null;
+      for (const id of snackOptions(plan, ctx, i)) {
+        day.meals['Afternoon snack'] = { ...snack, r: id };
+        const miss = Math.abs(kcal() - target);
+        if (off(kcal()) < off(before.kcal) && (!best || miss < best.miss)) best = { id, miss };
+      }
+      day.meals['Afternoon snack'] = { ...snack, r: best?.id ?? now };
+    }
+    // Still high: drop a side the day doesn't need (protein and produce stay met without it), heaviest first.
+    for (const slot of [...SLOTS].sort((a, b) => (R[day.meals[b]?.side ?? '']?.kcal ?? 0) - (R[day.meals[a]?.side ?? '']?.kcal ?? 0))) {
+      if (kcal() <= hi) break;
+      const m = day.meals[slot];
+      if (!m?.side || m.ok) continue;
+      const side = m.side;
+      delete m.side;
+      const n = dayNutrition(day, ctx.hungry);
+      if (!n.proteinOk || !n.produceOk) m.side = side;
+    }
+    // Still low: a protein side on a main meal.
+    for (const slot of ['Lunch', 'Dinner', 'Breakfast'] as Slot[]) {
+      if (kcal() >= lo) break;
+      const m = day.meals[slot];
+      if (!m?.r || m.ok || m.side) continue;
+      const side = sideOptions(ctx, i, slot, 'protein', m.r)[0];
+      if (side) m.side = side.id;
+    }
+    if (kcal() !== before.kcal) fixed++;
+  });
+  return fixed;
 }

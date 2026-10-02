@@ -398,6 +398,7 @@ function useRemyState(initial: Initial) {
         r.swapped && `${r.swapped} meal${r.swapped > 1 ? 's' : ''} swapped`,
         r.sides && `${r.sides} protein side${r.sides > 1 ? 's' : ''} added`,
         r.scale !== 1 && `portions ${pct(r.scale)}`,
+        r.dayFixes && `${r.dayFixes} day${r.dayFixes > 1 ? 's' : ''} evened out`,
       ].filter(Boolean);
       toast(parts.length ? `Fitted to your goals: ${parts.join(', ')}` : 'Your week already fits your goals');
     },
