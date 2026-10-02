@@ -1,5 +1,6 @@
 import { allRatings, arr, has, listText, ratedAs, real, str, asBudget } from './helpers';
 import type { Answers, Level, Question, SectionId } from './types';
+import { AGE_OPTS, BREASTFEEDING, EATING_DISORDER, noWeightLoss, PREGNANT, REFER_NOTE } from '../profile/screen';
 
 export const SECTIONS: { id: SectionId; name: string; intro: string }[] = [
   { id: 'safety', name: 'Safety', intro: 'First, the non-negotiables. These keep you safe, so I treat them differently from likes and dislikes.' },
@@ -41,6 +42,8 @@ export const CURRENCIES = ['USD', 'CAD', 'EUR', 'GBP', 'MXN', 'COP'];
 
 const foodName = (f: string) => FOODS[f].n.toLowerCase();
 const isLose = (A: Answers) => str(A.goal).startsWith('Lose');
+/** Weight-loss questions apply only to people Remy may plan weight loss for (see profile/screen.ts). */
+const losing = (A: Answers) => isLose(A) && !noWeightLoss(A);
 const badVeg = (A: Answers) => {
   const r = allRatings(A);
   return Object.keys(r).filter((f) => FOODS[f]?.veg && (r[f] === 'dislike' || r[f] === 'never'));
@@ -82,18 +85,34 @@ const QUESTIONS: Omit<Question, 'i'>[] = [
   { id: 'health', sec: 'safety', type: 'multi', none: 'None', skip: true,
     say: () => 'Any health considerations I should keep in mind?',
     why: 'I’m not a medical professional, and Remy doesn’t give medical advice. For anything medical, a doctor or registered dietitian is the right guide. This just helps me avoid obviously poor fits.',
-    opts: ['None', 'Blood sugar or diabetes', 'Blood pressure', 'Pregnancy', 'Digestive condition', 'Prefer not to say'],
+    opts: ['None', 'Blood sugar or diabetes', 'Blood pressure', PREGNANT, BREASTFEEDING, 'Kidney disease', 'Digestive condition', EATING_DISORDER, 'Appetite medicine, like GLP-1', 'Prefer not to say'],
     sample: ['None'],
-    ack: (v) => (real(v).length && !has(v, 'Prefer not to say') ? 'Thanks. I’ll keep meals general. Please check the plan with your care team, since I can’t tailor it medically.' : null) },
+    ack: (v) =>
+      [PREGNANT, BREASTFEEDING, EATING_DISORDER].some((x) => has(v, x))
+        ? REFER_NOTE
+        : real(v).length && !has(v, 'Prefer not to say')
+          ? 'Thanks. I’ll keep meals general. Please check the plan with your care team, since I can’t tailor it medically.'
+          : null },
+  { id: 'age', sec: 'safety', type: 'single', skip: true, grid: true,
+    say: () => 'Which age group are you in?',
+    why: 'Some guidance changes with age: teenagers are still growing, and after 65 keeping muscle matters more than the scale. A range is all I need.',
+    opts: AGE_OPTS,
+    sample: '18–64',
+    ack: (v) =>
+      v === 'Under 18'
+        ? 'Thanks. Since you’re still growing, I won’t plan for weight loss. I’ll keep meals regular and balanced, and it’s worth involving a parent or doctor in any bigger changes.'
+        : v === '65 or older'
+          ? 'Noted. I’ll keep changes gentle, with protein at every meal.'
+          : null },
 
   /* ---------- 2. Goals ---------- */
   { id: 'goal', sec: 'goals', type: 'single', required: true,
     say: () => 'What’s the main thing you want from Remy?',
     opts: ['Lose weight and body fat, sustainably', 'Eat more regular meals', 'Save time on cooking', 'Eat more variety', 'Keep things as they are, just organized'],
     sample: 'Lose weight and body fat, sustainably',
-    ack: (v) => (str(v).startsWith('Lose') ? 'Sustainable it is. No banned foods and no extreme cuts.' : null) },
+    ack: (v, A) => (str(v).startsWith('Lose') ? (noWeightLoss(A) ? REFER_NOTE : 'Sustainable it is. No banned foods and no extreme cuts.') : null) },
   { id: 'pace', sec: 'goals', type: 'single',
-    when: isLose,
+    when: losing,
     because: () => 'Because your goal is sustainable weight loss',
     say: () => 'What does “sustainable” look like for you?',
     why: 'There is no required number here. Calorie estimates are optional, and they are always estimates.',
@@ -104,7 +123,7 @@ const QUESTIONS: Omit<Question, 'i'>[] = [
     ],
     sample: 'Some structure' },
   { id: 'calories', sec: 'goals', type: 'number', skip: true,
-    when: (A) => A.pace === 'Detailed',
+    when: (A) => A.pace === 'Detailed' && !noWeightLoss(A),
     because: () => 'Because you asked for detailed guidance',
     say: () => 'Do you have a daily calorie estimate you’d like me to aim near?',
     why: 'Optional. If you have one from a professional or an app, I’ll use it as a rough guide. I won’t push below it or treat it as exact.',
@@ -128,7 +147,7 @@ const QUESTIONS: Omit<Question, 'i'>[] = [
     sample: 'Yes, suggest sides',
     ack: (v) => (v === 'No thanks' ? 'Okay, no balance checks. You can turn them on later.' : null) },
   { id: 'progress', sec: 'goals', type: 'single', skip: true,
-    when: isLose,
+    when: losing,
     because: () => 'Because your goal is sustainable weight loss',
     say: () => 'How would you like to notice progress?',
     why: 'The scale jumps around from week to week. Hunger, energy and how clothes fit are often more useful signals.',

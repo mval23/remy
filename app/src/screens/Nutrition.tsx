@@ -8,6 +8,7 @@ import { fraction } from '../planning/grocery';
 import { balanceOn, dayNutrition, estimatesOn, kcalRange, LIGHT_DAY_KCAL } from '../planning/nutrition';
 import { DAY_FULL, SLOT_SHORT } from '../planning/types';
 import { goalsOf, hasGoals } from '../planning/goals';
+import { noWeightLoss } from '../profile/screen';
 import { useRemy } from '../store';
 
 function Plate() {
@@ -101,7 +102,7 @@ export function Nutrition() {
   const produce = Object.keys(rat).filter((f) => (FOODS[f]?.veg || ['berries', 'bananas', 'apples', 'grapes'].includes(f)) && accepted(f)).map((f) => FOODS[f].n.toLowerCase());
   const counted = days.filter((x) => !x.out);
   const avgKcal = counted.length ? Math.round(counted.reduce((s, x) => s + x.kcal, 0) / counted.length) : 0;
-  const goals = goalsOf(n);
+  const goals = goalsOf(n, A);
   const avgPro = counted.length ? Math.round(counted.reduce((s, x) => s + x.pro, 0) / counted.length) : 0;
   const round10 = (x: number) => (Math.round(x / 10) * 10).toLocaleString('en-US');
 
@@ -184,39 +185,48 @@ export function Nutrition() {
               Calories, protein, carbs and fat for every meal, added up from the ingredients. Rough estimates.
               {n.nums === null && ` Default: ${A.pace === 'Detailed' ? 'on (you chose detailed)' : 'off'}.`}
             </p>
-            <div className="lead tall">
-              <label className="k" htmlFor="goal-kcal">Calories a day</label>
-              <Leader />
-              <input id="goal-kcal" className="field goal-field" type="number" inputMode="numeric" placeholder="kcal" value={n.kcal} onChange={(e) => actions.setTargets(e.target.value, n.pro)} />
-            </div>
-            <div className="lead tall">
-              <label className="k" htmlFor="goal-pro">Protein a day</label>
-              <Leader />
-              <input id="goal-pro" className="field goal-field" type="number" inputMode="numeric" placeholder="g" value={n.pro} onChange={(e) => actions.setTargets(n.kcal, e.target.value)} />
-            </div>
-            {n.kcal || n.pro ? (
+            {noWeightLoss(A) ? (
+              <p className="lead-note gap-top">
+                Because of what you shared in your profile, Remy doesn’t fit your week to calorie or protein goals. Your meals stay regular and balanced. A doctor or
+                registered dietitian is the right guide for anything more.
+              </p>
+            ) : (
               <>
-                <p className="lead-note gap-top">
-                  This week averages about {kcalRange(avgKcal)} kcal and {avgPro} g protein a day (days without a meal out).
-                </p>
-                {hasGoals(goals) && (
-                  <button type="button" className="btn soft wide gap-top" onClick={actions.fitGoals}>
-                    <Icon name="spark" size={17} /> Fit my week to these goals
-                  </button>
-                )}
-                <p className="hint gap-top">
-                  Remy swaps meals you haven’t approved for lighter or heavier ones, adds protein sides, then adjusts main-meal portions by up to 20%. New weeks are fitted
-                  automatically. It never plans a day under about 1,200 kcal, and your sweet always stays.
-                </p>
-                {n.kcal && Number(n.kcal) < LIGHT_DAY_KCAL && (
-                  <div className="warnline">
-                    <Icon name="info" size={16} />
-                    <span>That’s below about 1,200 kcal, so Remy fits your week to about 1,200 instead. Go lower only with a professional’s guidance.</span>
-                  </div>
+                <div className="lead tall">
+                  <label className="k" htmlFor="goal-kcal">Calories a day</label>
+                  <Leader />
+                  <input id="goal-kcal" className="field goal-field" type="number" inputMode="numeric" placeholder="kcal" value={n.kcal} onChange={(e) => actions.setTargets(e.target.value, n.pro)} />
+                </div>
+                <div className="lead tall">
+                  <label className="k" htmlFor="goal-pro">Protein a day</label>
+                  <Leader />
+                  <input id="goal-pro" className="field goal-field" type="number" inputMode="numeric" placeholder="g" value={n.pro} onChange={(e) => actions.setTargets(n.kcal, e.target.value)} />
+                </div>
+                {n.kcal || n.pro ? (
+                  <>
+                    <p className="lead-note gap-top">
+                      This week averages about {kcalRange(avgKcal)} kcal and {avgPro} g protein a day (days without a meal out).
+                    </p>
+                    {hasGoals(goals) && (
+                      <button type="button" className="btn soft wide gap-top" onClick={actions.fitGoals}>
+                        <Icon name="spark" size={17} /> Fit my week to these goals
+                      </button>
+                    )}
+                    <p className="hint gap-top">
+                      Remy swaps meals you haven’t approved for lighter or heavier ones, adds protein sides, then adjusts main-meal portions by up to 20%. New weeks are fitted
+                      automatically. It never plans a day under about 1,200 kcal, and your sweet always stays.
+                    </p>
+                    {n.kcal && Number(n.kcal) < LIGHT_DAY_KCAL && (
+                      <div className="warnline">
+                        <Icon name="info" size={16} />
+                        <span>That’s below about 1,200 kcal, so Remy fits your week to about 1,200 instead. Go lower only with a professional’s guidance.</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="hint gap-top">Optional. With goals, Remy fits your menu toward them. Remy never works out targets from your weight or body.</p>
                 )}
               </>
-            ) : (
-              <p className="hint gap-top">Optional. With goals, Remy fits your menu toward them. Remy never works out targets from your weight or body.</p>
             )}
           </section>
 

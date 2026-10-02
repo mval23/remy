@@ -2,7 +2,8 @@ import { allRatings, arr, asPreparations, has, real, str } from '../interview/he
 import { ALLERGY_OPTS, FOODS } from '../interview/questions';
 import type { Answers } from '../interview/types';
 import { ING } from './data/ingredients';
-import type { Day, Recipe, Slot, StorageInfo, Variety } from './types';
+import { RISK_LABEL, riskFlags } from '../profile/screen';
+import type { Day, Recipe, Risk, Slot, StorageInfo, Variety } from './types';
 import { DAYS, SLOTS } from './types';
 
 /** What the rules need to know about the person. */
@@ -54,6 +55,14 @@ function isAllergyTag(A: Answers, tag: string): boolean {
   return real(A.allergies).some((v) => (ALLERGY_OPTS.includes(v) ? ALLERGY_TAG[v] === tag : 'custom:' + v.toLowerCase() === tag));
 }
 
+/** Food-safety risks a recipe carries: its own, plus its ingredients', minus those its method cooks away. */
+export function recipeRisks(r: Recipe): Risk[] {
+  const out = new Set<Risk>(r.risk ?? []);
+  for (const [k] of r.ing) for (const x of ING[k]?.risk ?? []) out.add(x);
+  for (const x of r.cooks ?? []) out.delete(x);
+  return [...out];
+}
+
 export type CheckResult =
   | { ok: true }
   | { ok: false; blocked: true; allergy: boolean; reason: string }
@@ -73,6 +82,12 @@ export function check(r: Recipe, A: Answers): CheckResult {
     const name = g.n.toLowerCase();
     for (const t of g.alg ?? []) if (tags.has(t)) return { ok: false, blocked: true, allergy: isAllergyTag(A, t), reason: `Contains ${name} (${TAG_LABEL[t] ?? t})` };
     for (const t of tags) if (t.startsWith('custom:') && name.includes(t.slice(7))) return { ok: false, blocked: true, allergy: true, reason: `Contains ${name}` };
+  }
+  // Food-safety risks for people the health and age screen flags (pregnancy, 65 or older): a safety rule, like allergies.
+  const flags = riskFlags(A);
+  if (flags.length) {
+    const hit = recipeRisks(r).find((x) => flags.includes(x));
+    if (hit) return { ok: false, blocked: true, allergy: false, reason: `${RISK_LABEL[hit]}: skipped for now, from your health answers` };
   }
   const rat = allRatings(A);
   const ways = asPreparations(A.ways);

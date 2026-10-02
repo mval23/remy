@@ -930,6 +930,8 @@ const MEALS: Record<string, RecipeInput> = {
     name: 'Bandeja paisa', short: 'Bandeja paisa', slot: 'Lunch', e: '🍽️', serves: 4, fridge: 4, freezer: 2,
     foods: { beans: 1, beef: 1, rice: 1, tomatoes: 'Finely chopped, cooked soft', onions: 'Finely chopped, cooked soft', eggs: 'Fried', avocado: 'Raw' },
     ing: [['tomatoes', 2], ['scallions', 3], ['oil', 1], ['redbeans', 2], ['cumin', 1], ['beef', 280], ['arepaflour', 80], ['plantains', 2], ['chorizo', 160], ['rice', 150], ['avocados', 1], ['eggs', 4]],
+    // The egg is fried until the white is set, so the yolk stays runny.
+    risk: ['soft-egg'],
     why: ['The big Colombian plate: beans in hogao, rice, carne molida, chorizo, sweet plantain and an arepa', 'Everything but the egg is cooked on prep day', 'A fried egg and avocado on top, fresh, the way it should be'],
     note: 'The big one, at about 900 kcal. If you set goals, Remy fits the portion. The egg is fried fresh when you eat it.',
     steps: ['Simmer red beans in hogao (tomato and green onion).', 'Brown the ground beef; bake chorizo, sweet plantain and small arepas at 200°C.', 'Portion with rice. On the night, fry an egg and add avocado.'],
@@ -968,6 +970,8 @@ const MEALS: Record<string, RecipeInput> = {
     name: 'Carbonara with crispy bacon (made fresh)', short: 'Carbonara', slot: 'Dinner', e: '🥓', serves: 2, fridge: 4, freezer: 0,
     foods: { pasta: 1, eggs: 'Blended into a sauce', cheese: 1 },
     ing: [['bacon', 100], ['parmesan', 40], ['spaghetti', 170], ['eggs', 3]],
+    // The egg sauce thickens off the heat and rarely reaches 71°C.
+    risk: ['raw-egg'],
     why: ['Silky egg-and-cheese sauce with crispy bacon, no cream', 'The bacon is crisped on prep day, so the night takes 15 minutes', 'Made fresh, because carbonara turns grainy when reheated'],
     note: 'Cook-fresh night: 15 minutes. Prep day crisps the bacon and grates the cheese.',
     steps: ['On prep day, crisp the bacon and box it with the parmesan.', 'On the night, boil spaghetti, whisk eggs with the parmesan, and toss off the heat with a splash of pasta water.'],
@@ -1299,6 +1303,7 @@ const MEALS: Record<string, RecipeInput> = {
     name: 'Pandebono (Colombian cheese bread)', short: 'Pandebono', slot: 'Afternoon snack', e: '🥯', serves: 6, fridge: 0, freezer: 3,
     foods: { cheese: 1, eggs: 'Baked into something' },
     ing: [['quesofresco', 200], ['tapioca', 120], ['arepaflour', 40], ['sugar', 10], ['bakingpowder', 1], ['eggs', 1]],
+    cooks: ['fresh-cheese'],
     why: ['Warm, chewy cheese bread from Cali', 'Rolled on prep day and frozen raw, then baked 2 at a time so they’re always fresh', 'Naturally gluten-free'],
     note: 'Frozen raw; bake straight from the freezer in about 12 minutes.',
     steps: ['Mix crumbled queso fresco with tapioca starch, masarepa, sugar and baking powder.', 'Knead in the egg, roll 12 balls and freeze.', 'Bake from frozen at 170°C in the air fryer for 10–12 minutes.'],

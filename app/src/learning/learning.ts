@@ -286,7 +286,7 @@ export function applyCheckin(state: PlanState, A: Answers, at = Date.now()): Che
   if (trial) plan = placeTrial(plan, trial);
   if (lowEnergy) plan = plan.map((day, i) => (dayNutrition(day, hungry).light ? fillLightDay(day, i, ctx) : day));
   // Daily goals the person set: fit the new week toward them.
-  const goals = goalsOf(state.nutrition);
+  const goals = goalsOf(state.nutrition, A);
   if (hasGoals(goals)) plan = fitToGoals(plan, ctx, goals).plan;
   if (keptAhead) changes.push(`Keep the ${keptAhead} meal${keptAhead > 1 ? 's' : ''} you approved ahead for next week`);
   // The rest of the month moves up a week, and a new week is drafted at the end.

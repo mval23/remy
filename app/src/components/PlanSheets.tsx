@@ -363,7 +363,7 @@ function MenuSettingsSheet() {
   const sc = schedule(plan, ctx.A);
   const [, windowMax] = windowMinutes(ctx.A);
   const approvals = approvalCounts(plan);
-  const goals = goalsOf(planState.nutrition);
+  const goals = goalsOf(planState.nutrition, ctx.A);
   const avg = weekAverage(plan, ctx.hungry);
   const size = plan.flatMap((x) => Object.values(x.meals)).find((m) => m?.x)?.x ?? 1;
   const window = str(ctx.A.preptime) || 'your window';

@@ -25,8 +25,8 @@ const safeAndAllowed = (plan: WeekPlan) =>
 
 describe('daily goals', () => {
   it('reads realistic goals and ignores the rest', () => {
-    expect(goalsOf({ kcal: '1700', pro: '120' })).toEqual({ kcal: 1700, pro: 120 });
-    expect(goalsOf({ kcal: '17', pro: '' })).toEqual({ kcal: null, pro: null });
+    expect(goalsOf({ kcal: '1700', pro: '120' }, {})).toEqual({ kcal: 1700, pro: 120 });
+    expect(goalsOf({ kcal: '17', pro: '' }, {})).toEqual({ kcal: null, pro: null });
   });
 
   it('brings a week down toward a lower calorie goal, safely', () => {

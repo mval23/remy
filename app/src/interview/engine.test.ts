@@ -110,11 +110,11 @@ describe('answering', () => {
 });
 
 describe('sample profile', () => {
-  it('completes the interview, asking 59 of the 61 interview questions', () => {
+  it('completes the interview, asking 60 of the 62 interview questions', () => {
     const s = fillWithSamples(emptyInterview());
-    expect(Q.length).toBe(61 + LATER_IDS.length);
+    expect(Q.length).toBe(62 + LATER_IDS.length);
     expect(s.done).toBe(true);
-    expect(sequence(s.answers).length).toBe(59);
+    expect(sequence(s.answers).length).toBe(60);
   });
 
   it('leaves the later questions for check-ins, then treats them as normal answers', () => {

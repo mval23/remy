@@ -1,3 +1,5 @@
+import type { Answers } from '../interview/types';
+import { noWeightLoss } from '../profile/screen';
 import { MEAL_IDS, R } from './data/recipes';
 import { dayNutrition, LIGHT_DAY_KCAL, MAIN_SLOTS, sideOptions, type NutritionSettings } from './nutrition';
 import { avoided, check, score, storage, type PlanContext } from './rules';
@@ -21,8 +23,12 @@ export const SCALE_MAX = 1.2;
 const TOLERANCE = 0.06;
 const MAX_SWAPS = 8;
 
-/** Goals from the typed text; anything unrealistic is ignored. */
-export function goalsOf(n: Pick<NutritionSettings, 'kcal' | 'pro'>): Goals {
+/**
+ * Goals from the typed text; anything unrealistic is ignored. None at all when the health and age screen says
+ * Remy shouldn't plan weight loss (pregnancy, breastfeeding, under 18, an eating disorder): see profile/screen.ts.
+ */
+export function goalsOf(n: Pick<NutritionSettings, 'kcal' | 'pro'>, A: Answers): Goals {
+  if (noWeightLoss(A)) return { kcal: null, pro: null };
   const k = Number(n.kcal);
   const p = Number(n.pro);
   return { kcal: k >= 800 && k <= 5000 ? Math.round(k) : null, pro: p >= 20 && p <= 300 ? Math.round(p) : null };
