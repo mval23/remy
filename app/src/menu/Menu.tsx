@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { MacroRow } from '../components/Macros';
 import { baseSlot, R } from '../planning/data/recipes';
 import { isDetailed, renderLine, scaledIngredients } from '../planning/method';
+import { nutritionSource } from '../planning/macros';
 import type { Recipe, Slot } from '../planning/types';
 
 /**
@@ -179,7 +180,7 @@ export function Menu() {
                     </p>
                     <p className="menu-desc">{describe(r)}</p>
                     <p className="menu-macros">
-                      <b>{r.pro} g</b> protein · <b>{r.carb} g</b> carbs · <b>{r.fat} g</b> fat
+                      <b>{r.pro} g</b> protein · <b>{r.carb} g</b> carbs · <b>{r.fat} g</b> fat · <b>{r.fiber} g</b> fiber · <span className="hint">{nutritionSource(r.ing)}</span>
                     </p>
                     <div className="chips tight">
                       {tags(r).map((t) => (
