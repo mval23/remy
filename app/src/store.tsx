@@ -102,7 +102,7 @@ function openedFromReminder(): Screen | null {
   return OPENABLE.includes(screen) ? (screen as Screen) : null;
 }
 
-const planContext = (s: InterviewState, p: PlanState): PlanContext => context(activeAnswers(s), p.adj, p.hungry, p.recent);
+const planContext = (s: InterviewState, p: PlanState): PlanContext => context(activeAnswers(s), p.adj, p.hungry, p.recent, p.shopDays);
 
 /** A newly built week, fitted to the person's daily goals when they set some. */
 const fitted = (plan: WeekPlan, s: InterviewState, p: PlanState): WeekPlan => {

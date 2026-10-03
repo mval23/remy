@@ -82,6 +82,8 @@ export interface Ingredient {
    * plantains don't count (starchy staples); beans and tomato sauces do.
    */
   veg?: number;
+  /** Days a fresh item keeps from the fresh shop, for items a dish uses raw on the day (`Recipe.fresh`). */
+  shelf?: number;
   /** Kept so older saved recipes still read; library recipes don't use it and the AI isn't offered it. */
   retired?: boolean;
   /** Food-safety risks this ingredient brings to any recipe, unless the recipe cooks them away (`Recipe.cooks`). */
@@ -137,6 +139,8 @@ export interface Recipe {
   whole?: boolean;
   /** The most days a week Remy plans it on its own (heavy dishes like bandeja paisa). The person can still choose it more. */
   maxPerWeek?: number;
+  /** Fresh ingredients used raw on the day it's eaten (avocado, lettuce, berries): they must still be good that day. */
+  fresh?: string[];
   /** Safe days in the fridge after prep day. */
   fridge: number;
   /** Months in the freezer for best quality (0 = don't freeze). */

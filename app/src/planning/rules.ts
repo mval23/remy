@@ -3,6 +3,7 @@ import { ALLERGY_OPTS, FOODS } from '../interview/questions';
 import type { Answers } from '../interview/types';
 import { ING } from './data/ingredients';
 import { RISK_LABEL, riskFlags } from '../profile/screen';
+import type { ShopDays } from './calendar';
 import type { Day, Recipe, Risk, Slot, StorageInfo, Variety } from './types';
 import { DAYS, SLOTS } from './types';
 
@@ -16,9 +17,11 @@ export interface PlanContext {
   hungry: boolean;
   /** Meal recipes from last week, so a new week can rotate in something different. */
   recent: string[];
+  /** Shopping days, so fresh food is planned while it keeps. Missing = fresh shop on prep day. */
+  shop?: ShopDays;
 }
 
-export const context = (A: Answers, adj: Record<string, number> = {}, hungry = false, recent: string[] = []): PlanContext => ({ A, adj, hungry, recent });
+export const context = (A: Answers, adj: Record<string, number> = {}, hungry = false, recent: string[] = [], shop?: ShopDays): PlanContext => ({ A, adj, hungry, recent, shop });
 
 /** Score adjustment at or below which a recipe is left out of new plans (“Not again”, or rejected twice with a reason). */
 export const AVOID_AT = -4;
@@ -149,6 +152,10 @@ export function check(r: Recipe, A: Answers): CheckResult {
     for (const n of never) if (new RegExp(`\\b${escapeRe(n)}(e|es|s)?\\b(?! oil)`).test(name)) return { ok: false, hidden: true, reason: `${ING[k].n} is on your never list` };
   }
   if (has(A.smells, 'Fish') && r.ing.some(([k]) => ING[k].alg?.includes('fish'))) return { ok: false, hidden: true, reason: 'You said fish smells put you off' };
+  // Equipment, when the person told Remy what they have.
+  const eq = arr(A.equipment);
+  if (eq.length && !eq.includes('Oven') && r.tasks.some((t) => t.l === 'oven')) return { ok: false, hidden: true, reason: 'Needs an oven' };
+  if (eq.length && !eq.includes('Stovetop') && r.tasks.some((t) => t.l === 'stove')) return { ok: false, hidden: true, reason: 'Needs a stovetop' };
   return { ok: true };
 }
 
@@ -256,6 +263,20 @@ export function defaultVariety(A: Answers): Variety {
   if (repeats.includes('different') || repeats === 'Twice at most') v = 'variety';
   if (A.preptime === '1–2 hours') v = 'favorites';
   return v;
+}
+
+/** How many people eat each planned meal, from the household answer (5+ counts as 5). */
+export function householdSize(A: Answers): number {
+  return ({ 'Me + 1': 2, '3–4 people': 3, '5+ people': 5 } as Record<string, number>)[str(A.household)] ?? 1;
+}
+
+/**
+ * Sheet pans the oven can hold at once: 2 when the person said they have 2+ sheet pans (or didn't answer), else 1.
+ * No oven or no stovetop among the equipment answers leaves out recipes that need them (`check`).
+ */
+export function ovenPans(A: Answers): number {
+  const eq = arr(A.equipment);
+  return eq.length && !eq.includes('2+ sheet pans') ? 1 : 2;
 }
 
 /** Prep time window in minutes [min, max]. */

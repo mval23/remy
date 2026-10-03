@@ -331,11 +331,13 @@ export function applyCheckin(state: PlanState, A: Answers, at = Date.now()): Che
 
   // This week's meals become "recent", so the new week rotates some of them out.
   const recent = state.plan ? mealsToRate(state.plan).map((m) => m.id) : [];
-  const ctx = context(A, adj, hungry, recent);
+  const ctx = context(A, adj, hungry, recent, state.shopDays);
   // Next week comes from the weeks planned ahead: meals approved early stay, the drafts follow what Remy just learned.
   const next = state.ahead?.[0];
   const keptAhead = next ? approvedCount(next) : 0;
-  let plan = buildPlan(variety, ctx, next).plan;
+  const built = buildPlan(variety, ctx, next);
+  let plan = built.plan;
+  for (const f of built.fixes) changes.push(f);
   if (trial) plan = placeTrial(plan, trial, A);
   if (lowEnergy) plan = plan.map((day, i) => (dayNutrition(day, hungry).light ? fillLightDay(day, i, ctx) : day));
   // Daily goals the person set: fit the new week toward them.

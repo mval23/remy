@@ -30,23 +30,23 @@ describe('recipes deleted from the menu', () => {
 
   it('are never planned, even when a week template names them', () => {
     const before = buildPlan('balanced', ctx).plan;
-    expect(used(before).has('bowl_quinoa')).toBe(true);
-    applyRemoved(['bowl_quinoa', 'brownies']);
-    expect(MEAL_IDS).not.toContain('bowl_quinoa');
+    expect(used(before).has('burritos')).toBe(true);
+    applyRemoved(['burritos', 'brownies']);
+    expect(MEAL_IDS).not.toContain('burritos');
     // Still readable, so an old plan or backup that has it doesn't break.
-    expect(R.bowl_quinoa).toBeDefined();
+    expect(R.burritos).toBeDefined();
     const after = buildPlan('balanced', ctx).plan;
-    expect(used(after).has('bowl_quinoa')).toBe(false);
+    expect(used(after).has('burritos')).toBe(false);
     expect(used(after).has('brownies')).toBe(false);
-    expect(used(regenerate('balanced', ctx, after, 0).plan).has('bowl_quinoa')).toBe(false);
+    expect(used(regenerate('balanced', ctx, after, 0).plan).has('burritos')).toBe(false);
   });
 
   it('are swapped out of a week that already has them, leaving other meals alone', () => {
     const plan = buildPlan('balanced', ctx).plan;
-    applyRemoved(['bowl_quinoa']);
+    applyRemoved(['burritos']);
     const { plan: next, changed } = dropRemoved(plan, ctx);
     expect(changed).toBeGreaterThan(0);
-    expect(used(next).has('bowl_quinoa')).toBe(false);
+    expect(used(next).has('burritos')).toBe(false);
     expect(next[0].meals.Breakfast).toEqual(plan[0].meals.Breakfast);
   });
 

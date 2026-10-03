@@ -3,7 +3,7 @@ import { ING } from './data/ingredients';
 import { fitToGoals, hasGoals, type Goals } from './goals';
 import { emptyGroceryEdits, ingredientTotals, toItems, type GroceryEdits, type GroceryItem, type Totals } from './grocery';
 import { buildPlan, eachMeal } from './planner';
-import type { PlanContext } from './rules';
+import { householdSize, type PlanContext } from './rules';
 import type { Variety, WeekPlan } from './types';
 
 /**
@@ -58,7 +58,7 @@ export function forecastWeeks(plan: WeekPlan, variety: Variety, ctx: PlanContext
 export function monthList(weeks: WeekPlan[], A: Answers, edits: GroceryEdits): GroceryItem[] {
   const sum: Totals = { total: {}, from: {} };
   for (const w of weeks) {
-    const t = ingredientTotals(w);
+    const t = ingredientTotals(w, householdSize(A));
     for (const k of Object.keys(t.total)) {
       if (!buysMonthly(k)) continue;
       sum.total[k] = (sum.total[k] ?? 0) + t.total[k];
@@ -70,7 +70,7 @@ export function monthList(weeks: WeekPlan[], A: Answers, edits: GroceryEdits): G
 
 /** A week's meat (bought on the monthly shop and frozen until then): name and amount, largest first. */
 export function meatOf(plan: WeekPlan, A: Answers): { k: string; n: string; q: number; qtyText: string }[] {
-  const t = ingredientTotals(plan);
+  const t = ingredientTotals(plan, householdSize(A));
   return toItems({ total: Object.fromEntries(Object.entries(t.total).filter(([k]) => freezeOnArrival(k))), from: t.from }, A, emptyGroceryEdits())
     .filter((x) => x.q)
     .map((x) => ({ k: x.k, n: x.n, q: x.q!, qtyText: x.qtyText }))

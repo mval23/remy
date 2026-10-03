@@ -1,5 +1,6 @@
 import type { Answers } from '../interview/types';
 import { noWeightLoss } from '../profile/screen';
+import { staleReason } from './check';
 import { MEAL_IDS, R } from './data/recipes';
 import { dayNutrition, LIGHT_DAY_KCAL, MAIN_SLOTS, sideOptions, type NutritionSettings } from './nutrition';
 import { avoided, check, score, storage, type PlanContext } from './rules';
@@ -133,7 +134,7 @@ function bestSwap(plan: WeekPlan, ctx: PlanContext, gap: number): Swap | null {
       const cur = R[from];
       for (const id of MEAL_IDS) {
         const r = R[id];
-        if (r.slot !== slot || inPlan.has(id) || avoided(id, ctx) || !check(r, ctx.A).ok || storage(r, u.last).k === 'unsafe' || (r.maxPerWeek !== undefined && u.n > r.maxPerWeek)) continue;
+        if (r.slot !== slot || inPlan.has(id) || avoided(id, ctx) || !check(r, ctx.A).ok || storage(r, u.last).k === 'unsafe' || staleReason(r, u.last - 1, ctx) || (r.maxPerWeek !== undefined && u.n > r.maxPerWeek)) continue;
         const change = ((r.kcal - cur.kcal) * u.n) / counted;
         // Must move toward the goal and not overshoot by more than it closes.
         if (Math.sign(change) !== Math.sign(gap) || Math.abs(gap - change) >= Math.abs(gap)) continue;
@@ -212,7 +213,7 @@ function snackOptions(plan: WeekPlan, ctx: PlanContext, dayIndex: number): strin
   for (const d of plan) for (const m of Object.values(d.meals)) if (m?.r) inPlan.add(m.r);
   return MEAL_IDS.filter((id) => {
     const r = R[id];
-    if (r.slot !== 'Afternoon snack' || avoided(id, ctx) || !check(r, ctx.A).ok || storage(r, dayIndex + 1).k === 'unsafe' || score(r, ctx) <= 0) return false;
+    if (r.slot !== 'Afternoon snack' || avoided(id, ctx) || !check(r, ctx.A).ok || storage(r, dayIndex + 1).k === 'unsafe' || score(r, ctx) <= 0 || staleReason(r, dayIndex, ctx)) return false;
     return inPlan.has(id) || r.tasks.reduce((s, t) => s + t.m, 0) <= 10;
   });
 }

@@ -5,7 +5,8 @@ import { REJECT_REASONS, WEEKS } from '../planning/data/weeks';
 import { estimatesOn, sideOptions } from '../planning/nutrition';
 import { approvalCounts, autoReplacement, handsOnMinutes, menuCountText, moveBlocker, replacementOptions, sortOptions, type OptionOrder } from '../planning/planner';
 import { heatShort } from '../planning/method';
-import { check, matches, storage, windowMinutes } from '../planning/rules';
+import { weekProblems } from '../planning/check';
+import { check, defaultVariety, matches, storage, windowMinutes } from '../planning/rules';
 import { duration, schedule } from '../planning/schedule';
 import { goalsOf, hasGoals, weekAverage } from '../planning/goals';
 import { str } from '../interview/helpers';
@@ -60,6 +61,9 @@ export function SheetFrame({ children, label }: { children: ReactNode; label: st
 }
 
 const ORDERS: [OptionOrder, string][] = [['match', 'Best match'], ['light', 'Lightest'], ['protein', 'Most protein'], ['quick', 'Quickest']];
+
+/** "+60 kcal", "−5 g protein", "same kcal": how an option differs from the meal it replaces. */
+const delta = (n: number, unit: string) => (n === 0 ? `same ${unit.replace(/^g /, '')}` : `${n > 0 ? '+' : '−'}${Math.abs(n)} ${unit}`);
 
 function ReplaceSheet({ arg }: { arg: SheetArg }) {
   const { planState, ctx, actions, viewPlan } = useRemy();
@@ -150,6 +154,7 @@ function ReplaceSheet({ arg }: { arg: SheetArg }) {
                     {!r.store && <span className="pill p-muted">Makes {r.serves}</span>}
                     {!r.store && <span className="pill p-muted">{handsOnMinutes(r)} min hands-on</span>}
                     {st.k !== 'fridge' && <StoragePill st={st} />}
+                    {nums && current && <span className="pill p-muted">{delta(r.kcal - current.kcal, 'kcal')} · {delta(r.pro - current.pro, 'g protein')}</span>}
                   </div>
                   {st.k === 'unsafe' ? (
                     <span className="hint">Not safe for day {d + 1}</span>
@@ -367,6 +372,7 @@ function MenuSettingsSheet() {
   const avg = weekAverage(plan, ctx.hungry);
   const size = plan.flatMap((x) => Object.values(x.meals)).find((m) => m?.x)?.x ?? 1;
   const window = str(ctx.A.preptime) || 'your window';
+  const problems = weekProblems(plan, ctx, planState.variety ?? defaultVariety(ctx.A));
   return (
     <SheetFrame label="Menu settings">
       <Mast kicker="This week" icon="sliders" title="Menu settings" sub={`${menuCountText(plan)} · ${duration(sc.total)} of prep · ${approvals.ok} of ${approvals.total} meals approved`} />
@@ -383,6 +389,20 @@ function MenuSettingsSheet() {
           More variety means more dishes and a longer prep day.{' '}
           {sc.total > windowMax ? <span className="pill p-warn">Over {window}</span> : <span className="pill p-ok">Fits {window}</span>}
         </p>
+      </section>
+      <section className="msec">
+        <SecHead title="Week check" />
+        {problems.length ? (
+          problems.map((p) => (
+            <div className="warnline" key={p.text}>
+              <Icon name="info" size={16} />
+              <span>{p.text}</span>
+            </div>
+          ))
+        ) : (
+          <p className="lead-note">Fresh food keeps until it’s eaten, the freezer has room, prep day fits {window}, and there’s a mix of proteins.</p>
+        )}
+        <p className="hint gap-top">Remy checks these when it plans a week and swaps meals you haven’t approved to fix them. Anything it couldn’t fix is listed here.</p>
       </section>
       <section className="msec">
         <SecHead title="Shopping days" />

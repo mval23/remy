@@ -23,9 +23,9 @@ export interface Source {
   scale?: number;
 }
 
-/** Batches of each recipe this week (portions ÷ servings per batch, rounded up). */
-export function batchesFor(plan: WeekPlan): Record<string, number> {
-  const pc = portions(plan);
+/** Batches of each recipe this week (portions ÷ servings per batch, rounded up), for `people` per meal. */
+export function batchesFor(plan: WeekPlan, people = 1): Record<string, number> {
+  const pc = portions(plan, people);
   return Object.fromEntries(Object.keys(pc).map((id) => [id, Math.max(1, Math.ceil(pc[id] / R[id].serves))]));
 }
 
@@ -110,7 +110,7 @@ export interface CookStep {
 
 /** The recipes cooked on prep day, with batches, in the order the schedule starts them. */
 export function recipesToPrep(plan: WeekPlan, sc: Schedule): Source[] {
-  const b = batchesFor(plan);
+  const b = batchesFor(plan, sc.people ?? 1);
   const size = portionSizes(plan);
   const order: string[] = [];
   for (const t of sc.tasks) for (const s of t.refs) if (!order.includes(s.r.id)) order.push(s.r.id);

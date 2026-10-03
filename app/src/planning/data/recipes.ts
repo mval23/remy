@@ -688,6 +688,7 @@ const MEALS: Record<string, RecipeInput> = {
 
   pechuga: {
     name: 'Pechuga a la plancha with rice, hogao & avocado', short: 'Pechuga a la plancha', slot: 'Lunch', e: '🍗', serves: 4, fridge: 4, freezer: 0,
+    fresh: ['avocados'],
     foods: { chicken: 1, rice: 1, tomatoes: 'Finely chopped, cooked soft', onions: 'Finely chopped, cooked soft', avocado: 'Raw' },
     ing: [['chickenbreast', 680], ['limes', 1], ['garlic', 2], ['cumin', 1], ['oil', 1], ['rice', 190], ['tomatoes', 2], ['scallions', 3], ['avocados', 2]],
     why: ['A Colombian everyday lunch: seared chicken breast, rice and hogao', 'Lean and high in protein', 'Avocado sliced fresh when you eat it'],
@@ -705,6 +706,7 @@ const MEALS: Record<string, RecipeInput> = {
   },
   sandwich: {
     name: 'Chicken, avocado & cheese sandwiches', short: 'Chicken avocado sandwich', slot: 'Lunch', e: '🥪', serves: 4, whole: true, fridge: 4, freezer: 0, cold: true,
+    fresh: ['avocados', 'lettuce', 'tomatoes'],
     foods: { chicken: 1, cheese: 1, avocado: 'Mashed', tomatoes: 'Raw' },
     ing: [['chickenbreast', 450], ['herbs', 1], ['oil', 1], ['cheeseblock', 110], ['tomatoes', 2], ['lettuce', 1], ['bread', 8], ['avocados', 2], ['limes', 1]],
     why: ['A proper sandwich: roast chicken, cheese, tomato, lettuce and smashed avocado', 'The chicken is roasted on prep day; the sandwich takes 3 minutes', 'Packed apart, so the bread never goes soggy'],
@@ -720,6 +722,7 @@ const MEALS: Record<string, RecipeInput> = {
   },
   wraps: {
     name: 'Chicken ranch wraps', short: 'Chicken ranch wraps', slot: 'Lunch', e: '🌯', serves: 4, whole: true, fridge: 4, freezer: 0, cold: true,
+    fresh: ['lettuce', 'tomatoes'],
     foods: { chicken: 1, cheese: 1, tomatoes: 'Raw' }, sauces: ['Ranch'],
     ing: [['chickenbreast', 570], ['paprika', 1], ['oil', 1], ['lettuce', 1], ['tomatoes', 2], ['cheddar', 85], ['ranch', 80], ['tortillas', 4]],
     why: ['Smoky roast chicken, crunchy lettuce and ranch in a soft tortilla', 'Roll one in 2 minutes; the fillings are ready', 'Good cold, or with the chicken warmed'],
@@ -768,6 +771,7 @@ const MEALS: Record<string, RecipeInput> = {
   },
   tunaavocado: {
     name: 'Tuna-stuffed avocados', short: 'Tuna-stuffed avocado', slot: 'Lunch', e: '🥑', serves: 2, whole: true, fridge: 3, freezer: 0, cold: true,
+    fresh: ['avocados'],
     foods: { tuna: 1, avocado: 'Raw', tomatoes: 'Raw', corn: 1 },
     ing: [['tuna', 2], ['mayo', 2], ['limes', 1], ['tomatoes', 1], ['corn', 100], ['avocados', 2]],
     why: ['Light, fresh and ready in 2 minutes', 'Tuna and avocado: protein and healthy fats', 'No cooking at all'],
@@ -1017,6 +1021,7 @@ const MEALS: Record<string, RecipeInput> = {
   },
   nachos: {
     name: 'Loaded chicken nachos with fresh guacamole', short: 'Chicken nachos', slot: 'Dinner', e: '🌮', serves: 4, fridge: 4, freezer: 0,
+    fresh: ['avocados', 'tomatoes'],
     foods: { chicken: 1, cheese: 1, corn: 1, avocado: 'Mashed', tomatoes: 'Raw' }, sauces: ['Mild salsa'],
     ing: [['chickenbreast', 450], ['taco', 2], ['oil', 1], ['corn', 150], ['tortillachips', 100], ['cheddar', 60], ['salsa', 130], ['sourcream', 90], ['avocados', 1.5], ['tomatoes', 1], ['limes', 1]],
     why: ['Loaded nachos with taco chicken, melted cheese and guacamole', 'The chicken is roasted on prep day; the nachos bake in 8 minutes', 'Mild: taco spices, no chili heat'],
@@ -1190,6 +1195,7 @@ const MEALS: Record<string, RecipeInput> = {
   },
   fruit_strawberries: {
     name: 'Fresh strawberries', short: 'Strawberries', slot: 'Afternoon snack', e: '🍓', serves: 4, fridge: 4, freezer: 0, cold: true,
+    fresh: ['strawberries'],
     foods: { berries: 1 },
     ing: [['strawberries', 600]],
     why: ['Just strawberries, a big cup of them', 'Sweet, light and a fruit serving', 'Stored unwashed, so they stay firm for days'],
@@ -1200,6 +1206,7 @@ const MEALS: Record<string, RecipeInput> = {
   },
   fruit_blueberries: {
     name: 'Fresh blueberries', short: 'Blueberries', slot: 'Afternoon snack', e: '🫐', serves: 4, fridge: 7, freezer: 0, cold: true,
+    fresh: ['blueberries'],
     foods: { berries: 1 },
     ing: [['blueberries', 500]],
     why: ['Just blueberries, one punnet a snack', 'Sweet, light and a fruit serving', 'Unwashed, they keep all week'],
@@ -1373,6 +1380,7 @@ const MEALS: Record<string, RecipeInput> = {
 
   guacamole: {
     name: 'Fresh guacamole with tortilla chips', short: 'Guacamole & chips', slot: 'Afternoon snack', e: '🥑', serves: 4, fridge: 5, freezer: 0, room: true,
+    fresh: ['avocados', 'tomatoes'],
     foods: { avocado: 'Mashed', tomatoes: 'Raw' },
     ing: [['tortillachips', 120], ['avocados', 2], ['limes', 1], ['tomatoes', 1]],
     why: ['Guacamole, made fresh in 3 minutes', 'Creamy, crunchy and a serving of fruit', 'Chips are portioned ahead, so a snack stays a snack'],
@@ -1528,7 +1536,7 @@ const SIDES: Record<string, SideInput> = {
     ing: [['eggs', 2]], fridge: 7, tasks: [BOILED_EGGS], why: ['Hard-boiled on prep day; they keep all week'],
   },
   side_guac: {
-    name: 'Fresh guacamole', short: 'Guacamole', e: '🥑', kind: 'produce', for: ['Lunch', 'Dinner', 'Afternoon snack'], foods: { avocado: 'Mashed' },
+    name: 'Fresh guacamole', short: 'Guacamole', e: '🥑', kind: 'produce', fresh: ['avocados'], for: ['Lunch', 'Dinner', 'Afternoon snack'], foods: { avocado: 'Mashed' },
     ing: [['avocados', 0.5], ['limes', 0.25]], st: { k: 'room', l: 'Make fresh · 3 min' }, why: ['Made fresh in 3 minutes'],
   },
   side_cheese: { name: 'String cheese', short: 'String cheese', e: '🧀', kind: 'protein', best: ['Lunch', 'Afternoon snack'], for: ['Breakfast', 'Lunch', 'Afternoon snack'], foods: { cheese: 1 }, ing: [['stringcheese', 1]], st: { k: 'fridge', l: 'Store-bought · fridge' }, why: [] },

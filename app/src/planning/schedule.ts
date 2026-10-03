@@ -1,7 +1,7 @@
 import type { Answers } from '../interview/types';
 import { R } from './data/recipes';
 import { eachMeal, portions, portionSizes } from './planner';
-import { storage } from './rules';
+import { householdSize, ovenPans, storage } from './rules';
 import type { Lane, Recipe, Task, WeekPlan } from './types';
 
 export interface ScheduledTask {
@@ -27,17 +27,21 @@ export interface Schedule {
   /** Minutes from start to the end of cleanup. */
   total: number;
   recipes: number;
+  /** People each meal is cooked for (the household size), so amounts and batches follow it. */
+  people: number;
 }
 
 /**
  * Lay out every prep task on a timeline.
- * Lanes: your hands (one thing at a time), stove (2 burners), oven (2 pans, one temperature at a time),
+ * Lanes: your hands (one thing at a time), stove (2 burners), oven (2 pans, or 1 without 2+ sheet pans; one temperature at a time),
  * chill (fridge/freezer time, unlimited). Hands-on work fills the gaps while things cook.
  * Tasks that share a `key` (one pot of rice for two recipes) run once.
  * Packing tasks run after cooking.
  */
 export function schedule(plan: WeekPlan, A: Answers): Schedule {
-  const pc = portions(plan);
+  const people = householdSize(A);
+  const pans = ovenPans(A);
+  const pc = portions(plan, people);
   const size = portionSizes(plan);
   const recipes = Object.keys(pc).map((id) => R[id]).filter((r) => r.tasks.length > 0);
   const passive = (r: Recipe) => r.tasks.filter((t) => t.l !== 'hands').reduce((s, t) => s + t.m, 0);
@@ -48,13 +52,14 @@ export function schedule(plan: WeekPlan, A: Answers): Schedule {
   const placed: ScheduledTask[] = [{ id: 'start', t: 'Set up the kitchen', l: 'hands', s: 0, e: 10, for: [], refs: [] }];
   const shared: Record<string, ScheduledTask> = {};
 
-  const fits = (l: Lane, s: number, m: number, temp?: number, pans = 1) => {
+  const fits = (l: Lane, s: number, m: number, temp?: number, need = 1) => {
     if (l === 'chill') return true;
     const e = s + m;
     const overlap = placed.filter((p) => p.l === l && p.s < e && p.e > s);
     if (l === 'oven') {
       if (overlap.some((p) => p.temp !== temp)) return false;
-      return overlap.reduce((n, p) => n + (p.pans ?? 1), 0) + pans <= 2;
+      // A two-pan task in a one-pan oven runs as one pan at a time (it just takes the oven to itself).
+      return overlap.reduce((n, p) => n + Math.min(p.pans ?? 1, pans), 0) + Math.min(need, pans) <= pans;
     }
     return overlap.length < (l === 'stove' ? 2 : 1);
   };
@@ -95,7 +100,7 @@ export function schedule(plan: WeekPlan, A: Answers): Schedule {
     if (p.temp !== lastTemp) p.setTemp = true;
     lastTemp = p.temp;
   }
-  return { tasks: placed, total: lastWork + cleanup, recipes: recipes.length };
+  return { tasks: placed, total: lastWork + cleanup, recipes: recipes.length, people };
 }
 
 /** Clock time for a minute offset from a 1:00 PM start. */
@@ -116,7 +121,7 @@ const BAGGED = new Set(['pancakes', 'tenders', 'popcorn', 'bark', 'brownies', 'q
 
 /** Containers, bags and freezer portions, compared with what the user said they have. */
 export function packingCounts(plan: WeekPlan, A: Answers) {
-  const pc = portions(plan);
+  const pc = portions(plan, householdSize(A));
   let containers = 0, bags = 0, foil = 0, freezer = 0;
   for (const id of Object.keys(pc)) {
     const r = R[id];
@@ -126,7 +131,7 @@ export function packingCounts(plan: WeekPlan, A: Answers) {
     else containers += pc[id];
   }
   eachMeal(plan, (m, _slot, i) => {
-    if (m.r && !R[m.r].store && storage(R[m.r], i + 1).k === 'freezer') freezer++;
+    if (m.r && !R[m.r].store && storage(R[m.r], i + 1).k === 'freezer') freezer += householdSize(A);
   });
   const containerCap = ({ 'Under 10': 9, '10–15': 15, '16–25': 25, '25+': 99 } as Record<string, number>)[String(A.containers)] ?? 99;
   const freezerCap = ({ Tiny: 6, 'Some space': 20, 'Lots of space': 99 } as Record<string, number>)[String(A.freezer)] ?? 99;
