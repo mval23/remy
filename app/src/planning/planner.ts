@@ -1,5 +1,6 @@
 import { MEAL_IDS, R, REMOVED } from './data/recipes';
 import { WEEKS } from './data/weeks';
+import { repairWeek, staleReason } from './check';
 import { balanceDay } from './nutrition';
 import { activeSlots, avoided, check, isAway, KEEP_AT, score, storage, sweetDays, weekDays, type CheckResult, type PlanContext } from './rules';
 import type { Meal, PlanDay, Recipe, Slot, Variety, WeekPlan } from './types';
@@ -99,7 +100,7 @@ export function rotation(variety: Variety, ctx: PlanContext): Record<string, str
  * After the first week, some recipes rotate (see `rotation`).
  * Adds balancing sides when the user asked for them.
  */
-export function buildPlan(variety: Variety, ctx: PlanContext, previous?: WeekPlan | null): { plan: WeekPlan; changed: number } {
+export function buildPlan(variety: Variety, ctx: PlanContext, previous?: WeekPlan | null): { plan: WeekPlan; changed: number; fixes: string[] } {
   const template = WEEKS[variety].days;
   const slots = activeSlots(ctx.A);
   const days = weekDays(ctx.A);
@@ -141,8 +142,11 @@ export function buildPlan(variety: Variety, ctx: PlanContext, previous?: WeekPla
     return { d, meals };
   });
 
+  // Week rules (fresh food, freezer space, prep time, a mix of proteins): fix what can be fixed, before balancing.
+  const repaired = repairWeek(plan, ctx, variety);
+  plan = repaired.plan;
   if (ctx.A.balance === 'Yes, suggest sides') plan = plan.map((day, i) => balanceDay(day, i, ctx).day);
-  return { plan, changed };
+  return { plan, changed, fixes: repaired.fixes };
 }
 
 /**
@@ -167,7 +171,7 @@ export function regenerate(variety: Variety, ctx: PlanContext, previous: WeekPla
     });
     Object.keys(lastDay).sort().forEach((id, k) => {
       const fits = MEAL_IDS.map((x) => R[x]).filter(
-        (r) => r.slot === slot && !current.has(r.id) && !taken.has(r.id) && !avoided(r.id, ctx) && check(r, ctx.A).ok && storage(r, lastDay[id]).k !== 'unsafe',
+        (r) => r.slot === slot && !current.has(r.id) && !taken.has(r.id) && !avoided(r.id, ctx) && check(r, ctx.A).ok && storage(r, lastDay[id]).k !== 'unsafe' && !staleReason(r, lastDay[id] - 1, ctx),
       );
       const liked = fits.filter((r) => score(r, ctx) > 0);
       const pool = (liked.length ? liked : fits).sort((a, b) => score(b, ctx) - score(a, ctx) || a.id.localeCompare(b.id)).slice(0, 4);
@@ -180,6 +184,8 @@ export function regenerate(variety: Variety, ctx: PlanContext, previous: WeekPla
       }
     });
   }
+  // The new dishes must keep the week rules too (prep time, freezer, fresh food, a mix of proteins).
+  plan = repairWeek(plan, ctx, variety).plan;
   if (ctx.A.balance === 'Yes, suggest sides') plan = plan.map((day, i) => balanceDay(day, i, ctx).day);
   let changed = 0;
   plan.forEach((day, i) => {
@@ -214,13 +220,13 @@ export function portionSizes(plan: WeekPlan): Record<string, number> {
   return Object.fromEntries(Object.keys(sum).map((id) => [id, sum[id] / n[id]]));
 }
 
-/** Portions per recipe id across the week, sides included. */
-export function portions(plan: WeekPlan): Record<string, number> {
+/** Portions per recipe id across the week, sides included; `people` eat each meal (the household size). */
+export function portions(plan: WeekPlan, people = 1): Record<string, number> {
   const c: Record<string, number> = {};
   eachMeal(plan, (m) => {
     if (m.r) {
-      c[m.r] = (c[m.r] ?? 0) + 1;
-      if (m.side) c[m.side] = (c[m.side] ?? 0) + 1;
+      c[m.r] = (c[m.r] ?? 0) + people;
+      if (m.side) c[m.side] = (c[m.side] ?? 0) + people;
     }
   });
   return c;
@@ -315,7 +321,9 @@ export function replacementOptions(plan: WeekPlan, d: number, slot: Slot, ctx: P
   const out: ReplacementOptions = { allowed: [], blocked: [], hidden: [] };
   for (const r of all) {
     const c: CheckResult = check(r, ctx.A);
-    if (c.ok) out.allowed.push(r);
+    const stale = c.ok ? staleReason(r, d, ctx) : null;
+    if (stale) out.hidden.push({ r, reason: stale });
+    else if (c.ok) out.allowed.push(r);
     else if ('blocked' in c) out.blocked.push({ r, reason: c.reason, allergy: c.allergy });
     else out.hidden.push({ r, reason: c.reason });
   }

@@ -19,7 +19,9 @@ describe('recipe changes from the nutrition audit', () => {
   it('fits the new recipes to the sample profile and puts them in the week templates', () => {
     for (const id of ['oatsquares', 'miniquesadilla', 'appledip', 'tortilla']) expect(check(R[id], SAMPLE).ok, id).toBe(true);
     const planned = new Set<string>();
-    for (const v of ['favorites', 'balanced', 'variety'] as Variety[]) for (const id of Object.keys(counts(buildPlan(v, context(SAMPLE)).plan))) planned.add(id);
+    // A 4+ hour prep window, so “More variety” isn’t trimmed to fit 3–4 hours.
+    const roomy = context({ ...SAMPLE, preptime: '4+ hours' });
+    for (const v of ['favorites', 'balanced', 'variety'] as Variety[]) for (const id of Object.keys(counts(buildPlan(v, roomy).plan))) planned.add(id);
     for (const id of ['oatsquares', 'miniquesadilla', 'appledip', 'tortilla']) expect(planned.has(id), id).toBe(true);
   });
 

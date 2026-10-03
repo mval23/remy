@@ -1,5 +1,6 @@
 import type { Answers } from '../interview/types';
 import { R, SIDE_IDS } from './data/recipes';
+import { staleReason } from './check';
 import { check, kosherClash, score, storage, type PlanContext } from './rules';
 import type { Meal, PlanDay, Recipe, Slot } from './types';
 import { SLOTS } from './types';
@@ -123,7 +124,7 @@ export function kcalRange(n: number): string {
 /** Sides that fit a slot on a given day: allowed foods only, safe for that day, best matches first. `main` = the meal's recipe, for Kosher (no dairy side with meat). */
 export function sideOptions(ctx: PlanContext, dayIndex: number, slot: Slot, kind?: 'protein' | 'produce', main?: string | null): Recipe[] {
   return SIDE_IDS.map((id) => R[id])
-    .filter((s) => s.for?.includes(slot) && (!kind || s.kind === kind) && check(s, ctx.A).ok && storage(s, dayIndex + 1).k !== 'unsafe' && !kosherClash(ctx.A, main ? R[main] : undefined, s))
+    .filter((s) => s.for?.includes(slot) && (!kind || s.kind === kind) && check(s, ctx.A).ok && storage(s, dayIndex + 1).k !== 'unsafe' && !staleReason(s, dayIndex, ctx) && !kosherClash(ctx.A, main ? R[main] : undefined, s))
     .map((s) => ({ s, sc: score(s, ctx) + (slot === 'Dinner' && s.veg ? 1 : 0) + (s.best?.includes(slot) ? 2 : 0) }))
     .sort((a, b) => b.sc - a.sc)
     .map((x) => x.s);

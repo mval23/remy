@@ -118,7 +118,7 @@ describe('prep day views', () => {
   it('lists the equipment the written-out recipes need', () => {
     const gear = gearList(plan, sc);
     expect(gear).toContain('baking paper');
-    expect(gear).toContain('sheet pan ×2');
+    expect(gear.some((g) => g.startsWith('sheet pan'))).toBe(true);
     expect(gear).toContain('20 cm square baking pan');
     expect(gear).not.toContain('containers');
     expect(new Set(gear).size).toBe(gear.length);

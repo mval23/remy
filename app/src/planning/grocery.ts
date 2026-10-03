@@ -3,7 +3,7 @@ import type { Answers } from '../interview/types';
 import { ING } from './data/ingredients';
 import { R } from './data/recipes';
 import { portions, portionSizes } from './planner';
-import { labelChecks } from './rules';
+import { householdSize, labelChecks } from './rules';
 import { quantityText } from './units';
 import type { WeekPlan } from './types';
 
@@ -45,8 +45,8 @@ export interface Totals {
   from: Record<string, string[]>;
 }
 
-export function ingredientTotals(plan: WeekPlan): Totals {
-  const pc = portions(plan);
+export function ingredientTotals(plan: WeekPlan, people = 1): Totals {
+  const pc = portions(plan, people);
   const size = portionSizes(plan);
   const total: Record<string, number> = {};
   const from: Record<string, string[]> = {};
@@ -64,7 +64,7 @@ export function ingredientTotals(plan: WeekPlan): Totals {
 
 /** Merge every planned recipe's ingredients into one list, applying the user's edits. */
 export function groceryList(plan: WeekPlan, A: Answers, edits: GroceryEdits): GroceryItem[] {
-  return toItems(ingredientTotals(plan), A, edits);
+  return toItems(ingredientTotals(plan, householdSize(A)), A, edits);
 }
 
 /** Turn ingredient totals into list items with packs, prices and the user's edits. */

@@ -12,7 +12,7 @@ import { gramsShown } from '../components/Macros';
 import { plateText } from '../planning/macros';
 import { safeSubs } from '../planning/subs';
 import { eachMeal, portions, portionSizes } from '../planning/planner';
-import { matchReasons, storage } from '../planning/rules';
+import { householdSize, matchReasons, storage } from '../planning/rules';
 import { duration } from '../planning/schedule';
 import { DAY_FULL, type Day, type StorageInfo } from '../planning/types';
 import { useRemy } from '../store';
@@ -28,7 +28,7 @@ export function Recipe() {
   if (!r || !planState.plan) return null;
   const A = ctx.A;
   const plan = planState.plan;
-  const count = portions(plan)[r.id] ?? 0;
+  const count = portions(plan, householdSize(A))[r.id] ?? 0;
   const batches = Math.max(1, Math.ceil(count / r.serves));
   // Goals can make this week's portions a little smaller or bigger; the week's amounts follow.
   const size = portionSizes(plan)[r.id] ?? 1;
