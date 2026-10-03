@@ -42,8 +42,11 @@ export function EstimateSheet() {
       <Mast kicker="Optional" icon="heart" title="Your daily estimate" sub="A starting point for calories and protein from a few details. Roughly ±10%, and not medical advice." />
       <section className="msec">
         <p className="lead-note">
-          Remy uses these details only for this estimate. They stay on this device: they aren’t synced to your account or sent to the AI. Backup files include them, and you can
-          delete them here any time.
+          Remy uses these details only for this estimate, and never sends them to the AI.{' '}
+          {b.sync
+            ? 'They sync to your account in a separate table only you can read; turn off “Sync my body details” in Sync & install to keep them on this device.'
+            : 'They stay on this device unless you turn on “Sync my body details” in Sync & install.'}{' '}
+          Backup files include them, and you can delete them here any time.
         </p>
         <NumberLine id="est-age" label="Age" unit="years" value={b.ageYears} onChange={(v) => set({ ageYears: v })} />
         <NumberLine id="est-height" label="Height" unit="cm" value={b.heightCm} onChange={(v) => set({ heightCm: v })} />

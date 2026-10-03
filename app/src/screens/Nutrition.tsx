@@ -264,7 +264,7 @@ export function Nutrition() {
                 <p className="hint gap-top">
                   {n.from === 'estimate'
                     ? 'The goals below come from your estimate. Typing a different number makes it yours instead.'
-                    : 'Optional: a starting point from your age, height, weight and activity, kept on this device. Or type numbers from a professional below.'}
+                    : 'Optional: a starting point from your age, height, weight and activity, kept on this device unless you choose to sync it. Or type numbers from a professional below.'}
                 </p>
                 <div className="lead tall">
                   <label className="k" htmlFor="goal-kcal">Calories a day</label>
