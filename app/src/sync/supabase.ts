@@ -1,7 +1,8 @@
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import type { InterviewState } from '../interview/types';
+import type { BodyProfile } from '../planning/energy';
 import type { PlanState } from '../storage/db';
-import type { RemoteRow } from './merge';
+import type { RemoteHealth, RemoteRow } from './merge';
 
 /**
  * Supabase connection for sign-in and sync. It's optional: without the two settings below,
@@ -88,10 +89,40 @@ export async function pushRow(userId: string, docs: { interview?: InterviewState
   if (error) throw error;
 }
 
+const HEALTH_TABLE = 'user_health';
+
+/**
+ * The optional cloud copy of the body details (supabase/schema.sql, SETUP.md step 11). Null when there's none yet;
+ * 'missing' when the table hasn't been created in this Supabase project.
+ */
+export async function fetchHealth(userId: string): Promise<RemoteHealth | null | 'missing'> {
+  const sb = (await supabase())!;
+  const { data, error } = await sb.from(HEALTH_TABLE).select('health, health_at').eq('user_id', userId).maybeSingle();
+  if (error) {
+    // Postgres "undefined table", or PostgREST's "not in the schema cache".
+    if (error.code === '42P01' || error.code === 'PGRST205') return 'missing';
+    throw error;
+  }
+  return (data as RemoteHealth | null) ?? null;
+}
+
+export async function pushHealth(userId: string, health: BodyProfile, at: number) {
+  const sb = (await supabase())!;
+  const { error } = await sb.from(HEALTH_TABLE).upsert({ user_id: userId, health, health_at: at, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  if (error) throw error;
+}
+
+/** Remove the body details from the cloud (switching sync off, or deleting everything). Fine if the table doesn't exist. */
+export async function deleteHealth(userId: string) {
+  const sb = (await supabase())!;
+  await sb.from(HEALTH_TABLE).delete().eq('user_id', userId);
+}
+
 export async function deleteRow(userId: string) {
   const sb = (await supabase())!;
   const { error } = await sb.from(TABLE).delete().eq('user_id', userId);
   if (error) throw error;
+  await deleteHealth(userId);
   // Reminders and notification sign-ups (supabase/reminders.sql). Those tables may not exist if reminders were never set up.
   await sb.from('reminders').delete().eq('user_id', userId);
   await sb.from('push_subscriptions').delete().eq('user_id', userId);

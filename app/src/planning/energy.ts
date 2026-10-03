@@ -32,8 +32,10 @@ export interface BodyProfile {
   pal: number | null;
   pace: Pace;
   updatedAt: number;
+  /** Sync these details and weigh-ins with the account (the 'user_health' table). Off by default, per device. */
+  sync: boolean;
 }
-export const emptyBody = (): BodyProfile => ({ consent: false, ageYears: null, sex: null, heightCm: null, weightKg: null, pal: null, pace: 'gentle', updatedAt: 0 });
+export const emptyBody = (): BodyProfile => ({ consent: false, ageYears: null, sex: null, heightCm: null, weightKg: null, pal: null, pace: 'gentle', updatedAt: 0, sync: false });
 
 export interface EnergyPlan {
   /** Resting energy (kcal/day), to the nearest 5. */

@@ -62,6 +62,8 @@ export interface InterviewState {
   done: boolean;
   confirmed: boolean;
   updatedAt: number | null;
+  /** When each answer last changed on any device (ms), so sync can merge two devices answer by answer. */
+  answeredAt?: Record<string, number>;
 }
 
 export const emptyInterview = (): InterviewState => ({

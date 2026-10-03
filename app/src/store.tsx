@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode, type SetStateAction } from 'react';
 import { activeAnswers, answerQuestion, fillWithSamples, firstOpen, prevBefore, skipQuestion } from './interview/engine';
 import { asRatings } from './interview/helpers';
 import { FOOD_GROUP_A, FOODS, Q, QBY } from './interview/questions';
@@ -42,6 +42,7 @@ import {
   savePlanState,
   type PlanState,
 } from './storage/db';
+import { stampAnswers, stampMeals } from './sync/merge';
 import { useSync } from './sync/useSync';
 
 export type Screen =
@@ -125,8 +126,12 @@ interface Initial {
 }
 
 function useRemyState(initial: Initial) {
-  const [interview, setInterview] = useState<InterviewState>(initial.interview);
-  const [planState, setPlanState] = useState<PlanState>(initial.plan);
+  const [interview, setInterviewRaw] = useState<InterviewState>(initial.interview);
+  const [planState, setPlanStateRaw] = useState<PlanState>(initial.plan);
+  // Every local change records when each answer and meal changed, so sync can merge two devices piece by piece.
+  // Copies applied from the cloud use the raw setters: they keep the times they came with.
+  const setInterview = useCallback((u: SetStateAction<InterviewState>) => setInterviewRaw((prev) => stampAnswers(prev, typeof u === 'function' ? u(prev) : u)), []);
+  const setPlanState = useCallback((u: SetStateAction<PlanState>) => setPlanStateRaw((prev) => stampMeals(prev, typeof u === 'function' ? u(prev) : u)), []);
   const [health, setHealth] = useState<BodyProfile>(initial.health);
   const shuffles = useRef(1);
   // Saved AI recipes must be in the library before anything below (or any screen) looks them up.
@@ -141,14 +146,16 @@ function useRemyState(initial: Initial) {
     planState,
     applyInterview: (value, at) => {
       stampNext.current.interview = at;
-      setInterview(value);
+      setInterviewRaw(value);
     },
     applyPlan: (value, at) => {
       stampNext.current.plan = at;
-      setPlanState(value);
+      setPlanStateRaw(value);
       // A second device that just signed in: jump from the welcome screen to the synced week.
       if (value.plan) setUi((u) => (u.screen === 'welcome' ? { ...u, screen: 'home' } : u));
     },
+    health,
+    applyHealth: setHealth,
   });
 
   // Opening a password-reset link lands on the Sync & install screen to choose a new password.
@@ -212,10 +219,10 @@ function useRemyState(initial: Initial) {
     stampNext.current.plan = undefined;
     void savePlanState(planState, at ?? Date.now()).then(() => at === undefined && sync.schedule());
   }, [planState]);
-  // Health details stay on this device: saved, never uploaded.
+  // Body details stay on this device unless “Sync my body details” is on (their own owner-only table).
   useEffect(() => {
     if (health === initial.health) return;
-    void saveHealth(health);
+    void saveHealth(health).then(() => health.sync && sync.schedule());
   }, [health]);
 
   const patchUi = (p: Partial<UiState>) => setUi((u) => ({ ...u, ...p }));
@@ -592,6 +599,19 @@ function useRemyState(initial: Initial) {
     setEstimates: (on: boolean) => setPlanState((s) => ({ ...s, nutrition: { ...s.nutrition, nums: on } })),
     /** Update the details for the optional estimate (kept on this device). */
     setBody: (b: Partial<BodyProfile>) => setHealth((h) => ({ ...h, ...b, updatedAt: Date.now() })),
+    /**
+     * Share the body details and weigh-ins with the account, or stop. Turning it on doesn't change the details'
+     * change time, so a newer copy from another device wins; turning it off deletes the cloud copy.
+     */
+    setHealthSync: (on: boolean) => {
+      setHealth((h) => ({ ...h, sync: on }));
+      if (on) toast('Body details will sync with your account');
+      else
+        void sync
+          .stopHealthSync()
+          .then(() => toast('Body details removed from the cloud. They stay on this device.'))
+          .catch(() => toast('Couldn’t reach the cloud. Try again when you’re online.'));
+    },
     /** Use Remy's estimate as the daily goals and fit this week and the drafts ahead to it. */
     useEstimate: () => {
       const A = activeAnswers(interview);
@@ -611,10 +631,11 @@ function useRemyState(initial: Initial) {
     },
     /** Delete the estimate details from this device; goals that came from the estimate go too. */
     forgetBody: () => {
+      if (health.sync) void sync.stopHealthSync().catch(() => {});
       setHealth(emptyBody());
       if (planState.nutrition.from === 'estimate') setPlanState((s) => ({ ...s, nutrition: { ...s.nutrition, kcal: '', pro: '', from: 'typed', floor: null } }));
       patchUi({ sheet: null });
-      toast('Your details are deleted from this device');
+      toast(health.sync ? 'Your details are deleted from this device and the cloud' : 'Your details are deleted from this device');
     },
     setTargets: (kcal: string, pro: string) => setPlanState((s) => ({ ...s, nutrition: { ...s.nutrition, kcal, pro, from: 'typed', floor: null } })),
     setBalanceMode: (v: string) => {

@@ -34,8 +34,8 @@ export function Privacy() {
               weight-loss planning and leave out a few foods that need extra care.
             </p>
             <p className="hint">
-              If you ask for a daily estimate, your age, height, weight and activity are kept only on this device: they aren’t synced to your account or sent to the AI.
-              Backup files include them, and “Delete my details” on the estimate removes them.
+              If you ask for a daily estimate, your age, height, weight, activity and weekly weigh-ins are kept only on this device, unless you turn on “Sync my body
+              details” in Sync & install. They’re never sent to the AI. Backup files include them, and “Delete my details” on the estimate removes them.
             </p>
           </div>
         </section>
@@ -46,6 +46,10 @@ export function Privacy() {
             <p className="ink-2">
               A copy of the same data is kept in a Supabase database run by whoever hosts this copy of Remy, so your devices stay in step. Security rules let each account
               read and change only its own copy. Your password is handled by Supabase’s sign-in service and is never part of your Remy data.
+            </p>
+            <p className="hint">
+              Health and age answers from the interview sync with the rest, so allergy and safety rules apply on every device. Body details and weigh-ins sync only
+              with “Sync my body details” on, to a separate table only your account can read; turning it off removes them from the cloud.
             </p>
             <p className="hint">
               The person who manages that Supabase project can technically see the stored data, as with most apps. “Delete everything” removes your cloud copy too.

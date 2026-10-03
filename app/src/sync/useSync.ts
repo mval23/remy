@@ -1,9 +1,25 @@
 import type { Session } from '@supabase/supabase-js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { InterviewState } from '../interview/types';
+import type { BodyProfile } from '../planning/energy';
 import { loadStamps, type PlanState } from '../storage/db';
-import { reconcile } from './merge';
-import { createAccount, deleteRow, fetchRow, pushRow, sendPasswordReset, setNewPassword, signIn, signOut, supabase, syncConfigured } from './supabase';
+import { normalizePlanState } from '../storage/planState';
+import { reconcile, reconcileHealth, withoutWeights } from './merge';
+import {
+  createAccount,
+  deleteHealth,
+  deleteRow,
+  fetchHealth,
+  fetchRow,
+  pushHealth,
+  pushRow,
+  sendPasswordReset,
+  setNewPassword,
+  signIn,
+  signOut,
+  supabase,
+  syncConfigured,
+} from './supabase';
 
 export type SyncStatus = 'off' | 'signedOut' | 'syncing' | 'synced' | 'offline' | 'error';
 
@@ -13,6 +29,9 @@ interface Options {
   /** Replace local data with the cloud copy, saved with the cloud copy's change time. */
   applyInterview: (value: InterviewState, at: number) => void;
   applyPlan: (value: PlanState, at: number) => void;
+  /** Body details for the optional estimate. They and the weigh-ins sync only when `health.sync` is on. */
+  health: BodyProfile;
+  applyHealth: (value: BodyProfile) => void;
 }
 
 const POLL_MS = 30_000;
@@ -30,6 +49,8 @@ export function useSync(opts: Options) {
   const [error, setError] = useState<string | null>(null);
   /** Arrived from a password-reset email: ask for a new password. */
   const [recovery, setRecovery] = useState(false);
+  /** Why body details can't sync, when the optional table is missing. */
+  const [healthNote, setHealthNote] = useState<string | null>(null);
   const latest = useRef(opts);
   latest.current = opts;
   const running = useRef(false);
@@ -69,15 +90,25 @@ export function useSync(opts: Options) {
     try {
       const stamps = await loadStamps();
       const remote = await fetchRow(userId);
-      const { interview, planState } = latest.current;
-      const d = reconcile({ interview, plan: planState, stamps }, remote);
+      const { interview, planState, health } = latest.current;
+      const d = reconcile({ interview, plan: planState, stamps }, remote, Date.now(), health.sync);
       if (d.pullInterview) latest.current.applyInterview(d.pullInterview.value, d.pullInterview.at);
       if (d.pullPlan) latest.current.applyPlan(d.pullPlan.value, d.pullPlan.at);
       if (d.pushInterview || d.pushPlan) {
         await pushRow(userId, {
-          ...(d.pushInterview ? { interview, interviewAt: stamps.interviewAt } : {}),
-          ...(d.pushPlan ? { plan: d.pullPlan?.value ?? planState, planAt: d.pullPlan?.at ?? stamps.planAt } : {}),
+          ...(d.pushInterview ? { interview: d.pullInterview?.value ?? interview, interviewAt: d.pullInterview?.at ?? stamps.interviewAt } : {}),
+          ...(d.pushPlan ? { plan: d.uploadPlan!, planAt: d.pullPlan?.at ?? stamps.planAt } : {}),
         });
+      }
+      if (health.sync) {
+        const cloud = await fetchHealth(userId);
+        if (cloud === 'missing') setHealthNote('Body details can’t sync yet: the user_health table isn’t in your Supabase project (SETUP.md step 11).');
+        else {
+          setHealthNote(null);
+          const h = reconcileHealth(health, cloud);
+          if (h.pull) latest.current.applyHealth(h.pull);
+          if (h.push) await pushHealth(userId, health, health.updatedAt);
+        }
       }
       setLastSynced(Date.now());
       setError(null);
@@ -144,6 +175,20 @@ export function useSync(opts: Options) {
     signOut: async () => {
       await signOut();
       setLastSynced(null);
+    },
+    healthNote,
+    /**
+     * Stop sharing body details: delete the cloud copy and the weigh-ins in the cloud plan. The plan keeps its change
+     * time, so other devices keep their own copies; one that still shares them uploads them again.
+     */
+    stopHealthSync: async () => {
+      setHealthNote(null);
+      if (!userId) return;
+      await deleteHealth(userId);
+      const remote = await fetchRow(userId);
+      if (!remote?.plan) return;
+      const plan = normalizePlanState(remote.plan);
+      if (withoutWeights(plan) !== plan) await pushRow(userId, { plan: withoutWeights(plan), planAt: remote.plan_at });
     },
     /** Remove the cloud copy (used by “Delete everything”). */
     deleteCloudCopy: async () => {
