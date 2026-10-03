@@ -126,6 +126,15 @@ The private values you need were created on your computer in a file called **`re
 
 Reminders come from the week you have planned. After each weekly check-in, the next week's reminders are saved automatically.
 
+## 11. (Optional) Sync body details between devices
+
+If you use the daily calorie estimate, your age, height, weight, activity and weigh-ins stay on each device unless you choose to sync them. To make that possible:
+
+1. In Supabase, open **SQL Editor → New query**, paste all of [`supabase/schema.sql`](supabase/schema.sql) again, and click **Run**. It's safe to run again: it only adds the new `user_health` table and its security rules.
+2. On each device where you want them, open **Sync & install** and turn on **Sync my body details**.
+
+They go to their own table, which only your account can read, and Remy never sends them to the AI.
+
 ## Good to know about the free plan
 
 - **Pausing:** free projects pause after about a week with no activity; step 9 prevents that. If it ever happens, your data is kept, Remy keeps working on each device, and sync resumes after you click **Restore** in the Supabase dashboard.

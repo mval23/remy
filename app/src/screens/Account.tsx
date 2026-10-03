@@ -205,7 +205,7 @@ function NewPassword() {
 }
 
 export function Account() {
-  const { interview, sync, actions } = useRemy();
+  const { interview, health, sync, actions } = useRemy();
   const install = useInstall();
   const back = interview.confirmed ? 'summary' : 'welcome';
 
@@ -248,6 +248,16 @@ export function Account() {
                   Sign out
                 </button>
               </div>
+              <label className="li li-check">
+                <input type="checkbox" checked={health.sync} onChange={(e) => actions.setHealthSync(e.target.checked)} />
+                <div className="grow">
+                  <div className="t">Sync my body details</div>
+                  <div className="s">
+                    Age, height, weight, activity and weigh-ins for the daily estimate. Off: they stay on this device. On: they go to a separate table only your account can read. Turning it off removes them from the cloud; turn it off on each device that has it on.
+                  </div>
+                </div>
+              </label>
+              {sync.healthNote && <p className="hint c-citrus">{sync.healthNote}</p>}
             </div>
           ) : (
             <SignIn />

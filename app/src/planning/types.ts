@@ -209,6 +209,8 @@ export interface Meal {
   borrowed?: boolean;
   /** Portion size when fitted to the person's goals: 0.8–1.2 of the recipe's portion (missing = 1). Main meals only. */
   x?: number;
+  /** When this meal last changed on any device (ms), so sync can merge two devices meal by meal. */
+  t?: number;
 }
 
 export interface PlanDay {

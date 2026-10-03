@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { activeAnswers, fillWithSamples } from '../interview/engine';
 import { emptyInterview, type Answers } from '../interview/types';
+import { QBY } from '../interview/questions';
 import { ING } from '../planning/data/ingredients';
 import { MEAL_IDS, R, registerAiRecipes } from '../planning/data/recipes';
 import { groceryList } from '../planning/grocery';
@@ -54,6 +55,15 @@ describe('what is sent to the AI', () => {
     expect(p).toContain('chicken');
     expect(p).toContain('something crispy');
     expect(p).not.toMatch(/diabetes|pregnan/i);
+  });
+
+  it('never includes any health, age, weight or calorie answer', () => {
+    const opts = (id: string) => (QBY[id].opts ?? []).map((o) => (typeof o === 'string' ? o : o.v)).filter((o) => o !== 'None' && o !== 'Prefer not to say');
+    const A = with_({ health: opts('health'), age: opts('age')[0], calories: '1777', progress: 'Weekly weigh-in', pace: 'Detailed' });
+    const p = recipePrompt(A, 'Dinner', '');
+    for (const o of [...opts('health'), ...opts('age')]) expect(p, o).not.toContain(o);
+    expect(p).not.toContain('1777');
+    expect(p).not.toMatch(/weigh/i);
   });
 
   it('lists only ingredients Remy knows, and the schema allows only those keys', () => {

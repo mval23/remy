@@ -34,6 +34,35 @@ create policy "Delete own data" on public.user_data
 revoke all on public.user_data from anon;
 grant select, insert, update, delete on public.user_data to authenticated;
 
+-- Optional: body details for the daily estimate (age, height, weight, activity) and weigh-ins, kept in their own table.
+-- The app only uses it when the person turns on “Sync my body details” on a device; otherwise those stay on the device.
+
+create table if not exists public.user_health (
+  user_id    uuid primary key references auth.users (id) on delete cascade,
+  health     jsonb,
+  health_at  bigint not null default 0,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.user_health enable row level security;
+
+drop policy if exists "Read own health" on public.user_health;
+drop policy if exists "Add own health" on public.user_health;
+drop policy if exists "Change own health" on public.user_health;
+drop policy if exists "Delete own health" on public.user_health;
+
+create policy "Read own health" on public.user_health
+  for select to authenticated using ((select auth.uid()) = user_id);
+create policy "Add own health" on public.user_health
+  for insert to authenticated with check ((select auth.uid()) = user_id);
+create policy "Change own health" on public.user_health
+  for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy "Delete own health" on public.user_health
+  for delete to authenticated using ((select auth.uid()) = user_id);
+
+revoke all on public.user_health from anon;
+grant select, insert, update, delete on public.user_health to authenticated;
+
 -- Keep-alive: free Supabase projects pause after about a week without database activity.
 -- A scheduled GitHub Action (.github/workflows/keep-alive.yml) calls this every few days.
 -- It reads no data; it only answers "ok".
