@@ -1623,5 +1623,94 @@
       "sodiumMg": 1,
       "satFat": 0.009
     }
+  },
+  "arepaflour": {
+    "id": "2079822",
+    "description": "PRE-COOKED WHITE CORN MEAL",
+    "dataType": "Branded",
+    "publicationDate": "10/28/2021",
+    "per100": {
+      "pro": 6.67,
+      "satFat": 0,
+      "fiber": 6.7,
+      "fat": 1.67,
+      "carb": 80,
+      "sodiumMg": 0
+    }
+  },
+  "berries": {
+    "id": "2453702",
+    "description": "FROZEN MIXED BERRIES",
+    "dataType": "Branded",
+    "publicationDate": "1/26/2023",
+    "per100": {
+      "sodiumMg": 0,
+      "sugar": 7.38,
+      "fat": 0.41,
+      "pro": 0.82,
+      "satFat": 0,
+      "carb": 12.3,
+      "fiber": 4.1
+    }
+  },
+  "icecream": {
+    "id": "2577593",
+    "description": "VANILLA ICE CREAM BARS MINIS WITH MILK CHOCOLATE, VANILLA WITH MILK CHOCOLATE",
+    "dataType": "Branded",
+    "publicationDate": "6/29/2023",
+    "per100": {
+      "sugar": 31.2,
+      "satFat": 15.2,
+      "fat": 23.2,
+      "carb": 34.4,
+      "pro": 4.4,
+      "fiber": 0.8,
+      "sodiumMg": 60
+    }
+  },
+  "pizzadough": {
+    "id": "1921615",
+    "description": "PIZZA DOUGH",
+    "dataType": "Branded",
+    "publicationDate": "7/29/2021",
+    "per100": {
+      "sodiumMg": 526,
+      "pro": 8.77,
+      "fiber": 1.8,
+      "carb": 43.86,
+      "satFat": 0,
+      "fat": 1.75,
+      "sugar": 1.75
+    }
+  },
+  "mascarpone": {
+    "id": "2595456",
+    "description": "MASCARPONE CHEESE",
+    "dataType": "Branded",
+    "publicationDate": "7/13/2023",
+    "per100": {
+      "fiber": 0,
+      "satFat": 35.71,
+      "carb": 0,
+      "pro": 7.14,
+      "sodiumMg": 36,
+      "fat": 50,
+      "sugar": 0
+    }
+  },
+  "turkeysausage": {
+    "id": "2771999",
+    "description": "Jimmy Dean Reduced Fat Fully Cooked Turkey Sausage Patties, 1.25 Oz",
+    "dataType": "Branded",
+    "publicationDate": "7/23/2026",
+    "per100": {
+      "satFat": 4.06,
+      "fiber": 0.2,
+      "sodiumMg": 437.99,
+      "sugar": 0.97,
+      "carb": 1.31,
+      "pro": 16.34,
+      "fat": 12.5
+    }
   }
 }

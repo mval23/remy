@@ -2,7 +2,8 @@
  * Match Remy's ingredients to USDA FoodData Central (https://fdc.nal.usda.gov), for review by a person.
  *
  *   node scripts/fdc-match.mjs search [key ...]   candidates for each ingredient → scripts/fdc-candidates.md
- *                                                 (better search words per key can go in scripts/fdc-queries.json)
+ *                                                 (better search words per key can go in scripts/fdc-queries.json;
+ *                                                 --branded searches package labels, FDC's Branded Foods)
  *   node scripts/fdc-match.mjs fetch              values for the IDs chosen in scripts/fdc-ids.json → scripts/fdc-review.md
  *                                                 and scripts/fdc-values.json (per 100 g, ready to copy into ingredients.ts)
  *   node scripts/fdc-match.mjs apply              after a person has reviewed fdc-review.md: copy fdc-values.json
@@ -72,7 +73,7 @@ async function get(path, init) {
 
 const fmt = (x) => (x === undefined || x === null ? '—' : (Math.round(x * 10) / 10).toString());
 
-async function search(keys) {
+async function search(keys, branded = false) {
   const ing = ingredients();
   const qfile = join(here, 'fdc-queries.json');
   const queries = existsSync(qfile) ? JSON.parse(readFileSync(qfile, 'utf8')) : {};
@@ -81,12 +82,12 @@ async function search(keys) {
     const g = ing[k];
     if (!g) continue;
     const q = encodeURIComponent(queries[k] ?? g.n.replace(/\(.*?\)/g, '').trim());
-    const data = await get(`/foods/search?query=${q}&dataType=Foundation,SR%20Legacy&pageSize=4`);
+    const data = await get(`/foods/search?query=${q}&dataType=${branded ? 'Branded&pageSize=8' : 'Foundation,SR%20Legacy&pageSize=4'}`);
     const mine = per100(g);
     lines.push(`## ${k}: ${g.n}`, '', `Remy now: ${mine ? `${fmt(mine.pro)} protein, ${fmt(mine.carb)} carbs, ${fmt(mine.fat)} fat, ${fmt(mine.fiber)} fiber` : 'no grams per unit'}`, '');
     for (const f of data.foods ?? []) {
       const v = nutrients(f);
-      lines.push(`- ${f.fdcId} · ${f.description} (${f.dataType}): ${fmt(v.pro)} protein, ${fmt(v.carb)} carbs, ${fmt(v.fat)} fat, ${fmt(v.fiber)} fiber`);
+      lines.push(`- ${f.fdcId} · ${f.description}${f.brandOwner ? ` · ${f.brandOwner}${f.brandName ? ` (${f.brandName})` : ''}` : ''} (${f.dataType}):${fmt(v.pro)} protein, ${fmt(v.carb)} carbs, ${fmt(v.fat)} fat, ${fmt(v.fiber)} fiber`);
     }
     lines.push('');
   }
@@ -158,7 +159,7 @@ function apply() {
 }
 
 const [cmd, ...rest] = process.argv.slice(2);
-if (cmd === 'search') await search(rest);
+if (cmd === 'search') await search(rest.filter((x) => x !== '--branded'), rest.includes('--branded'));
 else if (cmd === 'fetch') await fetchChosen();
 else if (cmd === 'apply') apply();
 else console.log('Usage: node scripts/fdc-match.mjs search [key ...] | fetch | apply');
