@@ -11,15 +11,18 @@ import { SLOTS } from './types';
  * the best allowed alternative, preferring recipes already in the plan so prep day stays short.
  * Avoided recipes are used only when nothing else fits.
  */
-export function resolve(templateId: string, slot: Slot, day: number, used: Set<string>, ctx: PlanContext): string | null {
+export function resolve(templateId: string, slot: Slot, day: number, used: Set<string>, ctx: PlanContext, count: Record<string, number> = {}): string | null {
   const r = R[templateId];
-  if (r && r.slot === slot && !REMOVED.has(templateId) && check(r, ctx.A).ok && storage(r, day).k !== 'unsafe' && !avoided(r.id, ctx)) return templateId;
-  return bestFor(slot, day, used, ctx) ?? (PARTNER[slot] ? bestFor(PARTNER[slot]!, day, used, ctx) : null);
+  if (r && r.slot === slot && !REMOVED.has(templateId) && check(r, ctx.A).ok && storage(r, day).k !== 'unsafe' && !avoided(r.id, ctx) && !full(r, count)) return templateId;
+  return bestFor(slot, day, used, ctx, count) ?? (PARTNER[slot] ? bestFor(PARTNER[slot]!, day, used, ctx, count) : null);
 }
 
+/** Already planned as many days this week as `Recipe.maxPerWeek` allows. */
+const full = (r: Recipe, count: Record<string, number>) => r.maxPerWeek !== undefined && (count[r.id] ?? 0) >= r.maxPerWeek;
+
 /** The best recipe of `slot`'s own kind that fits the rules and keeps until `day`; recipes already this week come first. */
-function bestFor(slot: Slot, day: number, used: Set<string>, ctx: PlanContext): string | null {
-  const fits = MEAL_IDS.map((id) => R[id]).filter((x) => x.slot === slot && check(x, ctx.A).ok && storage(x, day).k !== 'unsafe');
+function bestFor(slot: Slot, day: number, used: Set<string>, ctx: PlanContext, count: Record<string, number> = {}): string | null {
+  const fits = MEAL_IDS.map((id) => R[id]).filter((x) => x.slot === slot && check(x, ctx.A).ok && storage(x, day).k !== 'unsafe' && !full(x, count));
   const preferred = fits.filter((x) => !avoided(x.id, ctx));
   const candidates = preferred.length ? preferred : fits;
   candidates.sort((a, b) => score(b, ctx) + (used.has(b.id) ? 3 : 0) - (score(a, ctx) + (used.has(a.id) ? 3 : 0)));
@@ -102,6 +105,8 @@ export function buildPlan(variety: Variety, ctx: PlanContext, previous?: WeekPla
   const days = weekDays(ctx.A);
   const sweets = sweetDays(ctx.A);
   const used = new Set<string>();
+  /** Days each recipe is planned so far, for `maxPerWeek`. */
+  const count: Record<string, number> = {};
   const swap = rotation(variety, ctx);
   let changed = 0;
 
@@ -117,6 +122,7 @@ export function buildPlan(variety: Variety, ctx: PlanContext, previous?: WeekPla
       if (prev?.ok && prev.r && !REMOVED.has(prev.r) && servesAt(R[prev.r], slot, prev) && check(R[prev.r], ctx.A).ok) {
         meals[slot] = prev;
         used.add(prev.r);
+        count[prev.r] = (count[prev.r] ?? 0) + 1;
         return;
       }
       if (isAway(ctx.A, d, slot)) {
@@ -124,8 +130,11 @@ export function buildPlan(variety: Variety, ctx: PlanContext, previous?: WeekPla
         return;
       }
       const planned = template[i][si];
-      const rid = resolve(swap[planned] ?? planned, slot, i + 1, used, ctx);
-      if (rid) used.add(rid);
+      const rid = resolve(swap[planned] ?? planned, slot, i + 1, used, ctx, count);
+      if (rid) {
+        used.add(rid);
+        count[rid] = (count[rid] ?? 0) + 1;
+      }
       if (!prev || prev.r !== rid) changed++;
       meals[slot] = rid ? mealWith(rid, slot) : { r: null, need: true, ok: false };
     });

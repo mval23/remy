@@ -110,12 +110,13 @@ describe('daily goals', () => {
   });
 
   it('cooks and shops for the smaller portions', () => {
-    const fit = fitToGoals(week(), ctx, { kcal: 1600, pro: null });
+    const fit = fitToGoals(week(), ctx, { kcal: 1800, pro: null });
     expect(fit.scale).toBeLessThan(1);
     // The same meals at full portions, for comparison.
     const full = fit.plan.map((d) => ({ ...d, meals: Object.fromEntries(Object.entries(d.meals).map(([k, m]) => [k, m && { ...m, x: undefined }])) }));
     const q = (p: WeekPlan, k: string) => groceryList(p, SAMPLE, emptyGroceryEdits()).find((x) => x.k === k)!.q!;
-    const dinner = [...recipes(fit.plan)].find((id) => R[id].slot === 'Dinner')!;
+    // A dinner that was scaled (whole-item dishes like burritos never are).
+    const dinner = [...recipes(fit.plan)].find((id) => R[id].slot === 'Dinner' && !R[id].whole)!;
     // The dinner's biggest ingredient weighed in grams, so rounding to whole units can't hide the change.
     const k = R[dinner].ing.filter(([x]) => ING[x].u === 'g').sort((x, y) => y[1] - x[1])[0][0];
     expect(q(fit.plan, k)).toBeLessThan(q(full, k));
