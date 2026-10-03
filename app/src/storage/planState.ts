@@ -2,6 +2,7 @@ import { emptyCheckin, type CheckinDraft, type LearnedItem, type Noticed, type P
 import { emptyGroceryEdits, type GroceryEdits } from '../planning/grocery';
 import type { ShopMode } from '../planning/month';
 import { noShopDays, type ShopDays } from '../planning/calendar';
+import { NUTRITION_DATA } from '../planning/data/version';
 import { defaultNutrition, type NutritionSettings } from '../planning/nutrition';
 import type { Recipe, Variety, WeekPlan } from '../planning/types';
 import { migrateRecipe } from '../planning/units';
@@ -55,6 +56,11 @@ export interface PlanState {
   shopDays: ShopDays;
   /** Set once saved AI recipes are in metric units; missing on data from earlier versions. */
   units?: 'metric';
+  /**
+   * The nutrition data version (`NUTRITION_DATA`) the saved weeks were planned with. When it differs, Nutrition says
+   * the numbers were updated until the person dismisses it. '' = planned before versions were recorded.
+   */
+  nutritionData: string;
 }
 
 export const emptyPlanState = (): PlanState => ({
@@ -82,6 +88,7 @@ export const emptyPlanState = (): PlanState => ({
   shopping: 'weekly',
   month: { startedAt: 0, edits: emptyGroceryEdits() },
   shopDays: noShopDays(),
+  nutritionData: NUTRITION_DATA,
 });
 
 /**
@@ -89,7 +96,9 @@ export const emptyPlanState = (): PlanState => ({
  * and convert AI recipes saved in US units before Remy went metric.
  */
 export function normalizePlanState(p: Partial<PlanState> | null | undefined): PlanState {
-  const s: PlanState = { ...emptyPlanState(), ...p, nutrition: { ...defaultNutrition(), ...p?.nutrition } };
+  // A copy with weeks planned before data versions existed is marked '', so Nutrition mentions the update once.
+  const nutritionData = p?.nutritionData ?? (p?.plan ? '' : NUTRITION_DATA);
+  const s: PlanState = { ...emptyPlanState(), ...p, nutrition: { ...defaultNutrition(), ...p?.nutrition }, nutritionData };
   if (s.units === 'metric') return s;
   return { ...s, units: 'metric', aiRecipes: Object.fromEntries(Object.entries(s.aiRecipes).map(([id, r]) => [id, migrateRecipe(r)])) };
 }

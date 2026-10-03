@@ -15,10 +15,11 @@ describe('calories and macros', () => {
 
   it('adds them up per portion: 4 kcal per gram of protein and digestible carbs, 2 per gram of fiber, 9 per gram of fat', () => {
     const m = macrosOf([['eggs', 2], ['butter', 10]], 1);
-    expect(m.pro).toBe(13);
+    // Two large eggs (FDC 748967) and 10 g of butter.
+    expect(m.pro).toBe(12);
     expect(m.fat).toBe(18);
     expect(kcalOf(10, 30, 10, 10)).toBe(4 * 10 + 4 * 20 + 2 * 10 + 9 * 10);
-    expect(macrosOf([['oats', 100]], 1).fiber).toBe(10);
+    expect(macrosOf([['oats', 100]], 1).fiber).toBe(10.1);
     for (const id of [...MEAL_IDS, ...SIDE_IDS]) {
       const r = R[id];
       expect(Math.abs(r.kcal - kcalOf(r.pro, r.carb, r.fat, r.fiber)), id).toBeLessThanOrEqual(15);

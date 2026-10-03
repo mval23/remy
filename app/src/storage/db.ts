@@ -51,7 +51,8 @@ async function load<T>(id: string, empty: () => T): Promise<T> {
 }
 
 export const loadInterview = () => load<InterviewState>(INTERVIEW, emptyInterview);
-export const loadPlanState = () => load<PlanState>(PLAN, emptyPlanState).then(normalizePlanState);
+// The saved copy goes to normalizePlanState as it is, so it can tell which fields an older copy was missing.
+export const loadPlanState = () => load<Partial<PlanState>>(PLAN, () => ({})).then(normalizePlanState);
 export const loadStamps = () => load<Stamps>(META, emptyStamps);
 export const loadHealth = () => load<BodyProfile>(HEALTH, emptyBody);
 
