@@ -2,7 +2,7 @@
   "salmon": "Fish, salmon, Atlantic, farmed, raw",
   "grapes": "Grapes, red or green, raw",
   "apples": "Apples raw with skin",
-  "berries": "Berries mixed frozen unsweetened",
+  "berries": "frozen mixed berries",
   "corn": "Corn, sweet, yellow, frozen, kernels cut off cob, unprepared",
   "greenbeans": "Beans, snap, green, frozen, unprepared",
   "milk": "Milk, reduced fat, fluid, 2% milkfat",
@@ -27,8 +27,8 @@
   "tomatoes": "Tomatoes, red, ripe, raw, year round average",
   "scallions": "Onions, spring or scallions, includes tops and bulb, raw",
   "yuca": "Cassava, raw",
-  "pizzadough": "Pizza dough",
-  "mascarpone": "Cheese, mascarpone",
+  "pizzadough": "pizza dough",
+  "mascarpone": "mascarpone cheese",
   "sweetpotatoes": "Sweet potato, raw, unprepared",
   "peas": "Peas, green, frozen, unprepared",
   "tapioca": "Tapioca, pearl, dry",
@@ -39,5 +39,8 @@
   "thighs": "Chicken, broilers or fryers, thigh, meat only, raw",
   "peppers": "Peppers, sweet, red, raw",
   "pineapple": "Pineapple, raw, all varieties",
-  "ricotta": "Cheese, ricotta"
+  "ricotta": "Cheese, ricotta",
+  "arepaflour": "PAN pre-cooked white corn meal",
+  "icecream": "vanilla ice cream bars milk chocolate mini",
+  "turkeysausage": "Jimmy Dean turkey sausage patties"
 }

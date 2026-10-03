@@ -4,4 +4,4 @@
  * version it was planned with (`PlanState.nutritionData`), so Nutrition can say the numbers changed instead of
  * changing them silently.
  */
-export const NUTRITION_DATA = '2026-10 FoodData Central';
+export const NUTRITION_DATA = '2026-10 FoodData Central + labels';

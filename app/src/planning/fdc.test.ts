@@ -15,14 +15,7 @@ const FDC: Record<string, { id: string; per100: Partial<Nutrients> }> = JSON.par
  * so each new one gets a FoodData Central match or a package label, or is listed here.
  */
 const ESTIMATED: Record<string, string> = {
-  icecream: 'package label',
-  berries: 'package label: FoodData Central has no mixed-berry blend',
-  pizzadough: 'package label',
-  obleas: 'package label',
-  arequipe: 'package label',
-  mascarpone: 'package label: not in FoodData Central',
-  arepaflour: 'package label: FoodData Central only has masa, which is made differently',
-  turkeysausage: 'package label: FoodData Central only has raw links',
+  obleas: 'package label: FoodData Central’s obleas labels disagree (one lists no protein)',
   limes: 'only the juice is counted',
   lemons: 'only the juice is counted',
   spices: 'a pinch, counted as nothing',
@@ -62,11 +55,12 @@ describe('nutrition data sources', () => {
   });
 
   it('calls a dish matched when only a squeeze or a pinch has no source', () => {
-    // Lime juice is a few calories of a bowl; arepa flour is most of an arepa.
+    // Lime juice is a few calories of a bowl; the wafers are a good share of the obleas dessert.
     const limeDish = [...MEAL_IDS].find((id) => R[id].ing.some(([k]) => k === 'limes') && R[id].ing.every(([k]) => k === 'limes' || ING[k].src));
     expect(limeDish).toBeTruthy();
     expect(nutritionSource(R[limeDish!].ing)).toBe('matched');
-    expect(nutritionSource(R.arepas.ing)).toBe('estimated');
+    expect(nutritionSource(R.obleas.ing)).toBe('estimated');
+    expect(nutritionSource(R.arepas.ing)).toBe('matched');
   });
 
   it('keeps the 30 most-used ingredients within 10% of FoodData Central (or 0.5 g for small amounts)', () => {
