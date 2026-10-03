@@ -611,7 +611,7 @@ function useRemyState(initial: Initial) {
 
     /* ---------- nutrition ---------- */
     setEstimates: (on: boolean) => setPlanState((s) => ({ ...s, nutrition: { ...s.nutrition, nums: on } })),
-    /** Update the details for the optional estimate (kept on this device). */
+    /** Update the details for the optional estimate (kept on this device unless body-detail sync is on). */
     setBody: (b: Partial<BodyProfile>) => setHealth((h) => ({ ...h, ...b, updatedAt: Date.now() })),
     /**
      * Share the body details and weigh-ins with the account, or stop. Turning it on doesn't change the details'
