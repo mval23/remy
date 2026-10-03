@@ -130,6 +130,7 @@ export function weekQuestions(plan: WeekPlan, A: Answers, state: PlanState): Che
   if (sweet) out.push({ id: 'sweet', q: 'Did the evening sweet portion feel like enough?', o: ['Yes, satisfied', 'I wanted more', 'It was too much'] });
   out.push({ id: 'prep', q: 'Was prep day the right length?', o: ['Too long', 'About right', 'I could do more'] });
   out.push({ id: 'ate', q: 'How much of the planned food did you eat?', o: ATE });
+  out.push({ id: 'waste', q: 'Did any of it go to waste?', o: WASTE });
   const s = noticeSuggestion(A, state.noticed);
   if (s && !state.trial) out.push({ id: 'try', q: `Want to try ${s.idea} next week?`, o: ['Sure, once', 'Not yet'] });
   return out;
@@ -139,6 +140,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Answers to “How much of the planned food did you eat?”, most first. */
 export const ATE = ['All or nearly all', 'Most of it', 'About half', 'Not much'];
+/** Answers to “Did any of it go to waste?”, least first. */
+export const WASTE = ['Nothing', 'A little', 'A meal or two', 'More than that'];
 const ateMost = (a: string | undefined) => a === ATE[0] || a === ATE[1];
 const ateLittle = (a: string | undefined) => a === ATE[2] || a === ATE[3];
 
@@ -292,7 +295,14 @@ export function applyCheckin(state: PlanState, A: Answers, at = Date.now()): Che
   }
   if (trial) changes.push(`Add ${R[trial].name.toLowerCase()} as a side, once`);
 
+  // Every check-in is kept for the trends on Nutrition (and the summary file, if the person downloads it).
   const entry: ProgressEntry = { at };
+  if (q.ate) entry.ate = q.ate;
+  if (q.waste) entry.waste = q.waste;
+  if (q.prep) entry.prep = q.prep;
+  if (state.plan) entry.prepMin = schedule(state.plan, A).total;
+  const notAgain = Object.values(d.rated).filter((v) => v === 'no').length;
+  if (Object.keys(d.rated).length) entry.notAgain = notAgain;
   if (q.hunger) entry.hunger = q.hunger;
   if (q.energy) entry.energy = q.energy;
   if (q.fit) entry.fit = q.fit;

@@ -41,7 +41,7 @@ export interface CheckinDraft {
 
 export const emptyCheckin = (): CheckinDraft => ({ rated: {}, why: {}, q: {}, weight: '', unit: 'kg' });
 
-/** One body check-in. Weight is optional and shown only as a trend. */
+/** One weekly check-in. Weight is optional and shown only as a trend. */
 export interface ProgressEntry {
   at: number;
   hunger?: string;
@@ -49,4 +49,12 @@ export interface ProgressEntry {
   fit?: string;
   weight?: number;
   unit?: 'lb' | 'kg';
+  /** How much of the planned food was eaten (`ATE`) and how much went to waste (`WASTE`). */
+  ate?: string;
+  waste?: string;
+  /** Prep day: how it felt (“Too long”, “About right”, “I could do more”) and the planned minutes. */
+  prep?: string;
+  prepMin?: number;
+  /** Meals rated “Not again” that week. */
+  notAgain?: number;
 }
