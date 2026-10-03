@@ -128,7 +128,8 @@ describe('weekly check-in', () => {
   it('records body check-ins, and weight only when the user opted in', () => {
     const c = { q: { hunger: 'Mostly fine', fit: 'Looser' }, weight: '77', unit: 'kg' as const };
     const noWeight = applyCheckin(withCheckin(week(), c), with_({ progress: 'How I feel and how clothes fit' }), 10).next;
-    expect(noWeight.progress[0]).toEqual({ at: 10, hunger: 'Mostly fine', fit: 'Looser' });
+    expect(noWeight.progress[0]).toMatchObject({ at: 10, hunger: 'Mostly fine', fit: 'Looser' });
+    expect(noWeight.progress[0].weight).toBeUndefined();
     const withWeight = applyCheckin(withCheckin(week(), c), with_({ progress: 'Add an optional weekly weight' }), 10).next;
     expect(withWeight.progress[0]).toMatchObject({ weight: 77, unit: 'kg' });
   });
@@ -142,8 +143,9 @@ describe('weekly check-in', () => {
     expect(checkinDue(SAMPLE, saturday.getTime() - 60_000, saturday)).toBe(false);
   });
 
-  it('saves no progress entry when the body questions were skipped', () => {
-    expect(applyCheckin(withCheckin(week(), { rated: { oats: 'fine' } }), SAMPLE).next.progress).toEqual([]);
+  it('records no body answers when the body questions were skipped', () => {
+    const [entry] = applyCheckin(withCheckin(week(), { rated: { oats: 'fine' } }), SAMPLE, 10).next.progress;
+    expect(Object.keys(entry).sort()).toEqual(['at', 'notAgain', 'prepMin']);
   });
 
   it('asks about the sweet portion only when sweets were planned', () => {

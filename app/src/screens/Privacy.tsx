@@ -94,6 +94,10 @@ export function Privacy() {
           <div className="panel">
             <ul className="rules">
               <li><b>Download a backup</b> or <b>restore</b> one: Profile → Your data.</li>
+              <li>
+                <b>Download a summary</b> of your weekly check-ins (food eaten, waste, hunger, prep; no name, dates, foods or weights) to share with a pilot yourself:
+                Nutrition → Your weeks. Remy never sends it.
+              </li>
               <li><b>Delete one learned item</b>, or all of them: Profile → Learned about you.</li>
               <li><b>Delete everything</b> on this device{sync.signedIn ? ' and your cloud copy' : ' (and your cloud copy, if you signed in)'}: Profile → Your data.</li>
               <li><b>Turn AI ideas off</b>: Profile → AI ideas.</li>

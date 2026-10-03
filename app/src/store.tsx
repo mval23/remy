@@ -44,6 +44,7 @@ import {
 } from './storage/db';
 import { stampAnswers, stampMeals } from './sync/merge';
 import { useSync } from './sync/useSync';
+import { pilotFile, PILOT_FILE_NAME } from './learning/pilot';
 
 export type Screen =
   | 'welcome' | 'interview' | 'resume' | 'summary' | 'home' | 'planner' | 'nutrition' | 'recipe' | 'grocery' | 'prep'
@@ -572,6 +573,19 @@ function useRemyState(initial: Initial) {
       a.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
       toast('Backup saved to your downloads');
+    },
+    /** The pilot summary (learning/pilot.ts) as a file the person can choose to share. Nothing is uploaded. */
+    downloadPilot: (includeWeight: boolean) => {
+      const blob = new Blob([JSON.stringify(pilotFile(planState.progress, includeWeight), null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = PILOT_FILE_NAME;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+      toast('Summary saved to your downloads');
     },
     /** Read a backup file, then ask before replacing anything. */
     importFile: async (file: File) => {

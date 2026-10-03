@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { BottomNav, Header } from '../components/Chrome';
 import { Lead, Leader, LeadLink, Mast, SecHead } from '../components/Dish';
 import { Icon } from '../components/Icon';
 import { allRatings, listText } from '../interview/helpers';
 import { FOODS } from '../interview/questions';
-import { bodyCheckinOn, weightOn, weightTrend } from '../learning/learning';
+import { bodyCheckinOn, WASTE, weightOn, weightTrend } from '../learning/learning';
+import { pilotSummary, pilotWeeks, weightDirection, type Direction } from '../learning/pilot';
 import { fraction } from '../planning/grocery';
 import { balanceOn, dayNutrition, estimatesOn, FIBER_TARGET, kcalRange, LIGHT_DAY_KCAL } from '../planning/nutrition';
 import { DAY_FULL, SLOT_SHORT } from '../planning/types';
@@ -81,6 +83,66 @@ function Progress() {
       <button type="button" className="btn ghost wide gap-top-lg" onClick={() => actions.go('checkin')}>
         <Icon name="heart" size={17} /> Weekly check-in
       </button>
+    </section>
+  );
+}
+
+const pct = (x: number) => `${Math.round(x * 100)}%`;
+const WASTE_WORDS: Record<Direction, string> = { falling: 'less than before', steady: 'about the same', rising: 'more than before' };
+const WASTE_SHORT = ['nothing wasted', 'a little wasted', 'a meal or two wasted', 'more wasted'];
+
+/** How the weeks are going, from the check-ins: food eaten, waste, hunger and prep. Worked out on this device. */
+function Weeks() {
+  const { planState, ctx, actions } = useRemy();
+  const [withWeight, setWithWeight] = useState(false);
+  const p = planState.progress;
+  const s = pilotSummary(p);
+  const weeks = pilotWeeks(p).filter((w) => w.ate || w.waste || w.prep);
+  const canWeight = weightOn(ctx.A) && weightDirection(p) !== null;
+  return (
+    <section className="msec">
+      <SecHead title="Your weeks" aside="from check-ins" />
+      {!weeks.length ? (
+        <p className="lead-note gap-top">After a few check-ins, this shows how much of the plan you ate, any food wasted and how prep day felt, week by week.</p>
+      ) : (
+        <>
+          {s.eaten !== null && <Lead k="Planned food eaten" v={`about ${Math.round(s.eaten * 20) * 5}%`} />}
+          {(s.waste || s.wasteNow) && <Lead k="Food wasted" v={s.wasteNow === WASTE[0] ? 'none lately' : s.waste ? WASTE_WORDS[s.waste] : s.wasteNow!.toLowerCase()} />}
+          {s.oftenHungry !== null && <Lead k="Often hungry" v={`${pct(s.oftenHungry)} of check-ins`} />}
+          {s.prepRight && <Lead k="Prep day felt right" v={`${s.prepRight.yes} of ${s.prepRight.of} weeks`} />}
+          {s.notAgain !== null && <Lead k="Meals marked “Not again”" v={`about ${s.notAgain} a week`} />}
+          <p className="lead-note">Rough figures from your answers, over the last few weeks. They help Remy plan food you’ll actually eat; there’s no score to hit.</p>
+          {weeks
+            .slice(-6)
+            .reverse()
+            .map((w) => (
+              <Lead
+                key={w.week}
+                k={`Week ${w.week}`}
+                wrap
+                v={[w.ate && `ate ${w.ate.toLowerCase()}`, w.waste && WASTE_SHORT[WASTE.indexOf(w.waste)]].filter(Boolean).join(' · ') || w.prep?.toLowerCase()}
+              />
+            ))}
+          <div className="gap-top-lg">
+            <p className="lead-note">
+              <b>Taking part in a pilot?</b> Download these weekly answers as a small file and send it yourself to whoever runs it. It has no name, email, dates, foods or
+              weights, and Remy never sends it anywhere.
+            </p>
+            {canWeight && (
+              <label className="li li-check">
+                <input type="checkbox" checked={withWeight} onChange={(e) => setWithWeight(e.target.checked)} />
+                <div className="grow">
+                  <div className="t">Include the weight direction</div>
+                  <div className="s">Only “down”, “steady” or “up”, never the weights.</div>
+                </div>
+              </label>
+            )}
+            <button type="button" className="btn ghost wide gap-top" onClick={() => actions.downloadPilot(canWeight && withWeight)}>
+              <Icon name="download" size={17} /> Download summary
+            </button>
+          </div>
+        </>
+      )}
     </section>
   );
 }
@@ -264,6 +326,7 @@ export function Nutrition() {
               <b>Sweets:</b> planned and pre-portioned, not earned. A small, satisfying portion you look forward to makes the plan easier to keep.
             </p>
           </section>
+          <Weeks />
           <Progress />
         </div>
       </main>
