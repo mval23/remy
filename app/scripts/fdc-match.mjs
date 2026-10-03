@@ -2,8 +2,11 @@
  * Match Remy's ingredients to USDA FoodData Central (https://fdc.nal.usda.gov), for review by a person.
  *
  *   node scripts/fdc-match.mjs search [key ...]   candidates for each ingredient → scripts/fdc-candidates.md
+ *                                                 (better search words per key can go in scripts/fdc-queries.json)
  *   node scripts/fdc-match.mjs fetch              values for the IDs chosen in scripts/fdc-ids.json → scripts/fdc-review.md
  *                                                 and scripts/fdc-values.json (per 100 g, ready to copy into ingredients.ts)
+ *   node scripts/fdc-match.mjs apply              after a person has reviewed fdc-review.md: copy fdc-values.json
+ *                                                 into ingredients.ts, with each FDC ID and data version as `src`
  *
  * The API key comes from FDC_API_KEY in the environment or in app/.env.local (never committed); without one it
  * uses the public DEMO_KEY, which allows only about 30 requests an hour. Nothing here changes the app's data:
@@ -31,7 +34,7 @@ function apiKey() {
 function ingredients() {
   const src = readFileSync(join(app, 'src/planning/data/ingredients.ts'), 'utf8');
   const out = {};
-  const re = /^ {2}([a-z]+): \{ n: '([^']*)', u: '([^']*)'.*?m: \{ pro: ([\d.]+), carb: ([\d.]+), fat: ([\d.]+), fiber: ([\d.]+) \}(?:, gpu: ([\d.]+))?/gm;
+  const re = /^ {2}([a-z]+): \{ n: '([^']*)', u: '([^']*)'.*?m: \{ pro: ([\d.]+), carb: ([\d.]+), fat: ([\d.]+), fiber: ([\d.]+) \}(?:, src: \{[^}]*\})?(?:, gpu: ([\d.]+))?/gm;
   for (const m of src.matchAll(re)) {
     const [, k, n, u, pro, carb, fat, fiber, gpu] = m;
     out[k] = { n, u, m: { pro: +pro, carb: +carb, fat: +fat, fiber: +fiber }, gpu: gpu ? +gpu : undefined };
@@ -71,11 +74,13 @@ const fmt = (x) => (x === undefined || x === null ? '—' : (Math.round(x * 10) 
 
 async function search(keys) {
   const ing = ingredients();
+  const qfile = join(here, 'fdc-queries.json');
+  const queries = existsSync(qfile) ? JSON.parse(readFileSync(qfile, 'utf8')) : {};
   const lines = ['# FoodData Central candidates', '', 'Pick one FDC ID per ingredient and put it in `scripts/fdc-ids.json`. Values are per 100 g.', ''];
   for (const k of keys.length ? keys : Object.keys(ing)) {
     const g = ing[k];
     if (!g) continue;
-    const q = encodeURIComponent(g.n.replace(/\(.*?\)/g, '').trim());
+    const q = encodeURIComponent(queries[k] ?? g.n.replace(/\(.*?\)/g, '').trim());
     const data = await get(`/foods/search?query=${q}&dataType=Foundation,SR%20Legacy&pageSize=4`);
     const mine = per100(g);
     lines.push(`## ${k}: ${g.n}`, '', `Remy now: ${mine ? `${fmt(mine.pro)} protein, ${fmt(mine.carb)} carbs, ${fmt(mine.fat)} fat, ${fmt(mine.fiber)} fiber` : 'no grams per unit'}`, '');
@@ -114,7 +119,46 @@ async function fetchChosen() {
   console.log(`Wrote scripts/fdc-review.md and scripts/fdc-values.json (${Object.keys(values).length} ingredients)`);
 }
 
+/** 'SR Legacy' + '4/1/2019' → 'FDC SR Legacy 2019-04'. */
+function versionOf(v) {
+  const [m, , y] = String(v.publicationDate ?? '').split('/');
+  return `FDC ${v.dataType}${y ? ` ${y}-${m.padStart(2, '0')}` : ''}`;
+}
+
+/**
+ * Copy the reviewed values in scripts/fdc-values.json into src/planning/data/ingredients.ts, with their source.
+ * Values per 100 g for g and ml; per unit (× grams per unit) for counted items. A nutrient FoodData Central leaves
+ * out (often fiber in Foundation foods) keeps Remy's value.
+ */
+function apply() {
+  const file = join(app, 'src/planning/data/ingredients.ts');
+  let src = readFileSync(file, 'utf8');
+  const ing = ingredients();
+  const values = JSON.parse(readFileSync(join(here, 'fdc-values.json'), 'utf8'));
+  let n = 0;
+  for (const [k, v] of Object.entries(values)) {
+    const g = ing[k];
+    if (!g) continue;
+    const perUnit = !(g.u === 'g' || g.u === 'ml');
+    if (perUnit && !g.gpu) continue;
+    const f = perUnit ? g.gpu / 100 : 1;
+    const dp = perUnit ? 100 : 10;
+    const val = (name) => {
+      const x = v.per100[name];
+      return x === undefined ? g.m[name] : Math.round(Math.max(0, x) * f * dp) / dp;
+    };
+    const m = `m: { pro: ${val('pro')}, carb: ${val('carb')}, fat: ${val('fat')}, fiber: ${val('fiber')} }, src: { kind: 'fdc', id: '${v.id}', version: '${versionOf(v)}' }`;
+    const line = new RegExp(`^( {2}${k}: \\{.*?)m: \\{[^}]*\\}(?:, src: \\{[^}]*\\})?`, 'm');
+    if (!line.test(src)) continue;
+    src = src.replace(line, `$1${m}`);
+    n++;
+  }
+  writeFileSync(file, src);
+  console.log(`Updated ${n} ingredients in src/planning/data/ingredients.ts`);
+}
+
 const [cmd, ...rest] = process.argv.slice(2);
 if (cmd === 'search') await search(rest);
 else if (cmd === 'fetch') await fetchChosen();
-else console.log('Usage: node scripts/fdc-match.mjs search [key ...] | fetch');
+else if (cmd === 'apply') apply();
+else console.log('Usage: node scripts/fdc-match.mjs search [key ...] | fetch | apply');

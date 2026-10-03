@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BottomNav, Header } from '../components/Chrome';
-import { Lead, Leader, LeadLink, Mast, SecHead } from '../components/Dish';
+import { ChefNote, Lead, Leader, LeadLink, Mast, SecHead } from '../components/Dish';
+import { NUTRITION_DATA } from '../planning/data/version';
 import { Icon } from '../components/Icon';
 import { allRatings, listText } from '../interview/helpers';
 import { FOODS } from '../interview/questions';
@@ -187,6 +188,16 @@ export function Nutrition() {
           their numbers below.
         </p>
         {balanced < 7 && <p className="hint center-hint">Balancing adds sides from foods you accept. Each one can be removed in the planner.</p>}
+        {planState.nutritionData !== NUTRITION_DATA && (
+          <ChefNote kicker="Numbers updated" icon="info">
+            <p>Ingredient numbers now come from USDA data. Your meals didn’t change; calories and protein may read a little differently.</p>
+            <div className="row">
+              <button type="button" className="btn sm soft" onClick={actions.ackNutritionData}>
+                Got it
+              </button>
+            </div>
+          </ChefNote>
+        )}
         {!on && (
           <div className="warnline">
             <Icon name="info" size={16} />

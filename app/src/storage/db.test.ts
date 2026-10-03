@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { fillWithSamples } from '../interview/engine';
 import { emptyInterview } from '../interview/types';
 import { emptyBody } from '../planning/energy';
-import { deleteEverything, loadHealth, loadInterview, loadStamps, saveHealth, saveInterview } from './db';
+import { NUTRITION_DATA } from '../planning/data/version';
+import { db, deleteEverything, loadHealth, loadInterview, loadPlanState, loadStamps, saveHealth, saveInterview } from './db';
+import { emptyPlanState } from './planState';
 
 describe('on-device storage', () => {
   it('starts empty, saves, reloads and deletes', async () => {
@@ -13,6 +15,14 @@ describe('on-device storage', () => {
     expect(await loadInterview()).toEqual(s);
     await deleteEverything();
     expect(await loadInterview()).toEqual(emptyInterview());
+  });
+
+  it('starts a plan on the current nutrition data, and marks a week saved before data versions', async () => {
+    expect((await loadPlanState()).nutritionData).toBe(NUTRITION_DATA);
+    const { nutritionData: _v, ...old } = { ...emptyPlanState(), plan: [] };
+    await db.kv.put({ id: 'plan', value: old });
+    expect((await loadPlanState()).nutritionData).toBe('');
+    await deleteEverything();
   });
 
   it('keeps the estimate details in their own row, with no sync change time, and deletes them with everything', async () => {

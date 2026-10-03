@@ -45,11 +45,23 @@ export function macrosOf(ing: [string, number][], serves: number): Macros {
   };
 }
 
+/** Calories of one ingredient amount, unrounded. */
+function kcalIn(k: string, q: number): number {
+  const g = ING[k];
+  if (!g?.m) return 0;
+  const per = g.u === 'g' || g.u === 'ml' ? q / 100 : q;
+  return kcalOf(g.m.pro * per, g.m.carb * per, g.m.fat * per, g.m.fiber * per);
+}
+
 /**
- * Where a recipe's numbers come from: 'matched' when every ingredient has a FoodData Central or label source,
- * otherwise 'estimated' (Remy's rough values).
+ * Where a recipe's numbers come from: 'matched' when every ingredient that adds 5% or more of its calories has a
+ * FoodData Central or label source (a squeeze of lime or a pinch of salt doesn't change that), otherwise
+ * 'estimated' (Remy's rough values).
  */
-export const nutritionSource = (ing: [string, number][]): 'matched' | 'estimated' => (ing.every(([k]) => ING[k]?.src) ? 'matched' : 'estimated');
+export function nutritionSource(ing: [string, number][]): 'matched' | 'estimated' {
+  const total = ing.reduce((s, [k, q]) => s + kcalIn(k, q), 0);
+  return ing.every(([k, q]) => ING[k]?.src || kcalIn(k, q) < 0.05 * total) ? 'matched' : 'estimated';
+}
 
 /** Macros as screens show them: day and meal totals may not carry fiber yet. */
 export type MacroShown = Omit<Macros, 'fiber'> & { fiber?: number };

@@ -44,6 +44,7 @@ import {
 } from './storage/db';
 import { stampAnswers, stampMeals } from './sync/merge';
 import { useSync } from './sync/useSync';
+import { NUTRITION_DATA } from './planning/data/version';
 import { pilotFile, PILOT_FILE_NAME } from './learning/pilot';
 
 export type Screen =
@@ -611,6 +612,8 @@ function useRemyState(initial: Initial) {
 
     /* ---------- nutrition ---------- */
     setEstimates: (on: boolean) => setPlanState((s) => ({ ...s, nutrition: { ...s.nutrition, nums: on } })),
+    /** The person has seen that the nutrition numbers were updated (`NUTRITION_DATA`). */
+    ackNutritionData: () => setPlanState((s) => ({ ...s, nutritionData: NUTRITION_DATA })),
     /** Update the details for the optional estimate (kept on this device unless body-detail sync is on). */
     setBody: (b: Partial<BodyProfile>) => setHealth((h) => ({ ...h, ...b, updatedAt: Date.now() })),
     /**
